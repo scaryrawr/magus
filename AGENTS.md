@@ -22,12 +22,10 @@
 - Monorepo: apps in `apps/*`, packages in `packages/*` managed by Lage build orchestration
 - Providers implement `MagusProvider` interface with `model()` and `models()` methods
 - Server composition via `createServer({ providers, model })` pattern
-- Ink components use `useRawStdin()` for keyboard input handling
 - Streaming via `ai` package with `streamText` and UI-compatible responses
 
 ## Key Rules from Copilot Instructions
 
-- Always call `useRawStdin()` at top of Ink components needing keyboard input
 - Use version catalogs in package.json dependencies
 - Filter embeddings models from provider discovery
 - Server listens on random port, apps read `server.url` for client connections

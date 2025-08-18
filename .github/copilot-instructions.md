@@ -6,7 +6,7 @@
 - Example app: terminal UI chat client at `apps/magus/src/index.tsx` (Ink + React). It renders a chat UI and talks to a local HTTP server using `@ai-sdk/react`.
 - The app spins up an embedded HTTP server via `@magus/server` (`packages/server`), built on Hono + `ai`. Provided route: POST `/api/chat` (apps can add more).
 - Providers live in `packages/providers` and implement `MagusProvider` (LM Studio and Ollama today). They use `@ai-sdk/openai-compatible` and typed Zod parsing for model discovery.
-- Ink helpers live in `packages/ink-ext` (e.g., `ScrollArea`, `useRawStdin`).
+- Ink helpers live in `packages/ink-ext` (e.g., `ScrollArea`).
 
 ## How things talk
 
@@ -32,7 +32,7 @@
 - Provider discovery examples:
   - LM Studio: GET `${origin}/api/v0/models` parsed by `LmStudioModelInfoSchema`; filter out `type === 'embeddings'`.
   - Ollama: GET `${origin}/api/tags`, then POST `${origin}/api/show` per model; read `${arch}.context_length` with fallback.
-- Ink input: components may use `useInput`/`useFocus`. If you need raw key mode (e.g., some environments), call `useRawStdin()` once at app root.
+- Ink input: components may use `useInput`/`useFocus`.
 
 ## Integration details
 

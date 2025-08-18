@@ -1,0 +1,33 @@
+{
+  "name": "@magus/ink-ext",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run --passWithNoTests"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@vitest/ui": "^3.2.4",
+    "ink-testing-library": "^4.0.0",
+    "ts-node": "^10",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "peerDependencies": {
+    "ink": "^6.2.0",
+    "react": "^19.1.1",
+    "typescript": "^5.9.2"
+  },
+  "files": [
+    "dist"
+  ]
+}

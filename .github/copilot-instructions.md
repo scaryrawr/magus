@@ -52,5 +52,5 @@
 
 - Ensure LM Studio or Ollama is running locally at the expected origin before chatting; otherwise `/api/chat` fails on model invocation.
 - Single React/Ink instance: rely on workspace deps; app bundling (Rollup) avoids duplicate React. Keep Node built-ins external (see `rollup.config.js`).
-- Jest is ESM-configured per package (`ts-jest` preset); path mapping strips `.js` in TS imports (see `jest.config.js`).
+- vitest is ESM-configured per package
 - The app exits on `/exit`; remember to call `stop()` on the returned server handle.

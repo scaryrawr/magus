@@ -12,7 +12,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "test:coverage": "vitest run --coverage --passWithNoTests"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",

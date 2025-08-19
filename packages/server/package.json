@@ -13,7 +13,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "test:coverage": "vitest run --coverage --passWithNoTests"
   },
   "dependencies": {
     "@hono/node-server": "^1.18.2",

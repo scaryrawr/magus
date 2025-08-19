@@ -48,5 +48,269 @@ jobs:
       - name: Run tests
         run: yarn test
 
+      - name: Run tests with coverage
+        run: yarn test:coverage:merged
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage/coverage-final.json
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Coverage Summary
+        id: coverage-summary
+        run: |
+          # Extract coverage percentages from the JSON report
+          COVERAGE_JSON="./coverage/coverage-final.json"
+          if [ -f "$COVERAGE_JSON" ]; then
+            # Calculate overall coverage percentages
+            STMT_COVERED=$(node -e "
+              const fs = require('fs');
+              const coverage = JSON.parse(fs.readFileSync('$COVERAGE_JSON'));
+              let totalStmts = 0, coveredStmts = 0;
+              Object.values(coverage).forEach(file => {
+                if (file.s) {
+                  Object.values(file.s).forEach(count => {
+                    totalStmts++;
+                    if (count > 0) coveredStmts++;
+                  });
+                }
+              });
+              console.log(totalStmts > 0 ? ((coveredStmts / totalStmts) * 100).toFixed(2) : '0');
+            ")
+            
+            BRANCH_COVERED=$(node -e "
+              const fs = require('fs');
+              const coverage = JSON.parse(fs.readFileSync('$COVERAGE_JSON'));
+              let totalBranches = 0, coveredBranches = 0;
+              Object.values(coverage).forEach(file => {
+                if (file.b) {
+                  Object.values(file.b).forEach(branches => {
+                    if (Array.isArray(branches)) {
+                      branches.forEach(count => {
+                        totalBranches++;
+                        if (count > 0) coveredBranches++;
+                      });
+                    }
+                  });
+                }
+              });
+              console.log(totalBranches > 0 ? ((coveredBranches / totalBranches) * 100).toFixed(2) : '0');
+            ")
+            
+            FUNC_COVERED=$(node -e "
+              const fs = require('fs');
+              const coverage = JSON.parse(fs.readFileSync('$COVERAGE_JSON'));
+              let totalFuncs = 0, coveredFuncs = 0;
+              Object.values(coverage).forEach(file => {
+                if (file.f) {
+                  Object.values(file.f).forEach(count => {
+                    totalFuncs++;
+                    if (count > 0) coveredFuncs++;
+                  });
+                }
+              });
+              console.log(totalFuncs > 0 ? ((coveredFuncs / totalFuncs) * 100).toFixed(2) : '0');
+            ")
+            
+            echo "statements=$STMT_COVERED" >> $GITHUB_OUTPUT
+            echo "branches=$BRANCH_COVERED" >> $GITHUB_OUTPUT
+            echo "functions=$FUNC_COVERED" >> $GITHUB_OUTPUT
+            echo "coverage-exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "coverage-exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate coverage summary file
+        if: steps.coverage-summary.outputs.coverage-exists == 'true'
+        run: |
+          cat > coverage/coverage-summary.md << EOF
+          # Coverage Summary
+
+          **Generated:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")  
+          **Commit:** \`${{ github.sha }}\`  
+          **Branch:** \`${{ github.ref_name }}\`
+
+          ## Overall Coverage
+
+          | Metric | Percentage |
+          |--------|------------|
+          | Statements | ${{ steps.coverage-summary.outputs.statements }}% |
+          | Branches | ${{ steps.coverage-summary.outputs.branches }}% |
+          | Functions | ${{ steps.coverage-summary.outputs.functions }}% |
+
+          ## Coverage by Package
+
+          Run \`yarn test:coverage:merged\` locally to see detailed per-package coverage.
+
+          ## Files
+
+          - 📊 [Interactive HTML Report](./index.html)
+          - 📄 [JSON Report](./coverage-final.json)
+          EOF
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        if: steps.coverage-summary.outputs.coverage-exists == 'true'
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
+      - name: Get base branch coverage (for PR comparison)
+        id: base-coverage
+        if: github.event_name == 'pull_request'
+        run: |
+          # Save current coverage
+          cp coverage/coverage-final.json coverage-pr.json || echo "No PR coverage file"
+
+          # Fetch and checkout base branch
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+          git checkout origin/${{ github.event.pull_request.base.ref }}
+
+          # Install dependencies and run coverage on base branch
+          yarn install --immutable
+          yarn test:coverage:merged || echo "Base coverage failed"
+
+          if [ -f "./coverage/coverage-final.json" ]; then
+            # Calculate base coverage
+            BASE_STMT_COVERED=$(node -e "
+              const fs = require('fs');
+              const coverage = JSON.parse(fs.readFileSync('./coverage/coverage-final.json'));
+              let totalStmts = 0, coveredStmts = 0;
+              Object.values(coverage).forEach(file => {
+                if (file.s) {
+                  Object.values(file.s).forEach(count => {
+                    totalStmts++;
+                    if (count > 0) coveredStmts++;
+                  });
+                }
+              });
+              console.log(totalStmts > 0 ? ((coveredStmts / totalStmts) * 100).toFixed(2) : '0');
+            ")
+            echo "base-statements=$BASE_STMT_COVERED" >> $GITHUB_OUTPUT
+            echo "has-base-coverage=true" >> $GITHUB_OUTPUT
+            
+            # Save base coverage for comparison
+            cp coverage/coverage-final.json coverage-base.json
+          else
+            echo "has-base-coverage=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Switch back to PR branch
+          git checkout ${{ github.sha }}
+
+          # Restore PR coverage if it exists
+          if [ -f "coverage-pr.json" ]; then
+            mkdir -p coverage
+            cp coverage-pr.json coverage/coverage-final.json
+          fi
+
+      - name: Comment PR with coverage
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request' && steps.coverage-summary.outputs.coverage-exists == 'true'
+        with:
+          script: |
+            const stmtCoverage = '${{ steps.coverage-summary.outputs.statements }}';
+            const branchCoverage = '${{ steps.coverage-summary.outputs.branches }}';
+            const funcCoverage = '${{ steps.coverage-summary.outputs.functions }}';
+            const baseCoverage = '${{ steps.base-coverage.outputs.base-statements }}';
+            const hasBaseCoverage = '${{ steps.base-coverage.outputs.has-base-coverage }}' === 'true';
+
+            // Determine coverage status emoji
+            const getCoverageEmoji = (coverage) => {
+              const pct = parseFloat(coverage);
+              if (pct >= 80) return '🟢';
+              if (pct >= 60) return '🟡';
+              return '🔴';
+            };
+
+            // Calculate coverage change
+            let coverageChangeText = '';
+            if (hasBaseCoverage && baseCoverage) {
+              const change = parseFloat(stmtCoverage) - parseFloat(baseCoverage);
+              const changeSymbol = change > 0 ? '📈' : change < 0 ? '📉' : '➡️';
+              const changeText = change > 0 ? `+${change.toFixed(2)}%` : `${change.toFixed(2)}%`;
+              coverageChangeText = `\n\n${changeSymbol} **Coverage Change:** ${changeText} (was ${baseCoverage}%)`;
+            }
+
+            const body = `## 📊 Coverage Report
+
+            | Type | Coverage | Status |
+            |------|----------|--------|
+            | **Statements** | ${stmtCoverage}% | ${getCoverageEmoji(stmtCoverage)} |
+            | **Branches** | ${branchCoverage}% | ${getCoverageEmoji(branchCoverage)} |
+            | **Functions** | ${funcCoverage}% | ${getCoverageEmoji(funcCoverage)} |
+
+            📈 **Overall Project Coverage: ${stmtCoverage}%**${coverageChangeText}
+
+            <details>
+            <summary>📝 Coverage Guidelines</summary>
+
+            - 🟢 **Good**: ≥80% coverage
+            - 🟡 **Okay**: 60-79% coverage  
+            - 🔴 **Needs Work**: <60% coverage
+
+            Coverage reports are available in the [workflow artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+            </details>
+
+            ---
+            *Coverage calculated from all packages in the monorepo*`;
+
+            // Find existing coverage comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existingComment = comments.find(comment => 
+              comment.user.login === 'github-actions[bot]' && 
+              comment.body.includes('📊 Coverage Report')
+            );
+
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Generate coverage badge
+        if: github.ref == 'refs/heads/main' && steps.coverage-summary.outputs.coverage-exists == 'true'
+        run: |
+          COVERAGE=${{ steps.coverage-summary.outputs.statements }}
+
+          # Determine badge color based on coverage percentage using node
+          COLOR=$(node -e "
+            const coverage = parseFloat('$COVERAGE');
+            if (coverage >= 80) console.log('brightgreen');
+            else if (coverage >= 60) console.log('yellow');
+            else console.log('red');
+          ")
+
+          # Create coverage badge URL
+          BADGE_URL="https://img.shields.io/badge/coverage-${COVERAGE}%25-${COLOR}"
+          echo "Badge URL: $BADGE_URL"
+
+          # Save badge info for potential README update
+          echo "COVERAGE_BADGE_URL=$BADGE_URL" >> $GITHUB_ENV
+          echo "COVERAGE_PERCENTAGE=$COVERAGE" >> $GITHUB_ENV
+
       - name: Build project
         run: yarn build

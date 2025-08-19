@@ -3,6 +3,7 @@ module.exports = {
   pipeline: {
     build: ["^build"],
     test: ["build"],
+    "test:coverage": ["build"],
     lint: [],
     format: [],
     dev: ["build"],

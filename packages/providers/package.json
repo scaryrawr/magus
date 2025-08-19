@@ -14,7 +14,8 @@
   "scripts": {
     "dev": "node --loader ts-node/esm src/index.ts",
     "build": "tsc",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "test:coverage": "vitest run --coverage --passWithNoTests"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^1.0.7",

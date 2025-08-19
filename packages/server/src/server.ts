@@ -1,25 +1,26 @@
-import { type LanguageModel, type UIMessage, convertToModelMessages, streamText } from "ai";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
-import type { MagusProvider } from "@magus/providers";
+import { type EndpointRegistrar, type ServerState } from "./types.js";
+import { createChatEndpoint } from "./chat.js";
 
-export interface ServerState {
-  providers: readonly MagusProvider[];
-  model: LanguageModel;
+export interface ServerConfig extends ServerState {
+  endpoints?: readonly EndpointRegistrar[];
 }
 
-export const createServer = (initialState: ServerState) => {
+export const createServer = (config: ServerConfig) => {
   const app = new Hono();
-  const state: ServerState = { ...initialState };
+  const state: ServerState = {
+    providers: config.providers,
+    model: config.model,
+  };
 
-  app.post("/api/chat", async (c) => {
-    const { messages }: { messages: UIMessage[] } = await c.req.json();
-    const result = streamText({
-      messages: convertToModelMessages(messages),
-      model: state.model,
-    });
-    return result.toUIMessageStreamResponse();
-  });
+  const defaultEndpoints = [createChatEndpoint];
+
+  // Register endpoints
+  const endpoints = config.endpoints ? [...defaultEndpoints, ...config.endpoints] : defaultEndpoints;
+  for (const registerEndpoint of endpoints) {
+    registerEndpoint(app, state);
+  }
 
   return {
     listen: () => {

@@ -83,6 +83,7 @@ export const createOllamaProvider = ({ origin = "http://localhost:11434" }: Olla
   });
 
   return {
+    name: "ollama",
     model: (id: string) => ollama(id),
     models: async (): Promise<ModelInfo[]> => {
       const response = await fetch(`${origin}/api/tags`);

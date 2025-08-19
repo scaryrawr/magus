@@ -2,7 +2,7 @@ import { Box, Text, render, useApp, useStdout } from "ink";
 import { useCallback, useState } from "react";
 import { DefaultChatTransport } from "ai";
 import TextInput from "ink-text-input";
-import { createLmStudioProvider } from "@magus/providers";
+import { createLmStudioProvider, createOllamaProvider } from "@magus/providers";
 import { createServer } from "@magus/server";
 import { useChat } from "@ai-sdk/react";
 import { ScrollArea } from "@magus/ink-ext";
@@ -16,7 +16,7 @@ const Chat = ({ baseUrl, onExit }: ChatProps) => {
   const { exit } = useApp();
   const { sendMessage, messages } = useChat({
     transport: new DefaultChatTransport({
-      api: `${baseUrl}api/chat`,
+      api: `${baseUrl}v0/chat`,
     }),
   });
 
@@ -58,10 +58,10 @@ const Chat = ({ baseUrl, onExit }: ChatProps) => {
   );
 };
 
-const lmstudio = createLmStudioProvider();
+const providers = [createLmStudioProvider(), createOllamaProvider()];
 const service = createServer({
-  providers: [lmstudio],
-  model: lmstudio.model("openai/gpt-oss-20b"),
+  providers,
+  model: providers[0].model("openai/gpt-oss-20b"),
 });
 
 const server = service.listen();

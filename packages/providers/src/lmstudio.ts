@@ -27,6 +27,7 @@ export const createLmStudioProvider = ({ origin = "http://localhost:1234" }: LmS
   });
 
   return {
+    name: "lmstudio",
     model: (id: string) => lmstudio(id),
     models: async () => {
       const response = await fetch(`${origin}/api/v0/models`);

@@ -107,6 +107,14 @@ a.secondary {
   flex-shrink: 0;
 }
 
+.serverInfo {
+  margin-top: 16px;
+}
+
+.error {
+  color: #c00;
+}
+
 /* Enable hover only on non-touch devices */
 @media (hover: hover) and (pointer: fine) {
   a.primary:hover {

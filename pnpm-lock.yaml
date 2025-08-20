@@ -145,6 +145,12 @@ importers:
 
   apps/magusex:
     dependencies:
+      '@magus/providers':
+        specifier: workspace:*
+        version: link:../../packages/providers
+      '@magus/server':
+        specifier: workspace:*
+        version: link:../../packages/server
       next:
         specifier: ^15.5.0
         version: 15.5.0(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)

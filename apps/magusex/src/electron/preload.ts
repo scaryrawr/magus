@@ -1,6 +1,14 @@
-// Expose safe APIs to the renderer via contextBridge if needed
-import { contextBridge } from "electron";
+// Expose safe APIs to the renderer via contextBridge
+import { contextBridge, ipcRenderer } from "electron";
 
-contextBridge.exposeInMainWorld("electronAPI", {
-  // add bridged methods here later
-});
+type ServerInfo = {
+  url: string;
+};
+
+const api = {
+  getServerInfo: async (): Promise<ServerInfo> => {
+    return ipcRenderer.invoke("magus:getServerInfo");
+  },
+};
+
+contextBridge.exposeInMainWorld("electronAPI", api);

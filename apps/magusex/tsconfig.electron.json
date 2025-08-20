@@ -1,19 +1,16 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "lib": [
-      "ES2022",
+      "ESNext",
       "DOM"
     ],
-    "module": "CommonJS",
-    "moduleResolution": "Node",
     "rootDir": "src/electron",
     "outDir": "dist",
     "strict": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
     "sourceMap": true,
     "noEmit": false,
     "types": [

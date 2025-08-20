@@ -9,8 +9,7 @@
   "scripts": {
     "start": "node dist/index.js",
     "build": "rollup -c",
-    "test": "vitest run --passWithNoTests",
-    "dev": "node --loader ts-node/esm src/index.tsx"
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@ai-sdk/react": "^2.0.0",

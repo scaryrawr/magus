@@ -9,7 +9,8 @@
     "test:coverage": "lage test:coverage",
     "test:coverage:merged": "vitest run --coverage",
     "lint": "lage lint",
-    "format": "lage format"
+    "format": "lage format",
+    "start": "lage start"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",

@@ -7,6 +7,7 @@ module.exports = {
     lint: [],
     format: [],
     dev: ["build"],
+    start: ["build"],
   },
   cache: true,
   cacheOptions: {

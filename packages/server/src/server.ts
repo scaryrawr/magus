@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { type EndpointRegistrar, type ServerState } from "./types.js";
 import { createChatEndpoint } from "./chat.js";
+import { createModelsEndpoint } from "./models.js";
 
 export interface ServerConfig extends ServerState {
   endpoints?: readonly EndpointRegistrar[];
@@ -14,7 +15,7 @@ export const createServer = (config: ServerConfig) => {
     model: config.model,
   };
 
-  const defaultEndpoints = [createChatEndpoint];
+  const defaultEndpoints = [createChatEndpoint, createModelsEndpoint];
 
   // Register endpoints
   const endpoints = config.endpoints ? [...defaultEndpoints, ...config.endpoints] : defaultEndpoints;

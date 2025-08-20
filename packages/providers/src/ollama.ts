@@ -54,7 +54,7 @@ export const OllamaShowSchema = z.object({
     }),
   modelfile: z.string(),
   modified_at: z.string(),
-  parameters: z.string(),
+  parameters: z.optional(z.string()),
   template: z.string(),
   tensors: z.optional(
     z.array(
@@ -96,7 +96,8 @@ export const createOllamaProvider = ({ origin = "http://localhost:11434" }: Olla
             method: "POST",
           });
 
-          const info: OllamaShow = OllamaShowSchema.parse(await modelResponse.json());
+          const data = await modelResponse.json();
+          const info: OllamaShow = OllamaShowSchema.parse(data);
 
           return {
             context_length:

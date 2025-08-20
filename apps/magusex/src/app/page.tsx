@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import styles from "./page.module.css";
-import { useServerInfo } from "../lib/useServerInfo";
+import { useServerInfo } from "./hooks/useServerInfo";
 
 export default function Home() {
   const { url, error } = useServerInfo();

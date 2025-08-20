@@ -26,16 +26,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24"
-          cache: "yarn"
+          cache: "pnpm"
 
       - name: Install dependencies
-        run: yarn install --immutable
+        run: pnpm install --frozen-lockfile
 
       - name: Check formatting
         run: |
-          yarn format
+          pnpm format
           if ! git diff --exit-code; then
-            echo "❌ Code is not properly formatted. Please run 'yarn format' and commit the changes."
+            echo "❌ Code is not properly formatted. Please run 'pnpm format' and commit the changes."
             git diff
             exit 1
           else
@@ -43,13 +43,13 @@ jobs:
           fi
 
       - name: Run linting
-        run: yarn lint
+        run: pnpm lint
 
       - name: Run tests
-        run: yarn test
+        run: pnpm test
 
       - name: Run tests with coverage
-        run: yarn test:coverage:merged
+        run: pnpm test:coverage:merged
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
@@ -173,8 +173,8 @@ jobs:
           git checkout origin/${{ github.event.pull_request.base.ref }}
 
           # Install dependencies and run coverage on base branch
-          yarn install --immutable
-          yarn test:coverage:merged || echo "Base coverage failed"
+          pnpm install --frozen-lockfile
+          pnpm test:coverage:merged || echo "Base coverage failed"
 
           if [ -f "./coverage/coverage-final.json" ]; then
             # Calculate base coverage
@@ -313,4 +313,4 @@ jobs:
           echo "COVERAGE_PERCENTAGE=$COVERAGE" >> $GITHUB_ENV
 
       - name: Build project
-        run: yarn build
+        run: pnpm build

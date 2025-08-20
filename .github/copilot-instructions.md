@@ -2,7 +2,7 @@
 
 ## Big picture
 
-- Yarn Berry monorepo orchestrated by Lage. Workspaces live in `apps/*` and `packages/*` (see root `package.json`).
+- pnpm monorepo orchestrated by Lage. Workspaces live in `apps/*` and `packages/*` (see root `package.json`).
 - Example app: terminal UI chat client at `apps/magus/src/index.tsx` (Ink + React). It renders a chat UI and talks to a local HTTP server using `@ai-sdk/react`.
 - The app spins up an embedded HTTP server via `@magus/server` (`packages/server`), built on Hono + `ai`. Provided route: POST `/api/chat` (apps can add more).
 - Providers live in `packages/providers` and implement `MagusProvider` (LM Studio and Ollama today). They use `@ai-sdk/openai-compatible` and typed Zod parsing for model discovery.
@@ -14,13 +14,13 @@
 2. UI uses `DefaultChatTransport` with `api: ${baseUrl}api/chat` to send `useChat` messages.
 3. `packages/server/src/server.ts` handles `/api/chat`: converts UI messages, calls `streamText`, and returns `toUIMessageStreamResponse()`.
 
-## Dev workflow (Yarn + Lage)
+## Dev workflow (pnpm + Lage)
 
-- Install: `yarn install`
-- Run app: `yarn dev` (root) or `cd apps/magus && yarn dev` (uses ts-node). The app prints `server.url` and connects to `/api/chat`.
-- Tests: `yarn test` (Lage runs package tests). Example: provider schemas in `packages/providers/src/*.test.ts`.
-- Lint/format: `yarn lint`, `yarn format` (ESLint flat config + Prettier).
-- Build: `yarn build` (all). App bundling: `yarn workspace @magus/magus build` (Rollup to `dist/index.js`).
+- Install: `pnpm install`
+- Run app: `pnpm dev` (root) or `cd apps/magus && pnpm dev` (uses ts-node). The app prints `server.url` and connects to `/api/chat`.
+- Tests: `pnpm test` (Lage runs package tests). Example: provider schemas in `packages/providers/src/*.test.ts`.
+- Lint/format: `pnpm lint`, `pnpm format` (ESLint flat config + Prettier).
+- Build: `pnpm build` (all). App bundling: `pnpm workspace @magus/magus build` (Rollup to `dist/index.js`).
 
 ## Conventions and patterns
 

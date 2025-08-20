@@ -1,11 +1,7 @@
 {
   "name": "@magus/mono",
   "private": true,
-  "packageManager": "yarn@4.9.2",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "packageManager": "pnpm@9.15.3",
   "scripts": {
     "dev": "lage dev --to @magus/magus",
     "build": "lage build",

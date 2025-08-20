@@ -1,4 +1,4 @@
-# dependencies (installed via Yarn/Bun/npm)
+# dependencies (installed via pnpm/Bun/npm)
 node_modules
 
 # output
@@ -44,6 +44,9 @@ report.*.json
 .yarn/install-state.gz
 .pnp.*
 .pnp.loader.mjs
+# pnpm specific
+.pnpm-debug.log*
+.pnpm
 
 # Lage / Backfill caches
 .backfill/

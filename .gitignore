@@ -31,6 +31,15 @@ report.*.json
 .cache
 *.tsbuildinfo
 
+# Next.js
+# Build output and caches
+.next
+.turbo
+# Vercel project settings directory
+.vercel
+# Ensure Next.js type shim stays tracked
+!**/next-env.d.ts
+
 # Yarn Berry (v2+)
 # Ignore everything in .yarn except the releaseable metadata
 .yarn/*

@@ -1,5 +1,6 @@
 import z from "zod";
-import type { EndpointRegistrar } from "./types.js";
+import { Hono } from "hono";
+import type { EndpointRegistrar, RouterFactory } from "./types.js";
 
 export const ModelSelectSchema = z.object({
   provider: z.string(),
@@ -8,8 +9,9 @@ export const ModelSelectSchema = z.object({
 
 export type ModelSelect = z.infer<typeof ModelSelectSchema>;
 
-export const createModelsEndpoint: EndpointRegistrar = (app, state) => {
-  app.get("/v0/models", async (c) => {
+export const modelsRouter: RouterFactory = (state) => {
+  const router = new Hono();
+  router.get("/models", async (c) => {
     const models: ModelSelect[] = (
       await Promise.all(
         state.providers.map(async (provider) =>
@@ -24,7 +26,7 @@ export const createModelsEndpoint: EndpointRegistrar = (app, state) => {
     return c.json(models);
   });
 
-  app.get("/v0/model", async (c) => {
+  router.get("/model", async (c) => {
     const model = state.model;
     if (typeof model === "string") {
       return c.text("No model selected", 500);
@@ -36,7 +38,7 @@ export const createModelsEndpoint: EndpointRegistrar = (app, state) => {
     });
   });
 
-  app.get("/v0/model/:provider/:id", async (c) => {
+  router.get("/model/:provider/:id", async (c) => {
     const providerId = c.req.param("provider");
     const modelId = c.req.param("id");
     const provider = state.providers.find((p) => p.name === providerId);
@@ -53,7 +55,7 @@ export const createModelsEndpoint: EndpointRegistrar = (app, state) => {
     return c.json(model);
   });
 
-  app.post("/v0/model", async (c) => {
+  router.post("/model", async (c) => {
     const selection: ModelSelect = ModelSelectSchema.parse(await c.req.json());
     const provider = state.providers.find((p) => p.name === selection.provider);
     if (!provider) {
@@ -64,5 +66,7 @@ export const createModelsEndpoint: EndpointRegistrar = (app, state) => {
     return c.text("", 200);
   });
 
-  return app;
+  return router;
 };
+
+export const createModelsEndpoint: EndpointRegistrar = (app, state) => app.route("/v0", modelsRouter(state));

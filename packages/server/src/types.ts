@@ -8,3 +8,6 @@ export interface ServerState {
 }
 
 export type EndpointRegistrar = (app: Hono, state: ServerState) => Hono;
+
+// Preferred: build routers and mount them with `app.route(base, router)`
+export type RouterFactory = (state: ServerState) => Hono;

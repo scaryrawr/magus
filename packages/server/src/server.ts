@@ -1,11 +1,14 @@
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
-import { type EndpointRegistrar, type ServerState } from "./types.js";
-import { createChatEndpoint } from "./chat.js";
-import { createModelsEndpoint } from "./models.js";
+import { type EndpointRegistrar, type RouterFactory, type ServerState } from "./types.js";
+import { chatRouter } from "./chat.js";
+import { modelsRouter } from "./models.js";
 
 export interface ServerConfig extends ServerState {
+  // Back-compat: custom registrar functions; will be deprecated
   endpoints?: readonly EndpointRegistrar[];
+  // Preferred: Hono routers to mount under /v0
+  routers?: readonly RouterFactory[];
 }
 
 export const createServer = (config: ServerConfig) => {
@@ -15,12 +18,18 @@ export const createServer = (config: ServerConfig) => {
     model: config.model,
   };
 
-  const defaultEndpoints = [createChatEndpoint, createModelsEndpoint];
+  // Default routers mounted with best-practice `route()`
+  const defaultRouters: RouterFactory[] = [chatRouter, modelsRouter];
+  const routers: RouterFactory[] = config.routers ? [...defaultRouters, ...config.routers] : defaultRouters;
+  for (const makeRouter of routers) {
+    app.route("/v0", makeRouter(state));
+  }
 
-  // Register endpoints
-  const endpoints = config.endpoints ? [...defaultEndpoints, ...config.endpoints] : defaultEndpoints;
-  for (const registerEndpoint of endpoints) {
-    registerEndpoint(app, state);
+  // Back-compat: still allow endpoints registrars to mutate app directly
+  if (config.endpoints && config.endpoints.length > 0) {
+    for (const registerEndpoint of config.endpoints) {
+      registerEndpoint(app, state);
+    }
   }
 
   return {

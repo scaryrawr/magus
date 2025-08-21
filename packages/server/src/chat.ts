@@ -1,8 +1,11 @@
 import { type UIMessage, convertToModelMessages, streamText } from "ai";
-import type { EndpointRegistrar } from "./types.js";
+import { Hono } from "hono";
+import type { EndpointRegistrar, RouterFactory } from "./types.js";
 
-export const createChatEndpoint: EndpointRegistrar = (app, state) => {
-  app.post("/v0/chat", async (c) => {
+// New: Router factory for mounting under a base path
+export const chatRouter: RouterFactory = (state) => {
+  const router = new Hono();
+  router.post("/chat", async (c) => {
     const { messages }: { messages: UIMessage[] } = await c.req.json();
     const result = streamText({
       messages: convertToModelMessages(messages),
@@ -10,6 +13,10 @@ export const createChatEndpoint: EndpointRegistrar = (app, state) => {
     });
     return result.toUIMessageStreamResponse();
   });
+  return router;
+};
 
-  return app;
+// Back-compat: previous registrar API mounts absolute path
+export const createChatEndpoint: EndpointRegistrar = (app, state) => {
+  return app.route("/v0", chatRouter(state));
 };

@@ -11,6 +11,7 @@
   "scripts": {
     "build": "bun run --filter '*' build",
     "test": "bun run --filter '*' test",
+    "test:coverage": "bun test --coverage",
     "typecheck": "bun run --filter '*' typecheck",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

@@ -5,19 +5,19 @@ Ink extensions and utilities for the Magus monorepo.
 To install dependencies:
 
 ```bash
-yarn install
+bun install
 ```
 
 To run:
 
 ```bash
-yarn start
+bun start
 ```
 
 To build:
 
 ```bash
-yarn build
+bun run build
 ```
 
-Part of the Magus monorepo, managed with Yarn Berry and Lage build orchestration.
+Part of the Magus monorepo, managed with Bun workspaces.

@@ -39,6 +39,6 @@ if [ -f "$COVERAGE_JSON" ]; then
     
     echo "✅ Coverage calculation test completed successfully!"
 else
-    echo "❌ Coverage file not found. Run 'pnpm test:coverage:merged' first."
+    echo "❌ Coverage file not found. Run 'bun test' first."
     exit 1
 fi

@@ -4,9 +4,12 @@
 
 - `bun install` - Install dependencies
 - `bun test` - Run all tests (individual test: `bun test <file>.test.ts`)
-- `bun lint` - Run ESLint
+- `bun test:coverage` - Run all tests with coverage reporting
+- `bun build` - Build all packages
+- `bun typecheck` - Type check all packages
+- `bun lint` - Run ESLint (fix with `bun lint:fix`)
 - `bun format` - Format with Prettier
-- `bun dev` - Start the main app (magus)
+- Run app: `bun apps/magus/src/index.tsx` (from repo root) or `cd apps/magus && bun src/index.tsx`
 
 ## Code Style & Conventions
 

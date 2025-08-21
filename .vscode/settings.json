@@ -1,0 +1,14 @@
+{
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/.DS_Store": true,
+    "**/.next/": true,
+    "**/Thumbs.db": true,
+    "**/coverage/": true,
+    "**/dist/": true,
+    "**/node_modules/": true,
+    "**/tsconfig.tsbuildinfo": true
+  }
+}

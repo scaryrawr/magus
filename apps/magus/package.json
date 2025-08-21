@@ -18,6 +18,7 @@
     "@magus/server": "workspace:*",
     "ai": "^5.0.12",
     "ink": "^6.2.0",
+    "ink-gradient": "^3.0.0",
     "ink-text-input": "^6.0.0",
     "react": "^19.1.1",
     "react-devtools-core": "^6.1.5",

@@ -1,6 +1,7 @@
 import { Box, Text, useInput } from "ink";
 import { FigletText } from "@magus/ink-ext";
 import { useNavigate } from "react-router";
+import Gradient from "ink-gradient";
 
 export const Home = () => {
   const navigate = useNavigate();
@@ -16,7 +17,9 @@ export const Home = () => {
 
   return (
     <Box flexDirection="column" alignItems="center" justifyContent="center">
-      <FigletText font="Standard">MAGUS</FigletText>
+      <Gradient name="retro">
+        <FigletText font="Standard">MAGUS</FigletText>
+      </Gradient>
       <Text></Text>
       <Text>Press &apos;c&apos; or Enter to start chat</Text>
       <Text>Press &apos;q&apos; or Escape to quit</Text>

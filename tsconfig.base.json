@@ -1,36 +1,22 @@
 {
   "compilerOptions": {
-    // Target Node.js LTS (20+) and modern browsers
-    "target": "esnext",
-    "lib": [
-      "ESNext"
-    ],
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    // Enable modern JavaScript features
-    "allowJs": true,
+    // Environment setup & latest features
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "Preserve",
+    "moduleDetection": "force",
     "jsx": "react-jsx",
-    // Module system
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    // Type checking
+    "allowJs": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
     "strict": true,
     "skipLibCheck": true,
-    "exactOptionalPropertyTypes": false,
-    "noUncheckedIndexedAccess": false,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
-    // Emit
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "removeComments": false,
-    "importHelpers": false,
-    // Advanced
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "allowImportingTsExtensions": false,
-    "verbatimModuleSyntax": false
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noPropertyAccessFromIndexSignature": false
   }
 }

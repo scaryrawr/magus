@@ -2,30 +2,30 @@
 
 ## Build/Test Commands
 
-- `yarn install` - Install dependencies
-- `yarn test` - Run all tests (individual test: `yarn test <file>.test.ts`)
-- `yarn lint` - Run ESLint
-- `yarn format` - Format with Prettier
-- `yarn dev` - Start the main app (magus)
+- `bun install` - Install dependencies
+- `bun test` - Run all tests (individual test: `bun test <file>.test.ts`)
+- `bun lint` - Run ESLint
+- `bun format` - Format with Prettier
+- `bun dev` - Start the main app (magus)
 
 ## Code Style & Conventions
 
 - Use TypeScript with strict typing. Export types/interfaces directly from TS files.
-- Imports: Use `catalog:` for deps, `catalog:types` for type-only imports in package.json
+- Imports: Direct dependencies (no catalog references), workspace packages via `workspace:*`
 - Formatting: Prettier with 120 char line width, ESLint flat config with React/hooks rules
 - Naming: camelCase for variables/functions, PascalCase for components/types, kebab-case for files
-- Use ESM (`"type": "module"`), Yarn Berry workspace resolution assumed
+- Use ESM (`"type": "module"`), Bun workspace resolution assumed
 - Error handling: Use Zod schemas for validation, explicit error types where needed
 
 ## Architecture Patterns
 
-- Monorepo: apps in `apps/*`, packages in `packages/*` managed by Lage build orchestration
+- Monorepo: apps in `apps/*`, packages in `packages/*` managed by Bun workspaces
 - Providers implement `MagusProvider` interface with `model()` and `models()` methods
 - Server composition via `createServer({ providers, model })` pattern
 - Streaming via `ai` package with `streamText` and UI-compatible responses
 
 ## Key Rules from Copilot Instructions
 
-- Use version catalogs in package.json dependencies
+- Use direct dependencies in package.json (no version catalogs)
 - Filter embeddings models from provider discovery
 - Server listens on random port, apps read `server.url` for client connections

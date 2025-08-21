@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { serve } from "@hono/node-server";
 import { type EndpointRegistrar, type RouterFactory, type ServerState } from "./types.js";
 import { chatRouter } from "./chat.js";
 import { modelsRouter } from "./models.js";
@@ -34,27 +33,13 @@ export const createServer = (config: ServerConfig) => {
 
   return {
     listen: () => {
-      const server = serve({
+      const server = Bun.serve({
         port: 0,
+        idleTimeout: 0,
         fetch: app.fetch,
       });
 
-      const address = server.address();
-      if (address === null) {
-        throw new Error("Could not create server");
-      }
-
-      if (typeof address !== "object") {
-        throw new Error("Unexpected server address");
-      }
-
-      const port = address.port;
-      const url = new URL(`http://localhost:${port}`);
-
-      return {
-        url,
-        stop: () => server.close(),
-      };
+      return server;
     },
   };
 };

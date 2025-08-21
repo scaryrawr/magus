@@ -1,3 +1,4 @@
+import { describe, it, expect } from "bun:test";
 import { OllamaShowSchema, OllamaTagsSchema } from "./ollama.js";
 
 describe("parsing ollama tags", () => {

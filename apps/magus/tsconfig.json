@@ -1,13 +1,3 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    // For the app, we don't emit since rollup handles the build
-    "noEmit": true,
-    // Override base config settings that conflict with rollup
-    "declaration": false,
-    "declarationMap": false,
-    "sourceMap": false
-  },
-  "include": ["src/**/*"],
-  "exclude": ["dist", "node_modules"]
+  "extends": "../../tsconfig.base.json"
 }

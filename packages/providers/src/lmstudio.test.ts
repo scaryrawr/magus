@@ -1,3 +1,4 @@
+import { describe, it, expect } from "bun:test";
 import { LmStudioModelInfoSchema } from "./lmstudio.js";
 
 describe("parsing lmstudio models", () => {

@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "bun:test";
 import { Hono } from "hono";
 import { createModelsEndpoint, ModelSelectSchema } from "./models.js";
-import type { MagusProvider, ModelInfo } from "../../../packages/providers/src/types.js";
+import { ModelInfoSchema, type MagusProvider, type ModelInfo } from "../../../packages/providers/src/types.js";
 import type { LanguageModel } from "ai";
 import type { ServerState } from "./types.js";
 
@@ -144,8 +144,11 @@ describe("Models Endpoints", () => {
       expect(res1.status).toBe(200);
       expect(res2.status).toBe(200);
 
-      const model1 = await res1.json();
-      const model2 = await res2.json();
+      const result1 = await res1.json();
+      const result2 = await res2.json();
+
+      const model1 = ModelInfoSchema.parse(result1);
+      const model2 = ModelInfoSchema.parse(result2);
 
       expect(model1.id).toBe("gpt-4o-mini");
       expect(model2.id).toBe("mistral-7b");
@@ -157,7 +160,7 @@ describe("Models Endpoints", () => {
       const res = await app.request("/v0/model");
 
       expect(res.status).toBe(200);
-      const model = await res.json();
+      const model = ModelSelectSchema.parse(await res.json());
 
       expect(model).toEqual({
         provider: "lmstudio",

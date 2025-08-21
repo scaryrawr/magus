@@ -11,4 +11,17 @@ export default tseslint.config(
   reactPlugin.configs.flat["jsx-runtime"],
   reactHooks.configs["recommended-latest"],
   eslintPluginPrettierRecommended,
+  {
+    ignores: ["**/node_modules/**", "**/dist/**", "**/coverage/**", "**/*.tsbuildinfo", "bun.lock"],
+  },
+  {
+    settings: {
+      react: {
+        version: "detect",
+      },
+    },
+    rules: {
+      "react/prop-types": "off",
+    },
+  },
 );

@@ -1,5 +1,5 @@
-import z from "zod";
 import { Hono } from "hono";
+import z from "zod";
 import type { EndpointRegistrar, RouterFactory } from "./types.js";
 
 export const ModelSelectSchema = z.object({

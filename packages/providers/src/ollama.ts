@@ -1,6 +1,6 @@
-import type { MagusProvider, ModelInfo } from "./types.js";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { z } from "zod";
+import type { MagusProvider, ModelInfo } from "./types.js";
 
 /** Schema for parsing /api/tags */
 export const OllamaTagsSchema = z.object({

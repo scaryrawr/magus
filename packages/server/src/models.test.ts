@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach } from "bun:test";
-import { Hono } from "hono";
-import { createModelsEndpoint, ModelSelectSchema } from "./models.js";
-import { ModelInfoSchema, type MagusProvider, type ModelInfo } from "../../../packages/providers/src/types.js";
 import type { LanguageModel } from "ai";
+import { beforeEach, describe, expect, it } from "bun:test";
+import { Hono } from "hono";
+import { ModelInfoSchema, type MagusProvider, type ModelInfo } from "../../../packages/providers/src/types.js";
+import { createModelsEndpoint, ModelSelectSchema } from "./models.js";
 import type { ServerState } from "./types.js";
 
 // Mock LanguageModel implementation

@@ -1,6 +1,6 @@
-import type { MagusProvider } from "./types.js";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { z } from "zod";
+import type { MagusProvider } from "./types.js";
 
 export const LmStudioModelInfoSchema = z.object({
   object: z.literal("list"),

@@ -1,11 +1,11 @@
-import { Box, Text, useInput } from "ink";
-import { useCallback, useState } from "react";
-import { DefaultChatTransport } from "ai";
-import TextInput from "ink-text-input";
 import { useChat } from "@ai-sdk/react";
 import { ScrollArea, useStdoutDimensions } from "@magus/ink-ext";
-import { useServer } from "../contexts";
+import { DefaultChatTransport } from "ai";
+import { Box, Text, useInput } from "ink";
+import TextInput from "ink-text-input";
+import { useCallback, useState } from "react";
 import { useNavigate } from "react-router";
+import { useServer } from "../contexts";
 
 export const Chat = () => {
   const { server } = useServer();
@@ -20,7 +20,7 @@ export const Chat = () => {
 
   const [input, setInput] = useState("");
 
-  useInput((inputChar, key) => {
+  useInput((_input, key) => {
     if (key.escape) {
       navigate("/");
     }

@@ -1,7 +1,7 @@
-import { Box, Text, useInput } from "ink";
 import { FigletText } from "@magus/ink-ext";
-import { useNavigate } from "react-router";
+import { Box, Text, useInput } from "ink";
 import Gradient from "ink-gradient";
+import { useNavigate } from "react-router";
 
 export const Home = () => {
   const navigate = useNavigate();

@@ -1,6 +1,6 @@
-import { Text } from "ink";
-import { useState, useEffect } from "react";
 import type { Options } from "figlet";
+import { Text } from "ink";
+import { useEffect, useState } from "react";
 
 export type FigletTextProps = Options & { children: string };
 

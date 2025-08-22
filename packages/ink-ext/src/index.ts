@@ -1,3 +1,3 @@
-export { ScrollArea, FigletText } from "./components";
+export { FigletText, ScrollArea } from "./components";
+export type { FigletTextProps, ScrollAreaProps } from "./components";
 export { useKeypress, useStdoutDimensions } from "./hooks";
-export type { ScrollAreaProps, FigletTextProps } from "./components";

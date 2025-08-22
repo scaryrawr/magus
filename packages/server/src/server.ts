@@ -1,7 +1,7 @@
 import { Hono } from "hono";
-import { type EndpointRegistrar, type RouterFactory, type ServerState } from "./types.js";
 import { chatRouter } from "./chat.js";
 import { modelsRouter } from "./models.js";
+import { type EndpointRegistrar, type RouterFactory, type ServerState } from "./types.js";
 
 export interface ServerConfig extends ServerState {
   // Back-compat: custom registrar functions; will be deprecated

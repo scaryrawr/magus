@@ -1,5 +1,5 @@
-import React, { createContext, useContext, type ReactNode } from "react";
 import type { Server } from "bun";
+import React, { createContext, useContext, type ReactNode } from "react";
 
 interface ServerState {
   server: Server;

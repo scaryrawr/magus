@@ -1,6 +1,6 @@
-import { describe, it, expect } from "bun:test";
-import { render } from "ink-testing-library";
+import { describe, expect, it } from "bun:test";
 import { Text } from "ink";
+import { render } from "ink-testing-library";
 import { ScrollArea } from "./ScrollArea.js";
 
 /**

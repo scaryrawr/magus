@@ -1,6 +1,6 @@
-import { createMemoryRouter, RouterProvider } from "react-router";
 import { Box, useApp } from "ink";
 import { useEffect } from "react";
+import { createMemoryRouter, RouterProvider } from "react-router";
 import { Chat, Home } from "./pages";
 
 const Exit = () => {

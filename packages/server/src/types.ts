@@ -1,6 +1,6 @@
+import type { MagusProvider } from "@magus/providers";
 import type { LanguageModel } from "ai";
 import type { Hono } from "hono";
-import type { MagusProvider } from "@magus/providers";
 
 export interface ServerState {
   providers: readonly MagusProvider[];

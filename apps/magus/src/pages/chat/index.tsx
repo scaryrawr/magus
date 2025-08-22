@@ -5,7 +5,7 @@ import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router";
-import { useServer } from "../contexts";
+import { useServer } from "../../contexts";
 
 export const Chat = () => {
   const { server } = useServer();

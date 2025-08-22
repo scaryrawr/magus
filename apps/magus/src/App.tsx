@@ -1,15 +1,5 @@
-import { Box, useApp } from "ink";
-import { useEffect } from "react";
 import { createMemoryRouter, RouterProvider } from "react-router";
-import { Chat, Home } from "./pages";
-
-const Exit = () => {
-  const { exit } = useApp();
-  useEffect(() => {
-    exit();
-  }, [exit]);
-  return <Box></Box>;
-};
+import { Chat, Exit, Home } from "./pages";
 
 const router = createMemoryRouter([
   {

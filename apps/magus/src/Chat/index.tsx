@@ -7,11 +7,7 @@ import { ScrollArea, useStdoutDimensions } from "@magus/ink-ext";
 import { useServer } from "../contexts";
 import { useNavigate } from "react-router";
 
-interface ChatProps {
-  onExit: () => void;
-}
-
-export const Chat: React.FC<ChatProps> = ({ onExit }) => {
+export const Chat = () => {
   const { server } = useServer();
   const navigate = useNavigate();
   const dimensions = useStdoutDimensions();
@@ -35,7 +31,7 @@ export const Chat: React.FC<ChatProps> = ({ onExit }) => {
       setInput("");
 
       if (text === "/exit") {
-        onExit();
+        navigate("/exit");
         return;
       }
 
@@ -48,7 +44,7 @@ export const Chat: React.FC<ChatProps> = ({ onExit }) => {
         sendMessage({ text });
       }
     },
-    [onExit, sendMessage, navigate],
+    [sendMessage, navigate],
   );
 
   return (

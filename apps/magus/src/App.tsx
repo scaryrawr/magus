@@ -1,21 +1,31 @@
-import { MemoryRouter, Routes, Route } from "react-router";
-import { useApp } from "ink";
-import { useCallback } from "react";
+import { createMemoryRouter, RouterProvider } from "react-router";
+import { Box, useApp } from "ink";
+import { useEffect } from "react";
 import { Chat, Home } from "./pages";
 
-export const App = () => {
+const Exit = () => {
   const { exit } = useApp();
-
-  const onExit = useCallback(() => {
+  useEffect(() => {
     exit();
   }, [exit]);
+  return <Box></Box>;
+};
 
-  return (
-    <MemoryRouter initialEntries={["/"]} initialIndex={0}>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/chat" element={<Chat onExit={onExit} />} />
-      </Routes>
-    </MemoryRouter>
-  );
+const router = createMemoryRouter([
+  {
+    path: "/",
+    element: <Home />,
+  },
+  {
+    path: "/chat",
+    element: <Chat />,
+  },
+  {
+    path: "/exit",
+    element: <Exit />,
+  },
+]);
+
+export const App = () => {
+  return <RouterProvider router={router} />;
 };

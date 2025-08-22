@@ -45,28 +45,35 @@ jobs:
         run: bun lint
 
       - name: Run tests with coverage
-        run: bun test --coverage
+        run: bun test --coverage --coverage-reporter=lcov
 
       - name: Generate coverage report
         run: |
-          if [ -f "./coverage/coverage-final.json" ]; then
-            # Calculate coverage percentage
+          # Check if coverage output exists
+          if [ -f "coverage/lcov.info" ]; then
+            # Parse LCOV format to get coverage percentage
             COVERAGE=$(node -e "
               const fs = require('fs');
-              const coverage = JSON.parse(fs.readFileSync('./coverage/coverage-final.json'));
-              let totalStmts = 0, coveredStmts = 0;
-              Object.values(coverage).forEach(file => {
-                if (file.s) {
-                  Object.values(file.s).forEach(count => {
-                    totalStmts++;
-                    if (count > 0) coveredStmts++;
-                  });
+              const lcov = fs.readFileSync('coverage/lcov.info', 'utf8');
+              
+              // Parse LCOV format for line coverage
+              const lines = lcov.split('\n');
+              let totalLines = 0;
+              let coveredLines = 0;
+              
+              for (const line of lines) {
+                if (line.startsWith('LF:')) {
+                  totalLines += parseInt(line.split(':')[1] || '0');
+                } else if (line.startsWith('LH:')) {
+                  coveredLines += parseInt(line.split(':')[1] || '0');
                 }
-              });
-              console.log(totalStmts > 0 ? ((coveredStmts / totalStmts) * 100).toFixed(2) : '0');
+              }
+              
+              const percentage = totalLines > 0 ? ((coveredLines / totalLines) * 100) : 0;
+              console.log(percentage.toFixed(2));
             ")
             
-            # Determine badge color using Node.js for better compatibility
+            # Determine badge color
             COLOR=$(node -e "
               const coverage = parseFloat('$COVERAGE');
               if (coverage >= 80) console.log('brightgreen');

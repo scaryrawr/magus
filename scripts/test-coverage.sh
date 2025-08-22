@@ -3,42 +3,48 @@
 
 echo "🧪 Testing coverage calculation..."
 
-COVERAGE_JSON="./coverage/coverage-final.json"
+COVERAGE_LCOV="./coverage/lcov.info"
 
-if [ -f "$COVERAGE_JSON" ]; then
+if [ -f "$COVERAGE_LCOV" ]; then
     echo "✅ Coverage file found"
     
-    # Test the Node.js calculation script
-    STMT_COVERED=$(node -e "
+    # Test the Node.js calculation script for LCOV format
+    COVERAGE_PERCENT=$(node -e "
         const fs = require('fs');
-        const coverage = JSON.parse(fs.readFileSync('$COVERAGE_JSON'));
-        let totalStmts = 0, coveredStmts = 0;
-        Object.values(coverage).forEach(file => {
-            if (file.s) {
-                Object.values(file.s).forEach(count => {
-                    totalStmts++;
-                    if (count > 0) coveredStmts++;
-                });
-            }
-        });
-        console.log(totalStmts > 0 ? ((coveredStmts / totalStmts) * 100).toFixed(2) : '0');
+        const lcov = fs.readFileSync('$COVERAGE_LCOV', 'utf8');
+        
+        // Parse LCOV format for line coverage
+        const lines = lcov.split('\n');
+        let totalLines = 0;
+        let coveredLines = 0;
+        
+        for (const line of lines) {
+          if (line.startsWith('LF:')) {
+            totalLines += parseInt(line.split(':')[1] || '0');
+          } else if (line.startsWith('LH:')) {
+            coveredLines += parseInt(line.split(':')[1] || '0');
+          }
+        }
+        
+        const percentage = totalLines > 0 ? ((coveredLines / totalLines) * 100) : 0;
+        console.log(percentage.toFixed(2));
     ")
     
-    echo "📊 Calculated statement coverage: ${STMT_COVERED}%"
+    echo "📊 Calculated line coverage: ${COVERAGE_PERCENT}%"
     
     # Test badge color logic
     COLOR=$(node -e "
-        const coverage = parseFloat('$STMT_COVERED');
+        const coverage = parseFloat('$COVERAGE_PERCENT');
         if (coverage >= 80) console.log('brightgreen');
         else if (coverage >= 60) console.log('yellow');
         else console.log('red');
     ")
     
     echo "🎨 Badge color: $COLOR"
-    echo "🏷️  Badge URL: https://img.shields.io/badge/coverage-${STMT_COVERED}%25-${COLOR}"
+    echo "🏷️  Badge URL: https://img.shields.io/badge/coverage-${COVERAGE_PERCENT}%25-${COLOR}"
     
     echo "✅ Coverage calculation test completed successfully!"
 else
-    echo "❌ Coverage file not found. Run 'bun test' first."
+    echo "❌ Coverage file not found. Run 'bun test --coverage --coverage-reporter=lcov' first."
     exit 1
 fi

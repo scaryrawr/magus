@@ -14,13 +14,10 @@ export const InputBar: React.FC = () => {
   }, [setInputAreaHeight, placeholder]);
 
   return (
-    <Box ref={containerRef} flexDirection="column">
+    <Box ref={containerRef}>
       <Box borderStyle="round" minHeight={3} width="100%">
         <Text>Input: </Text>
         <TextInput value={value} placeholder={placeholder} onChange={setValue} onSubmit={submit} />
-      </Box>
-      <Box height={1}>
-        <Text dimColor>ESC: Home | /exit: Quit | /home: Home</Text>
       </Box>
     </Box>
   );

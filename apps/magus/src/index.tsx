@@ -1,7 +1,7 @@
 import { createLmStudioProvider, createOllamaProvider } from "@magus/providers";
 import { createServer } from "@magus/server";
 import { render } from "ink";
-import { App } from "./App";
+import { App } from "./app";
 import { ServerProvider } from "./contexts";
 
 const providers = [createLmStudioProvider(), createOllamaProvider()];

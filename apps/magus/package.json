@@ -16,20 +16,20 @@
     "@magus/ink-ext": "workspace:*",
     "@magus/providers": "workspace:*",
     "@magus/server": "workspace:*",
-    "ai": "^5.0.12",
-    "ink": "^6.2.0",
-    "ink-gradient": "^3.0.0",
-    "ink-text-input": "^6.0.0",
-    "react": "^19.1.1",
-    "react-devtools-core": "^6.1.5",
-    "react-dom": "^19.1.1",
-    "react-router": "^7.8.1",
-    "zod": "^4.0.0"
+    "ai": "catalog:",
+    "ink": "catalog:ui",
+    "ink-gradient": "catalog:ui",
+    "ink-text-input": "catalog:ui",
+    "react": "catalog:ui",
+    "react-devtools-core": "catalog:ui",
+    "react-dom": "catalog:ui",
+    "react-router": "catalog:ui",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "catalog:ts"
   },
   "peerDependencies": {
-    "typescript": "^5.9.2"
+    "typescript": "catalog:ts"
   }
 }

@@ -6,11 +6,35 @@
     "packages": [
       "apps/*",
       "packages/*"
-    ]
+    ],
+    "catalog": {
+      "ai": "^5.0.12",
+      "zod": "^4.0.0",
+      "hono": "^4.9.1"
+    },
+    "catalogs": {
+      "ui": {
+        "react": "^19.1.1",
+        "react-dom": "^19.1.1",
+        "react-router": "^7.8.1",
+        "ink": "^6.2.0",
+        "ink-gradient": "^3.0.0",
+        "ink-text-input": "^6.0.0",
+        "react-devtools-core": "^6.1.5"
+      },
+      "ts": {
+        "typescript": "^5.9.2",
+        "@types/bun": "latest",
+        "@types/figlet": "^1.5.8"
+      },
+      "test": {
+        "ink-testing-library": "^4.0.0"
+      }
+    }
   },
   "scripts": {
     "build": "bun run --filter '*' build",
-    "test": "bun run --filter '*' test",
+    "test": "bun test",
     "test:coverage": "bun test --coverage --coverage-reporter=lcov",
     "typecheck": "bun run --filter '*' typecheck",
     "lint": "eslint .",
@@ -19,8 +43,8 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@eslint/js": "^9.33.0",
-    "eslint": "^9.33.0",
+    "@eslint/js": "^9.34.0",
+    "eslint": "^9.34.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react": "^7.37.5",
@@ -30,6 +54,6 @@
     "prettier": "^3.6.2",
     "prettier-plugin-organize-imports": "^4.2.0",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.39.1"
+    "typescript-eslint": "^8.40.0"
   }
 }

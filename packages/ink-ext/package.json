@@ -8,17 +8,17 @@
     "test": "bun test"
   },
   "devDependencies": {
-    "@types/figlet": "^1.5.8",
-    "@types/bun": "latest",
-    "ink-testing-library": "^4.0.0"
+    "@types/figlet": "catalog:ts",
+    "@types/bun": "catalog:ts",
+    "ink-testing-library": "catalog:test"
   },
   "dependencies": {
     "figlet": "^1.7.0"
   },
   "peerDependencies": {
-    "ink": "^6.2.0",
-    "react": "^19.1.1",
-    "typescript": "^5.9.2"
+    "ink": "catalog:ui",
+    "react": "catalog:ui",
+    "typescript": "catalog:ts"
   },
   "files": [
     "dist"

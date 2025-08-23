@@ -10,14 +10,14 @@
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^1.0.7",
-    "ai": "^5.0.12",
-    "zod": "^4.0.0"
+    "ai": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "catalog:ts"
   },
   "peerDependencies": {
-    "typescript": "^5.9.2"
+    "typescript": "catalog:ts"
   },
   "files": [
     "dist"

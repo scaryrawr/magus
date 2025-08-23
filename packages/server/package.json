@@ -10,15 +10,15 @@
   },
   "dependencies": {
     "@magus/providers": "workspace:*",
-    "ai": "^5.0.12",
-    "hono": "^4.9.1",
-    "zod": "^4.0.0"
+    "ai": "catalog:",
+    "hono": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "catalog:ts"
   },
   "peerDependencies": {
-    "typescript": "^5.9.2"
+    "typescript": "catalog:ts"
   },
   "files": [
     "dist"

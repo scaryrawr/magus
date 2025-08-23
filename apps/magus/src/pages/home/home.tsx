@@ -1,20 +1,30 @@
 import { FigletText } from "@magus/ink-ext";
-import { Box, Text, useInput } from "ink";
+import { Box, Text } from "ink";
 import Gradient from "ink-gradient";
+import { useCallback } from "react";
 import { useNavigate } from "react-router";
 import { useRouteInput } from "../../contexts/InputProvider";
 
 export const Home = () => {
   const navigate = useNavigate();
 
-  useInput((input, key) => {
-    if (key.escape || input === "q") {
-      process.exit(0);
-    }
-  });
+  const onSubmit = useCallback(
+    (text: string) => {
+      if (!text) {
+        navigate("/chat");
+        return;
+      }
+
+      if (text === "/exit") {
+        navigate("/exit");
+        return;
+      }
+    },
+    [navigate],
+  );
 
   useRouteInput({
-    onSubmit: () => navigate("/chat"),
+    onSubmit,
     placeholder: "Press Enter to start chatting",
   });
 

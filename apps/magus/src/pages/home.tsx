@@ -3,7 +3,7 @@ import { Box, Text } from "ink";
 import Gradient from "ink-gradient";
 import { useCallback } from "react";
 import { useNavigate } from "react-router";
-import { useRouteInput } from "../../contexts";
+import { useRouteInput } from "../contexts";
 
 export const Home = () => {
   const navigate = useNavigate();
@@ -35,7 +35,6 @@ export const Home = () => {
       </Gradient>
       <Text></Text>
       <Text>Press Enter to start chat</Text>
-      <Text>Press &apos;q&apos; or Escape to quit</Text>
     </Box>
   );
 };

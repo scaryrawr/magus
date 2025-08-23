@@ -3,7 +3,7 @@ import { Box, Text } from "ink";
 import Gradient from "ink-gradient";
 import { useCallback } from "react";
 import { useNavigate } from "react-router";
-import { useRouteInput } from "../../contexts/InputProvider";
+import { useRouteInput } from "../../contexts";
 
 export const Home = () => {
   const navigate = useNavigate();

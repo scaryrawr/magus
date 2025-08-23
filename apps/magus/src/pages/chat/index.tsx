@@ -4,8 +4,7 @@ import { DefaultChatTransport } from "ai";
 import { Box, Text, useInput } from "ink";
 import { useCallback } from "react";
 import { useNavigate } from "react-router";
-import { useServer } from "../../contexts";
-import { useInputContext, useRouteInput } from "../../contexts/InputProvider";
+import { useInputContext, useRouteInput, useServer } from "../../contexts";
 
 export const Chat = () => {
   const { server } = useServer();

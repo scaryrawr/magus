@@ -20,7 +20,7 @@ export const ServerProvider: React.FC<ServerProviderProps> = ({ server, children
   return <ServerContext.Provider value={serverState}>{children}</ServerContext.Provider>;
 };
 
-export const useServer = (): ServerState => {
+export const useServerContext = (): ServerState => {
   const context = useContext(ServerContext);
   if (!context) {
     throw new Error("useServer must be used within a ServerProvider");

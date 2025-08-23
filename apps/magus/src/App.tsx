@@ -1,36 +1,35 @@
 import { useStdoutDimensions } from "@magus/ink-ext";
+import type { Server } from "bun";
 import { Box } from "ink";
-import { createMemoryRouter, RouterProvider } from "react-router";
+import React, { useEffect, useMemo } from "react";
+import { RouterProvider } from "react-router";
 import { InputBar } from "./components/InputBar";
-import { InputProvider } from "./contexts/InputProvider";
-import { Chat, Exit, Home } from "./pages";
+import { InputProvider, ServerProvider } from "./contexts";
+import { router } from "./routes";
 
-const router = createMemoryRouter([
-  {
-    path: "/",
-    element: <Home />,
-  },
-  {
-    path: "/chat",
-    element: <Chat />,
-  },
-  {
-    path: "/exit",
-    element: <Exit />,
-  },
-]);
+export type AppProps = {
+  createServer: () => Server;
+};
 
-export const App = () => {
+export const App: React.FC<AppProps> = ({ createServer }) => {
   const dimensions = useStdoutDimensions();
+  const server = useMemo(() => createServer(), [createServer]);
+  useEffect(() => {
+    return () => {
+      server.stop();
+    };
+  }, [server]);
 
   return (
-    <InputProvider>
-      <Box flexDirection="column" width={dimensions.columns} height={dimensions.rows - 1}>
-        <Box flexDirection="column" flexGrow={1} width="100%">
-          <RouterProvider router={router} />
+    <ServerProvider server={server}>
+      <InputProvider>
+        <Box flexDirection="column" width={dimensions.columns} height={dimensions.rows - 1}>
+          <Box flexDirection="column" flexGrow={1} width="100%">
+            <RouterProvider router={router} />
+          </Box>
+          <InputBar />
         </Box>
-        <InputBar />
-      </Box>
-    </InputProvider>
+      </InputProvider>
+    </ServerProvider>
   );
 };

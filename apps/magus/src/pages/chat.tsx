@@ -10,7 +10,7 @@ export const Chat = () => {
 
   const { sendMessage, messages } = useChat({
     transport: new DefaultChatTransport({
-      api: `${server.url.toString()}/v0/chat`,
+      api: new URL("v0/chat", server.url).href,
     }),
   });
 

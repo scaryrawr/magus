@@ -19,6 +19,7 @@
     "ai": "catalog:",
     "ink": "catalog:ui",
     "ink-gradient": "catalog:ui",
+    "ink-select-input": "^6.2.0",
     "ink-text-input": "catalog:ui",
     "react": "catalog:ui",
     "react-devtools-core": "catalog:ui",

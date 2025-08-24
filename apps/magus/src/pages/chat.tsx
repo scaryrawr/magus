@@ -1,14 +1,12 @@
 import { useChat } from "@ai-sdk/react";
 import { ScrollArea } from "@magus/ink-ext";
 import { DefaultChatTransport } from "ai";
-import { Box, Text, useInput } from "ink";
+import { Box, Text } from "ink";
 import { useCallback } from "react";
-import { useNavigate } from "react-router";
-import { useInputContext, useRouteInput, useServer } from "../contexts";
+import { useInputContext, useRouteInput, useServerContext } from "../contexts";
 
 export const Chat = () => {
-  const { server } = useServer();
-  const navigate = useNavigate();
+  const { server } = useServerContext();
 
   const { sendMessage, messages } = useChat({
     transport: new DefaultChatTransport({
@@ -18,29 +16,13 @@ export const Chat = () => {
 
   const { contentHeight } = useInputContext();
 
-  useInput((_input, key) => {
-    if (key.escape) {
-      navigate("/");
-    }
-  });
-
   const onSubmit = useCallback(
     (text: string) => {
-      if (text === "/exit") {
-        navigate("/exit");
-        return;
-      }
-
-      if (text === "/home") {
-        navigate("/");
-        return;
-      }
-
       if (text.trim()) {
         sendMessage({ text });
       }
     },
-    [sendMessage, navigate],
+    [sendMessage],
   );
 
   useRouteInput({ onSubmit, placeholder: "Send a message..." });

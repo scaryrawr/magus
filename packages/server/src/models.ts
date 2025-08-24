@@ -7,6 +7,8 @@ export const ModelSelectSchema = z.object({
   id: z.string(),
 });
 
+export const ModelsResultSchema = z.array(ModelSelectSchema);
+
 export type ModelSelect = z.infer<typeof ModelSelectSchema>;
 
 export const modelsRouter: RouterFactory = (state) => {

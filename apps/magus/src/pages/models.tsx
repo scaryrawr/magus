@@ -12,7 +12,7 @@ type ModelsData = {
 
 export const Models = () => {
   const { models } = useLoaderData<ModelsData>();
-  const { value } = useInputContext();
+  const { value, setValue } = useInputContext();
   const navigate = useNavigate();
   const { server } = useServerContext();
 
@@ -34,16 +34,22 @@ export const Models = () => {
   const onSelection = useCallback(
     async ({ value: model }: { label: string; value: ModelSelect }) => {
       const modelUrl = new URL("/v0/model", server.url);
-      await fetch(modelUrl, {
-        body: JSON.stringify(model),
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      try {
+        await fetch(modelUrl, {
+          body: JSON.stringify(model),
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+      } catch (e) {
+        console.error("Failed to switch models:", e);
+      }
+
       navigate(-1);
+      setValue("");
     },
-    [navigate, server.url],
+    [navigate, server.url, setValue],
   );
 
   return (
@@ -57,7 +63,7 @@ export const createModelRoute = (serverUrl: URL) => {
   return {
     path: "models",
     loader: async () => {
-      const modelsUrl = new URL("/v0/models", serverUrl);
+      const modelsUrl = new URL("v0/models", serverUrl);
       const res = await fetch(modelsUrl);
       if (!res.ok) {
         throw new Error(`Failed to fetch models: ${res.status} ${res.statusText}`);

@@ -10,15 +10,9 @@ export const Home = () => {
 
   const onSubmit = useCallback(
     (text: string) => {
-      if (!text) {
-        navigate("/chat");
-        return;
-      }
-
-      if (text === "/exit") {
-        navigate("/exit");
-        return;
-      }
+      navigate("/chat", {
+        state: { text },
+      });
     },
     [navigate],
   );
@@ -31,7 +25,7 @@ export const Home = () => {
   return (
     <Box flexDirection="column" alignItems="center" justifyContent="center">
       <Gradient name="retro">
-        <FigletText font="Standard">MAGUS</FigletText>
+        <FigletText font="Stronger Than All">MAGUS</FigletText>
       </Gradient>
       <Text></Text>
       <Text>Press Enter to start chat</Text>

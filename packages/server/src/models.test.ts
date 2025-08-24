@@ -2,7 +2,7 @@ import type { LanguageModel } from "ai";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { Hono } from "hono";
 import { ModelInfoSchema, type MagusProvider, type ModelInfo } from "../../../packages/providers/src/types.js";
-import { createModelsEndpoint, ModelSelectSchema } from "./models.js";
+import { ModelSelectSchema, modelsRouter } from "./models.js";
 import type { ServerState } from "./types.js";
 
 // Mock LanguageModel implementation
@@ -69,7 +69,7 @@ beforeEach(() => {
     model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
   };
 
-  createModelsEndpoint(app, state);
+  app.route("/v0", modelsRouter(state));
 });
 
 describe("Models Endpoints", () => {
@@ -96,7 +96,7 @@ describe("Models Endpoints", () => {
         model: createMockLanguageModel("test", "empty"),
       };
 
-      createModelsEndpoint(emptyApp, emptyState);
+      emptyApp.route("/v0", modelsRouter(emptyState));
 
       const res = await emptyApp.request("/v0/models");
 
@@ -175,7 +175,8 @@ describe("Models Endpoints", () => {
         providers: [mockProvider1],
         model: "string-model", // This will trigger the error case
       };
-      createModelsEndpoint(freshApp, freshState);
+
+      freshApp.route("/v0", modelsRouter(freshState));
 
       const res = await freshApp.request("/v0/model");
       expect(res.status).toBe(500);
@@ -190,7 +191,8 @@ describe("Models Endpoints", () => {
         providers: [mockProvider1, mockProvider2],
         model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
       };
-      createModelsEndpoint(freshApp, freshState);
+
+      freshApp.route("/v0", modelsRouter(freshState));
 
       const newSelection = {
         provider: "ollama",
@@ -258,7 +260,7 @@ describe("Models Endpoints", () => {
         providers: [mockProvider1],
         model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
       };
-      createModelsEndpoint(freshApp, freshState);
+      freshApp.route("/v0", modelsRouter(freshState));
 
       const res = await freshApp.request("/v0/model", {
         method: "POST",

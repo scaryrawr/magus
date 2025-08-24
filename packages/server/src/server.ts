@@ -1,21 +1,45 @@
+import type { LanguageModel } from "ai";
 import { Hono } from "hono";
+import { EventEmitter } from "node:events";
 import { chatRouter } from "./chat.js";
 import { modelsRouter } from "./models.js";
-import { type EndpointRegistrar, type RouterFactory, type ServerState } from "./types.js";
+import type { RouterFactory, ServerState } from "./types.js";
 
 export interface ServerConfig extends ServerState {
-  // Back-compat: custom registrar functions; will be deprecated
-  endpoints?: readonly EndpointRegistrar[];
-  // Preferred: Hono routers to mount under /v0
   routers?: readonly RouterFactory[];
+}
+
+type ServerStateEvents = {
+  "change:model": [newModel: LanguageModel];
+};
+
+export class ObservableServerState extends EventEmitter<ServerStateEvents> implements ServerState {
+  constructor(private state: ServerState) {
+    super();
+  }
+
+  get providers() {
+    return this.state.providers;
+  }
+
+  get model() {
+    return this.state.model;
+  }
+
+  set model(model: LanguageModel) {
+    if (model !== this.state.model) {
+      this.state.model = model;
+      this.emit("change:model", model);
+    }
+  }
 }
 
 export const createServer = (config: ServerConfig) => {
   const app = new Hono();
-  const state: ServerState = {
+  const state = new ObservableServerState({
     providers: config.providers,
     model: config.model,
-  };
+  });
 
   // Default routers mounted with best-practice `route()`
   const defaultRouters: RouterFactory[] = [chatRouter, modelsRouter];
@@ -24,14 +48,8 @@ export const createServer = (config: ServerConfig) => {
     app.route("/v0", makeRouter(state));
   }
 
-  // Back-compat: still allow endpoints registrars to mutate app directly
-  if (config.endpoints && config.endpoints.length > 0) {
-    for (const registerEndpoint of config.endpoints) {
-      registerEndpoint(app, state);
-    }
-  }
-
   return {
+    state,
     listen: () => {
       const server = Bun.serve({
         port: 0,

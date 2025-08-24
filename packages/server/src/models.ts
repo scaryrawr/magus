@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import z from "zod";
-import type { EndpointRegistrar, RouterFactory } from "./types.js";
+import type { RouterFactory } from "./types.js";
 
 export const ModelSelectSchema = z.object({
   provider: z.string(),
@@ -70,5 +70,3 @@ export const modelsRouter: RouterFactory = (state) => {
 
   return router;
 };
-
-export const createModelsEndpoint: EndpointRegistrar = (app, state) => app.route("/v0", modelsRouter(state));

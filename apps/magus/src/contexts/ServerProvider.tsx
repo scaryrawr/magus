@@ -1,20 +1,22 @@
+import type { ObservableServerState } from "@magus/server";
 import type { Server } from "bun";
 import React, { createContext, useContext, type ReactNode } from "react";
 
-interface ServerState {
+type ServerState = {
   server: Server;
-}
+  state: ObservableServerState;
+};
 
-interface ServerProviderProps {
-  server: Server;
+type ServerProviderProps = ServerState & {
   children: ReactNode;
-}
+};
 
 const ServerContext = createContext<ServerState | null>(null);
 
-export const ServerProvider: React.FC<ServerProviderProps> = ({ server, children }) => {
+export const ServerProvider: React.FC<ServerProviderProps> = ({ server, state, children }) => {
   const serverState: ServerState = {
     server,
+    state,
   };
 
   return <ServerContext.Provider value={serverState}>{children}</ServerContext.Provider>;

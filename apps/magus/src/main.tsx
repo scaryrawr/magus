@@ -10,7 +10,10 @@ const createMagusServer = () => {
     model: providers[0].model("openai/gpt-oss-20b"),
   });
 
-  return service.listen();
+  return {
+    server: service.listen(),
+    state: service.state,
+  };
 };
 
 await render(<App createServer={createMagusServer} />).waitUntilExit();

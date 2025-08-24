@@ -20,10 +20,14 @@ export const Models = () => {
     () =>
       models
         .filter((model) => model.id.includes(value) || model.provider.includes(value))
-        .map((model) => ({
-          label: `${model.provider}: ${model.id}`,
-          value: model,
-        })),
+        .map((model) => {
+          const label = `${model.provider}: ${model.id}`;
+          return {
+            label,
+            key: label,
+            value: model,
+          };
+        }),
     [models, value],
   );
 

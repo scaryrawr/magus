@@ -19,8 +19,5 @@
   },
   "peerDependencies": {
     "typescript": "catalog:ts"
-  },
-  "files": [
-    "dist"
-  ]
+  }
 }

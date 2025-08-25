@@ -1,4 +1,4 @@
-import { FigletText } from "@magus/ink-ext";
+import { FigletText } from "@magus/react";
 import { Box, Text } from "ink";
 import Gradient from "ink-gradient";
 import { useCallback } from "react";

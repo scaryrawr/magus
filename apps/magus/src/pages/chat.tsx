@@ -1,7 +1,7 @@
 import { useChat } from "@ai-sdk/react";
-import { ScrollArea } from "@magus/ink-ext";
+import { ScrollArea } from "@magus/react";
 import { DefaultChatTransport } from "ai";
-import { Box, Text } from "ink";
+import { Box, Text, useInput } from "ink";
 import { useCallback, useEffect } from "react";
 import { useLocation } from "react-router";
 import { useInputContext, useRouteInput, useServerContext } from "../contexts";
@@ -13,7 +13,7 @@ type ChatState = {
 export const Chat = () => {
   const { server } = useServerContext();
   const { text: initialMessage } = useLocation().state as ChatState;
-  const { sendMessage, messages } = useChat({
+  const { sendMessage, messages, stop } = useChat({
     transport: new DefaultChatTransport({
       api: new URL("v0/chat", server.url).href,
     }),
@@ -26,6 +26,12 @@ export const Chat = () => {
   }, [initialMessage, sendMessage]);
 
   const { contentHeight } = useInputContext();
+
+  useInput((_, key) => {
+    if (key.escape) {
+      stop();
+    }
+  });
 
   const onSubmit = useCallback(
     (text: string) => {

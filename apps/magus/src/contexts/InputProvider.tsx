@@ -1,4 +1,4 @@
-import { useStdoutDimensions } from "@magus/ink-ext";
+import { useStdoutDimensions } from "@magus/react";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 type RouteInputHandler = (text: string) => void | Promise<void>;

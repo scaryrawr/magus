@@ -1,5 +1,5 @@
 {
-  "name": "@magus/ink-ext",
+  "name": "@magus/react",
   "main": "src/index.ts",
   "module": "src/index.ts",
   "type": "module",

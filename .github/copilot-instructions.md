@@ -6,7 +6,7 @@
 - Example app: terminal UI chat client at `apps/magus/src/index.tsx` (Ink + React). It renders a chat UI and talks to a local HTTP server using `@ai-sdk/react`.
 - The app spins up an embedded HTTP server via `@magus/server` (`packages/server`), built on Hono + `ai`. Default route: POST `/v0/chat` (apps can add more endpoints).
 - Providers live in `packages/providers` and implement `MagusProvider` (LM Studio and Ollama today) using `@ai-sdk/openai-compatible` and Zod for typed discovery.
-- Ink helpers live in `packages/ink-ext` (e.g., `ScrollArea`).
+- Ink helpers live in `packages/react` (e.g., `ScrollArea`).
 
 ## How things talk
 

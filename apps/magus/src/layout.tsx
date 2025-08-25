@@ -1,4 +1,4 @@
-import { useStdoutDimensions } from "@magus/ink-ext";
+import { useStdoutDimensions } from "@magus/react";
 import { Box, measureElement, type DOMElement } from "ink";
 import { useEffect, useRef } from "react";
 import { Outlet } from "react-router";

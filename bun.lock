@@ -24,8 +24,8 @@
       "bin": "src/main.tsx",
       "dependencies": {
         "@ai-sdk/react": "^2.0.0",
-        "@magus/ink-ext": "workspace:*",
         "@magus/providers": "workspace:*",
+        "@magus/react": "workspace:*",
         "@magus/server": "workspace:*",
         "ai": "catalog:",
         "ink": "catalog:ui",
@@ -46,20 +46,7 @@
       },
     },
     "packages/ink-ext": {
-      "name": "@magus/ink-ext",
-      "dependencies": {
-        "figlet": "^1.7.0",
-      },
-      "devDependencies": {
-        "@types/bun": "catalog:ts",
-        "@types/figlet": "catalog:ts",
-        "ink-testing-library": "catalog:test",
-      },
-      "peerDependencies": {
-        "ink": "catalog:ui",
-        "react": "catalog:ui",
-        "typescript": "catalog:ts",
-      },
+      "name": "@magus/ink-ext-renamed",
     },
     "packages/providers": {
       "name": "@magus/providers",
@@ -72,6 +59,22 @@
         "@types/bun": "catalog:ts",
       },
       "peerDependencies": {
+        "typescript": "catalog:ts",
+      },
+    },
+    "packages/react": {
+      "name": "@magus/react",
+      "dependencies": {
+        "figlet": "^1.7.0",
+      },
+      "devDependencies": {
+        "@types/bun": "catalog:ts",
+        "@types/figlet": "catalog:ts",
+        "ink-testing-library": "catalog:test",
+      },
+      "peerDependencies": {
+        "ink": "catalog:ui",
+        "react": "catalog:ui",
         "typescript": "catalog:ts",
       },
     },
@@ -154,11 +157,13 @@
 
     "@humanwhocodes/retry": ["@humanwhocodes/retry@0.4.3", "", {}, "sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ=="],
 
-    "@magus/ink-ext": ["@magus/ink-ext@workspace:packages/ink-ext"],
+    "@magus/ink-ext-renamed": ["@magus/ink-ext-renamed@workspace:packages/ink-ext"],
 
     "@magus/magus": ["@magus/magus@workspace:apps/magus"],
 
     "@magus/providers": ["@magus/providers@workspace:packages/providers"],
+
+    "@magus/react": ["@magus/react@workspace:packages/react"],
 
     "@magus/server": ["@magus/server@workspace:packages/server"],
 

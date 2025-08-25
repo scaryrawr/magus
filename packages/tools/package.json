@@ -1,7 +1,13 @@
 {
   "name": "@magus/tools",
-  "module": "src/index.ts",
+  "private": true,
   "type": "module",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
   "devDependencies": {
     "@types/bun": "catalog:ts"
   },
@@ -9,6 +15,7 @@
     "typescript": "catalog:ts"
   },
   "dependencies": {
-    "ai": "catalog:"
+    "ai": "catalog:",
+    "zod": "catalog:"
   }
 }

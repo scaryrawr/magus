@@ -26,6 +26,10 @@ export class ObservableServerState extends EventEmitter<ServerStateEvents> imple
     return this.state.model;
   }
 
+  get tools() {
+    return this.state.tools;
+  }
+
   set model(model: LanguageModel) {
     if (model !== this.state.model) {
       this.state.model = model;
@@ -37,8 +41,7 @@ export class ObservableServerState extends EventEmitter<ServerStateEvents> imple
 export const createServer = (config: ServerConfig) => {
   const app = new Hono();
   const state = new ObservableServerState({
-    providers: config.providers,
-    model: config.model,
+    ...config,
   });
 
   // Default routers mounted with best-practice `route()`

@@ -1,3 +1,4 @@
+// Modified from https://gist.github.com/janis-me/1a55a8747f12e1c4fc86ebe2d05a0a55
 import { Box, type BoxProps, type DOMElement, measureElement, useFocus, useInput } from "ink";
 import React, { useEffect, useReducer, useRef } from "react";
 

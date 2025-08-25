@@ -17,8 +17,14 @@ class ShellSession {
   }
 
   async restart() {
-    this.shell.kill();
-    this.shell = spawn(shell_name());
+    return await new Promise<void>((resolve) => {
+      this.shell.once("exit", () => {
+        this.shell = spawn(shell_name());
+        resolve();
+      });
+
+      this.shell.kill();
+    });
   }
 
   async exec(command: string) {

@@ -1,9 +1,39 @@
 import { tool, type ToolSet } from "ai";
-import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { spawn, spawnSync, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { z } from "zod";
 
+let cachedShellName: string | null = null;
 const shell_name = () => {
-  return process.platform === "win32" ? "pwsh" : "bash";
+  const calculateShell = () => {
+    if (process.platform === "win32") {
+      try {
+        const result = spawnSync("pwsh", ["--version"], { stdio: "ignore" });
+        if (result.status === 0) return "pwsh";
+      } catch {
+        // ignore and fall back to powershell
+      }
+
+      return "powershell";
+    }
+    // POSIX preference: zsh -> bash -> sh
+    try {
+      const z = spawnSync("zsh", ["--version"], { stdio: "ignore" });
+      if (z.status === 0) return "zsh";
+    } catch {
+      // zsh not available
+    }
+
+    try {
+      const b = spawnSync("bash", ["--version"], { stdio: "ignore" });
+      if (b.status === 0) return "bash";
+    } catch {
+      // bash not available
+    }
+
+    return "sh";
+  };
+
+  return (cachedShellName ??= calculateShell());
 };
 
 const description = () => {
@@ -91,7 +121,7 @@ export const createShellTool = () => {
         stderr: z.string().describe("The standard error output of the command"),
       }),
       execute: async ({ command, restart }) => {
-        if (restart) session.restart();
+        if (restart) await session.restart();
         return session.exec(command);
       },
     }),

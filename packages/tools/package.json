@@ -1,0 +1,14 @@
+{
+  "name": "@magus/tools",
+  "module": "src/index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "catalog:ts"
+  },
+  "peerDependencies": {
+    "typescript": "catalog:ts"
+  },
+  "dependencies": {
+    "ai": "catalog:"
+  }
+}

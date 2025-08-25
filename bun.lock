@@ -45,9 +45,6 @@
         "typescript": "catalog:ts",
       },
     },
-    "packages/ink-ext": {
-      "name": "@magus/ink-ext-renamed",
-    },
     "packages/providers": {
       "name": "@magus/providers",
       "dependencies": {
@@ -85,6 +82,18 @@
         "ai": "catalog:",
         "hono": "catalog:",
         "zod": "catalog:",
+      },
+      "devDependencies": {
+        "@types/bun": "catalog:ts",
+      },
+      "peerDependencies": {
+        "typescript": "catalog:ts",
+      },
+    },
+    "packages/tools": {
+      "name": "@magus/tools",
+      "dependencies": {
+        "ai": "catalog:",
       },
       "devDependencies": {
         "@types/bun": "catalog:ts",
@@ -157,8 +166,6 @@
 
     "@humanwhocodes/retry": ["@humanwhocodes/retry@0.4.3", "", {}, "sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ=="],
 
-    "@magus/ink-ext-renamed": ["@magus/ink-ext-renamed@workspace:packages/ink-ext"],
-
     "@magus/magus": ["@magus/magus@workspace:apps/magus"],
 
     "@magus/providers": ["@magus/providers@workspace:packages/providers"],
@@ -166,6 +173,8 @@
     "@magus/react": ["@magus/react@workspace:packages/react"],
 
     "@magus/server": ["@magus/server@workspace:packages/server"],
+
+    "@magus/tools": ["@magus/tools@workspace:packages/tools"],
 
     "@nodelib/fs.scandir": ["@nodelib/fs.scandir@2.1.5", "", { "dependencies": { "@nodelib/fs.stat": "2.0.5", "run-parallel": "^1.1.9" } }, "sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g=="],
 

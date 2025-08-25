@@ -1,5 +1,6 @@
 import { createLmStudioProvider, createOllamaProvider } from "@magus/providers";
 import { createServer } from "@magus/server";
+import { createShellTool } from "@magus/tools";
 import { render } from "ink";
 import { App } from "./app";
 
@@ -8,6 +9,7 @@ const createMagusServer = () => {
   const service = createServer({
     providers,
     model: providers[0].model("openai/gpt-oss-20b"),
+    tools: createShellTool(),
   });
 
   return {

@@ -51,10 +51,10 @@ describe("insert tool", () => {
       { messages: [], toolCallId: "1" },
     );
 
-    const resolved = await resolveToolOutput(result as { diff: string } | AsyncIterable<{ diff: string }>);
-    expect(resolved.diff).toContain("line1");
-    expect(resolved.diff).toContain("NEW");
-    expect(resolved.diff).toContain("line2");
+    const resolved = await resolveToolOutput(result);
+    expect(resolved?.diff).toContain("line1");
+    expect(resolved?.diff).toContain("NEW");
+    expect(resolved?.diff).toContain("line2");
   });
 
   it("creates file when missing and insert_line is 0", async () => {
@@ -67,8 +67,8 @@ describe("insert tool", () => {
       { command: "insert", path: "/tmp/new-file.txt", insert_line: 0, new_str: "hello" },
       { messages: [], toolCallId: "1" },
     );
-    const resolved = await resolveToolOutput(result as { diff: string } | AsyncIterable<{ diff: string }>);
-    expect(typeof resolved.diff).toBe("string");
+    const resolved = await resolveToolOutput(result);
+    expect(typeof resolved?.diff).toBe("string");
   });
 
   it("throws if file missing and insert_line > 0", async () => {

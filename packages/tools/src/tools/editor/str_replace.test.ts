@@ -65,10 +65,10 @@ describe("str_replace tool", () => {
     );
 
     // Normalize possible AsyncIterable result into a single value
-    const resolved = await resolveToolOutput(result as { diff: string } | AsyncIterable<{ diff: string }>);
+    const resolved = await resolveToolOutput(result);
 
-    expect(resolved.diff).toContain('console.log("Hello, world!");');
-    expect(resolved.diff).toContain('console.log("Hello, Bun!");');
+    expect(resolved?.diff).toContain('console.log("Hello, world!");');
+    expect(resolved?.diff).toContain('console.log("Hello, Bun!");');
   });
 
   it("should throw an error when old_str and new_str are identical", async () => {

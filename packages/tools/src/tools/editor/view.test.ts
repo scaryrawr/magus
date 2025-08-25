@@ -41,7 +41,7 @@ describe("view tool", () => {
     spyOn(fs, "readdir").mockResolvedValue(["a.txt", "b.txt"]);
 
     const result = await view.execute?.({ command: "view", path: "/tmp" }, { messages: [], toolCallId: "1" });
-    const resolved = await resolveToolOutput(result as string | AsyncIterable<string>);
+    const resolved = await resolveToolOutput(result);
     expect(resolved).toBe("a.txt\nb.txt");
   });
 
@@ -50,7 +50,7 @@ describe("view tool", () => {
     spyOn(fs, "readFile").mockResolvedValue("x\ny\nz");
 
     const result = await view.execute?.({ command: "view", path: "/tmp/file.txt" }, { messages: [], toolCallId: "1" });
-    const resolved = await resolveToolOutput(result as string | AsyncIterable<string>);
+    const resolved = await resolveToolOutput(result);
     expect(resolved).toBe("x\ny\nz");
   });
 
@@ -62,7 +62,7 @@ describe("view tool", () => {
       { command: "view", path: "/tmp/file.txt", view_range: [2, 3] },
       { messages: [], toolCallId: "1" },
     );
-    const resolved = await resolveToolOutput(result as string | AsyncIterable<string>);
+    const resolved = await resolveToolOutput(result);
     expect(resolved).toBe("2\n3");
   });
 });

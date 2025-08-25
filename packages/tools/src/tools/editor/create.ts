@@ -23,16 +23,27 @@ export const createFileCreateTool = () =>
         }
 
         // Check if file already exists; fs.stat throws ENOENT if not present.
+        let stat: { isFile: () => boolean; isDirectory: () => boolean } | undefined;
         try {
-          const stat = await fs.stat(path);
+          stat = await fs.stat(path);
+        } catch (err) {
+          if (!err || typeof err !== "object") {
+            throw err;
+          }
+
+          const e: Partial<NodeJS.ErrnoException> = err;
+          if (!e || e.code !== "ENOENT") {
+            throw err; // rethrow unexpected errors
+          }
+        }
+
+        if (stat) {
           if (stat.isFile()) {
             throw new Error("File already exists at the specified path");
           }
           if (stat.isDirectory()) {
             throw new Error("A directory exists at the specified path");
           }
-        } catch {
-          // File does not exist, so will error
         }
 
         await fs.writeFile(path, content, "utf-8");

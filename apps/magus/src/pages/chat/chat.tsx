@@ -1,10 +1,11 @@
 import { useChat } from "@ai-sdk/react";
 import { ScrollArea } from "@magus/react";
 import { DefaultChatTransport } from "ai";
-import { Box, Text, useInput } from "ink";
+import { useInput } from "ink";
 import { useCallback, useEffect } from "react";
 import { useLocation } from "react-router";
-import { useInputContext, useRouteInput, useServerContext } from "../contexts";
+import { useInputContext, useRouteInput, useServerContext } from "../../contexts";
+import { ChatBox } from "./chatbox";
 
 type ChatState = {
   text?: string;
@@ -47,10 +48,7 @@ export const Chat = () => {
   return (
     <ScrollArea width="100%" height={contentHeight}>
       {messages.map((message) => (
-        <Box key={message.id}>
-          <Text>{message.role === "user" ? "You" : "AI"}: </Text>
-          {message.parts.map((part, index) => (part.type === "text" ? <Text key={index}>{part.text}</Text> : null))}
-        </Box>
+        <ChatBox key={message.id} {...message} />
       ))}
     </ScrollArea>
   );

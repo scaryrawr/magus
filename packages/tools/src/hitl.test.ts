@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it } from "bun:test";
 import { insertHumanInTheLoop } from "./hitl";
-import { createShellTool } from "./tools";
+import { createShellTool, createViewTool } from "./tools";
 
 describe("should be able to create hitl with existing tool", () => {
   let toolExecutes: ReturnType<typeof insertHumanInTheLoop>["toolExecutes"];
   let toolSet: ReturnType<typeof insertHumanInTheLoop>["toolSet"];
   beforeEach(() => {
-    const hitl = insertHumanInTheLoop(createShellTool(), ["shell"]);
+    const hitl = insertHumanInTheLoop({ ...createShellTool(), ...createViewTool() }, ["shell"]);
     toolExecutes = hitl.toolExecutes;
     toolSet = hitl.toolSet;
   });

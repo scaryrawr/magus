@@ -9,6 +9,7 @@ import {
 } from "@magus/tools";
 import { render } from "ink";
 import { App } from "./app";
+import { ServerProvider } from "./contexts";
 
 const createMagusServer = () => {
   const providers = [createLmStudioProvider(), createOllamaProvider()];
@@ -32,7 +33,11 @@ const createMagusServer = () => {
 };
 
 try {
-  await render(<App createServer={createMagusServer} />).waitUntilExit();
+  await render(
+    <ServerProvider createServer={createMagusServer}>
+      <App />
+    </ServerProvider>,
+  ).waitUntilExit();
 } catch (error) {
   console.error("Error:", error);
   process.exit(1);

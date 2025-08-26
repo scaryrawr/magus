@@ -96,7 +96,7 @@ class ShellSession {
 
       const settle = () => {
         cleanup();
-        resolve({ stdout: stdout.trim(), stderr: stderr.trim() });
+        resolve({ stdout: stdout, stderr: stderr });
       };
 
       const resetTimer = () => {

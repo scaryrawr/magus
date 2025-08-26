@@ -21,6 +21,11 @@ export const ToolSetProvider: React.FC<ToolSetProviderProps> = ({ children, getT
   const [toolSet, setToolset] = useState(() => getToolSet(model));
 
   useEffect(() => {
+    // Update server tools whenever toolset changes
+    serverState.tools = toolSet;
+  }, [serverState, toolSet]);
+
+  useEffect(() => {
     setToolset(getToolSet(model));
   }, [model, getToolSet]);
 

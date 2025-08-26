@@ -1,4 +1,4 @@
-import type { LanguageModel } from "ai";
+import { type LanguageModel } from "ai";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { Hono } from "hono";
 import { ModelInfoSchema, type MagusProvider, type ModelInfo } from "../../../packages/providers/src/types.js";
@@ -67,6 +67,7 @@ beforeEach(() => {
   const state: ServerState = {
     providers: [mockProvider1, mockProvider2],
     model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
+    tools: undefined,
   };
 
   app.route("/v0", modelsRouter(state));
@@ -94,6 +95,7 @@ describe("Models Endpoints", () => {
       const emptyState: ServerState = {
         providers: [emptyProvider],
         model: createMockLanguageModel("test", "empty"),
+        tools: undefined,
       };
 
       emptyApp.route("/v0", modelsRouter(emptyState));
@@ -171,9 +173,10 @@ describe("Models Endpoints", () => {
     it("should return 500 when model is a string", async () => {
       // Create app with string model
       const freshApp = new Hono();
-      const freshState = {
+      const freshState: ServerState = {
         providers: [mockProvider1],
         model: "string-model", // This will trigger the error case
+        tools: undefined,
       };
 
       freshApp.route("/v0", modelsRouter(freshState));
@@ -187,9 +190,10 @@ describe("Models Endpoints", () => {
     it("should successfully change the current model", async () => {
       // Create a fresh app and state for this test to avoid interference
       const freshApp = new Hono();
-      const freshState = {
+      const freshState: ServerState = {
         providers: [mockProvider1, mockProvider2],
         model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
+        tools: undefined,
       };
 
       freshApp.route("/v0", modelsRouter(freshState));
@@ -256,9 +260,10 @@ describe("Models Endpoints", () => {
     it("should handle model selection that doesn't exist in provider", async () => {
       // Create a fresh app and state for this test
       const freshApp = new Hono();
-      const freshState = {
+      const freshState: ServerState = {
         providers: [mockProvider1],
         model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
+        tools: undefined,
       };
       freshApp.route("/v0", modelsRouter(freshState));
 

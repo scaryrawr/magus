@@ -16,12 +16,18 @@ export const modelsRouter: RouterFactory = (state) => {
   router.get("/models", async (c) => {
     const models: ModelSelect[] = (
       await Promise.all(
-        state.providers.map(async (provider) =>
-          (await provider.models()).map((model) => ({
-            provider: provider.name,
-            id: model.id,
-          })),
-        ),
+        state.providers.map(async (provider) => {
+          try {
+            const models = await provider.models();
+            return models.map((model) => ({
+              provider: provider.name,
+              id: model.id,
+            }));
+          } catch {
+            // Skip misbehaving providers
+            return [];
+          }
+        }),
       )
     ).flat();
 

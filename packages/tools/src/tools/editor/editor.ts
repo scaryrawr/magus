@@ -9,10 +9,19 @@ export const createEditorTool = () =>
   ({
     file_edit_tool: tool({
       description: "The text editor tool supports several commands for viewing and modifying files.",
-      inputSchema: z.union([ViewSchema, CreateFileSchema, InsertFileSchema, StringReplaceSchema]),
-      outputSchema: z.union([
-        z.string().describe("The content of the file or directory listing when using the view command"),
+      inputSchema: z.discriminatedUnion("command", [
+        ViewSchema,
+        CreateFileSchema,
+        InsertFileSchema,
+        StringReplaceSchema,
+      ]),
+      outputSchema: z.discriminatedUnion("type", [
         z.object({
+          type: z.literal("view"),
+          content: z.string().describe("The content of the file or directory listing when using the view command"),
+        }),
+        z.object({
+          type: z.literal("diff"),
           diff: z.string().describe("A diff showing the changes made to the file"),
         }),
       ]),

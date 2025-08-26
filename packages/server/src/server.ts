@@ -30,6 +30,10 @@ export class ObservableServerState extends EventEmitter<ServerStateEvents> imple
     return this.state.tools;
   }
 
+  set tools(tools) {
+    this.state.tools = tools;
+  }
+
   set model(model: LanguageModel) {
     if (model !== this.state.model) {
       this.state.model = model;

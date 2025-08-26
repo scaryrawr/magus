@@ -136,7 +136,7 @@ export const createShellTool = () => {
       description: description(),
       inputSchema: z.object({
         command: z.string().describe("The shell command to execute"),
-        restart: z.optional(z.boolean()).describe("Set to true to restart the shell session"),
+        restart: z.boolean().optional().describe("Set to true to restart the shell session"),
       }),
       outputSchema: z.object({
         stdout: z.string().describe("The standard output of the command"),

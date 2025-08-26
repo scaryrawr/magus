@@ -1,2 +1,9 @@
 export { insertHumanInTheLoop } from "./hitl";
-export { createEditorTool, createShellTool } from "./tools";
+export {
+  createCreateFileTool,
+  createEditorTool,
+  createInsertTool,
+  createShellTool,
+  createStringReplaceTool,
+  createViewTool,
+} from "./tools";

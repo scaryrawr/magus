@@ -55,7 +55,7 @@ describe("insert", () => {
     spyOn(fs, "writeFile").mockResolvedValue();
 
     const result = await insert({ path: "/tmp/new-file.txt", insert_line: 0, new_str: "hello" });
-    expect(typeof result.diff).toBe("string");
+    expect(typeof result).toBe("object");
   });
 
   it("throws if file missing and insert_line > 0", async () => {

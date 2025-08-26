@@ -2,17 +2,9 @@ import { tool, type ToolSet } from "ai";
 import { createTwoFilesPatch } from "diff";
 import fs from "node:fs/promises";
 import { dirname } from "node:path";
-import z from "zod";
+import { CreateFileSchema, DiffOutputSchema, type CreateFileInput, type DiffOutput } from "./types";
 
-export const CreateFileSchema = z.object({
-  command: z.literal("create"),
-  path: z.string().describe("The path to where the new file should be created."),
-  content: z.string().describe("The content to write to the new file."),
-});
-
-export type CreateFileInput = Omit<z.infer<typeof CreateFileSchema>, "command">;
-
-export const createFile = async ({ path, content }: CreateFileInput) => {
+export const createFile = async ({ path, content }: CreateFileInput): Promise<DiffOutput> => {
   // Ensure parent directory exists (create intermediate dirs as needed)
   const dir = dirname(path);
   try {
@@ -58,12 +50,9 @@ export const createCreateFileTool = () =>
     create_file: tool({
       description: "Create a new file with specified content.",
       inputSchema: CreateFileSchema,
-      outputSchema: z.object({
-        type: z.literal("diff"),
-        diff: z.string().describe("A diff showing the changes made to the file"),
-      }),
-      execute: async (input) => {
-        return createFile(input);
+      outputSchema: DiffOutputSchema,
+      execute: async (input): Promise<DiffOutput> => {
+        return await createFile(input);
       },
     }),
   }) satisfies ToolSet;

@@ -2,18 +2,9 @@ import { tool, type ToolSet } from "ai";
 import { createTwoFilesPatch } from "diff";
 import fs from "node:fs/promises";
 import { dirname } from "node:path";
-import z from "zod";
+import { DiffOutputSchema, InsertFileSchema, type DiffOutput, type InsertFileInput } from "./types";
 
-export const InsertFileSchema = z.object({
-  command: z.literal("insert"),
-  path: z.string().describe("The path to the file to modify."),
-  insert_line: z.number().describe("The line number to insert the content at (0 for beginning of the file)."),
-  new_str: z.string().describe("The text to insert."),
-});
-
-export type InsertFileInput = Omit<z.infer<typeof InsertFileSchema>, "command">;
-
-export const insert = async ({ path, insert_line, new_str }: InsertFileInput) => {
+export const insert = async ({ path, insert_line, new_str }: InsertFileInput): Promise<DiffOutput> => {
   let content = "";
 
   try {
@@ -63,12 +54,9 @@ export const createInsertTool = () =>
     file_insert: tool({
       description: "Insert text at a specific location in a file.",
       inputSchema: InsertFileSchema,
-      outputSchema: z.object({
-        type: z.literal("diff"),
-        diff: z.string().describe("A diff showing the changes made to the file."),
-      }),
-      execute: async (input) => {
-        return insert(input);
+      outputSchema: DiffOutputSchema,
+      execute: async (input): Promise<DiffOutput> => {
+        return await insert(input);
       },
     }),
   }) satisfies ToolSet;

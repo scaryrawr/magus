@@ -1,21 +1,8 @@
 import { tool, type ToolSet } from "ai";
 import fs from "node:fs/promises";
-import z from "zod";
+import { ViewOutputSchema, ViewSchema, type ViewInput, type ViewOutput } from "./types";
 
-export const ViewSchema = z.object({
-  command: z.literal("view"),
-  path: z.string().describe("The path of the file or directory to view."),
-  view_range: z
-    .tuple([z.number().describe("start line"), z.number().describe("end line")])
-    .optional()
-    .describe(
-      "An array of two integers specifying the start and end line numbers to view. Lin numbers are 1-indexed, and -1 for the end line means read to the end of the file. Only applies when viewing files, not directories.",
-    ),
-});
-
-export type ViewInput = Omit<z.infer<typeof ViewSchema>, "command">;
-
-export const viewFile = async ({ path, view_range }: ViewInput) => {
+export const viewFile = async ({ path, view_range }: ViewInput): Promise<ViewOutput> => {
   const stat = await fs.stat(path);
   if (stat.isDirectory()) {
     const files = await fs.readdir(path);
@@ -29,10 +16,7 @@ export const viewFile = async ({ path, view_range }: ViewInput) => {
       return lines.slice(start, end).join("\n");
     }
 
-    return {
-      type: "view",
-      content,
-    };
+    return content;
   } else {
     throw new Error("Path is neither a file nor a directory.");
   }
@@ -43,12 +27,9 @@ export const createViewTool = () =>
     view_file: tool({
       description: "Examine the contents of a file or list the contents of a directory.",
       inputSchema: ViewSchema,
-      outputSchema: z.object({
-        type: z.literal("view"),
-        content: z.string().describe("The content of the file or directory listing when using the view command"),
-      }),
-      execute: async (input) => {
-        return viewFile(input);
+      outputSchema: ViewOutputSchema,
+      execute: async (input): Promise<ViewOutput> => {
+        return await viewFile(input);
       },
     }),
   }) satisfies ToolSet;

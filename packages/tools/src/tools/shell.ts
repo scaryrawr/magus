@@ -58,7 +58,8 @@ class ShellSession {
   }
 
   async exec(command: string) {
-    const idleMs = 50;
+    // Windows PowerShell can be slow to start up
+    let idleMs = process.platform === "win32" ? 10000 : 50;
     return await new Promise<{ stdout: string; stderr: string }>((resolve) => {
       let stdout = "";
       let stderr = "";
@@ -81,6 +82,7 @@ class ShellSession {
       const resetTimer = () => {
         if (timer) clearTimeout(timer);
         timer = setTimeout(settle, idleMs);
+        idleMs = 50;
       };
 
       const onStdout = (data: Buffer) => {

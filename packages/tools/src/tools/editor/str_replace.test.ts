@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
-import { resolveToolOutput } from "../../test-utils";
 
 // Mock the filesystem BEFORE importing the module under test
 const statMock = mock(() => {});
@@ -26,14 +25,11 @@ type FsSubset = {
 };
 
 const fs = (await import("node:fs/promises")).default as unknown as FsSubset;
-const { createStrReplaceTool } = await import("./str_replace");
+const { stringReplace } = await import("./str_replace");
 
 const { clearAllMocks } = mock;
 
-describe("str_replace tool", () => {
-  const tool = createStrReplaceTool();
-  const strReplace = tool.str_replace;
-
+describe("stringReplace", () => {
   beforeEach(() => {
     clearAllMocks();
   });
@@ -51,24 +47,14 @@ describe("str_replace tool", () => {
 
     spyOn(fs, "writeFile").mockResolvedValue(undefined);
 
-    const result = await strReplace.execute?.(
-      {
-        command: "str_replace",
-        path: "/test/file.ts",
-        old_str: 'console.log("Hello, world!");',
-        new_str: 'console.log("Hello, Bun!");',
-      },
-      {
-        messages: [],
-        toolCallId: "1",
-      },
-    );
+    const result = await stringReplace({
+      path: "/test/file.ts",
+      old_str: 'console.log("Hello, world!");',
+      new_str: 'console.log("Hello, Bun!");',
+    });
 
-    // Normalize possible AsyncIterable result into a single value
-    const resolved = await resolveToolOutput(result);
-
-    expect(resolved?.diff).toContain('console.log("Hello, world!");');
-    expect(resolved?.diff).toContain('console.log("Hello, Bun!");');
+    expect(result.diff).toContain('console.log("Hello, world!");');
+    expect(result.diff).toContain('console.log("Hello, Bun!");');
   });
 
   it("should throw an error when old_str and new_str are identical", async () => {
@@ -83,18 +69,11 @@ describe("str_replace tool", () => {
     spyOn(fs, "readFile").mockResolvedValue(mockFileContent);
 
     await expect(
-      strReplace.execute?.(
-        {
-          command: "str_replace",
-          path: "/test/file.ts",
-          old_str: 'console.log("Hello, world!");',
-          new_str: 'console.log("Hello, world!");',
-        },
-        {
-          messages: [],
-          toolCallId: "1",
-        },
-      ),
+      stringReplace({
+        path: "/test/file.ts",
+        old_str: 'console.log("Hello, world!");',
+        new_str: 'console.log("Hello, world!");',
+      }),
     ).rejects.toThrow("No changes made: old_str and new_str are identical.");
   });
 
@@ -104,18 +83,11 @@ describe("str_replace tool", () => {
     spyOn(fs, "stat").mockResolvedValue(mockStat);
 
     await expect(
-      strReplace.execute?.(
-        {
-          command: "str_replace",
-          path: "/test/file.ts",
-          old_str: 'console.log("Hello, world!");',
-          new_str: 'console.log("Hello, Bun!");',
-        },
-        {
-          messages: [],
-          toolCallId: "1",
-        },
-      ),
+      stringReplace({
+        path: "/test/file.ts",
+        old_str: 'console.log("Hello, world!");',
+        new_str: 'console.log("Hello, Bun!");',
+      }),
     ).rejects.toThrow("Path is not a file");
   });
 
@@ -131,18 +103,11 @@ describe("str_replace tool", () => {
     spyOn(fs, "readFile").mockResolvedValue(mockFileContent);
 
     await expect(
-      strReplace.execute?.(
-        {
-          command: "str_replace",
-          path: "/test/file.ts",
-          old_str: "nonexistent string",
-          new_str: 'console.log("Hello, Bun!");',
-        },
-        {
-          messages: [],
-          toolCallId: "1",
-        },
-      ),
+      stringReplace({
+        path: "/test/file.ts",
+        old_str: "nonexistent string",
+        new_str: 'console.log("Hello, Bun!");',
+      }),
     ).rejects.toThrow("The specified old_str was not found in the file.");
   });
 
@@ -159,18 +124,11 @@ describe("str_replace tool", () => {
     spyOn(fs, "readFile").mockResolvedValue(mockFileContent);
 
     await expect(
-      strReplace.execute?.(
-        {
-          command: "str_replace",
-          path: "/test/file.ts",
-          old_str: 'console.log("Hello, world!");',
-          new_str: 'console.log("Hello, Bun!");',
-        },
-        {
-          messages: [],
-          toolCallId: "1",
-        },
-      ),
+      stringReplace({
+        path: "/test/file.ts",
+        old_str: 'console.log("Hello, world!");',
+        new_str: 'console.log("Hello, Bun!");',
+      }),
     ).rejects.toThrow(
       "The specified old_str appears multiple times in the file. Aborting to avoid unintended broad edits.",
     );

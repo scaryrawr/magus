@@ -1,64 +1,57 @@
-import { tool, type ToolSet } from "ai";
 import { createTwoFilesPatch } from "diff";
 import fs from "node:fs/promises";
 import { dirname } from "node:path";
 import z from "zod";
 
-export const createInsertTool = () =>
-  ({
-    create: tool({
-      description: "Insert content into an existing file.",
-      inputSchema: z.object({
-        command: z.literal("insert"),
-        path: z.string().describe("The path to the file to modify"),
-        insert_line: z.number().describe("The line number to insert the content at (0 for beginning of the file)"),
-        new_str: z.string().describe("The text to insert"),
-      }),
-      outputSchema: z.object({
-        diff: z.string().describe("A diff showing the changes made to the file"),
-      }),
-      execute: async ({ path, insert_line, new_str }) => {
-        let content = "";
+export const InsertFileSchema = z.object({
+  command: z.literal("insert"),
+  path: z.string().describe("The path to the file to modify"),
+  insert_line: z.number().describe("The line number to insert the content at (0 for beginning of the file)"),
+  new_str: z.string().describe("The text to insert"),
+});
 
-        try {
-          const stat = await fs.stat(path);
-          if (!stat.isFile()) {
-            throw new Error("Path is not a file");
-          }
-          content = await fs.readFile(path, "utf-8");
-        } catch (err) {
-          if (!err || typeof err !== "object") {
-            throw err;
-          }
+export type InsertFileInput = Omit<z.infer<typeof InsertFileSchema>, "command">;
 
-          const e: Partial<NodeJS.ErrnoException> = err;
-          if (e && e.code !== "ENOENT") {
-            throw err;
-          }
+export const insert = async ({ path, insert_line, new_str }: InsertFileInput) => {
+  let content = "";
 
-          if (insert_line === 0) {
-            // Create parent directory if needed, then treat as inserting into an empty file
-            try {
-              await fs.mkdir(dirname(path), { recursive: true });
-            } catch {
-              // ignore; writeFile will surface any real errors
-            }
+  try {
+    const stat = await fs.stat(path);
+    if (!stat.isFile()) {
+      throw new Error("Path is not a file");
+    }
+    content = await fs.readFile(path, "utf-8");
+  } catch (err) {
+    if (!err || typeof err !== "object") {
+      throw err;
+    }
 
-            content = "";
-          } else {
-            throw new Error("File not found");
-          }
-        }
+    const e: Partial<NodeJS.ErrnoException> = err;
+    if (e && e.code !== "ENOENT") {
+      throw err;
+    }
 
-        const lines = content.split("\n");
-        lines.splice(insert_line, 0, new_str);
-        const updatedContent = lines.join("\n");
-        await fs.writeFile(path, updatedContent, "utf-8");
+    if (insert_line === 0) {
+      // Create parent directory if needed, then treat as inserting into an empty file
+      try {
+        await fs.mkdir(dirname(path), { recursive: true });
+      } catch {
+        // ignore; writeFile will surface any real errors
+      }
 
-        const diff = createTwoFilesPatch(path, path, content, updatedContent);
-        return {
-          diff,
-        };
-      },
-    }),
-  }) satisfies ToolSet;
+      content = "";
+    } else {
+      throw new Error("File not found");
+    }
+  }
+
+  const lines = content.split("\n");
+  lines.splice(insert_line, 0, new_str);
+  const updatedContent = lines.join("\n");
+  await fs.writeFile(path, updatedContent, "utf-8");
+
+  const diff = createTwoFilesPatch(path, path, content, updatedContent);
+  return {
+    diff,
+  };
+};

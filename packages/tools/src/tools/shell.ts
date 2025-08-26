@@ -2,54 +2,74 @@ import { tool, type ToolSet } from "ai";
 import { spawn, spawnSync, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { z } from "zod";
 
-let cachedShellName: string | null = null;
-const shell_name = () => {
-  const calculateShell = () => {
-    if (process.platform === "win32") {
-      try {
-        const result = spawnSync("pwsh", ["--version"], { stdio: "ignore" });
-        if (result.status === 0) return "pwsh";
-      } catch {
-        // ignore and fall back to powershell
-      }
-
-      return "powershell";
-    }
-    // POSIX preference: zsh -> bash -> sh
+const calculateShell = () => {
+  if (process.platform === "win32") {
     try {
-      const z = spawnSync("zsh", ["--version"], { stdio: "ignore" });
-      if (z.status === 0) return "zsh";
+      const result = spawnSync("pwsh", ["--version"], { stdio: "ignore" });
+      if (result.status === 0) return "pwsh";
     } catch {
-      // zsh not available
+      // ignore and fall back to powershell
     }
 
-    try {
-      const b = spawnSync("bash", ["--version"], { stdio: "ignore" });
-      if (b.status === 0) return "bash";
-    } catch {
-      // bash not available
-    }
+    return "powershell";
+  }
 
-    return "sh";
+  // POSIX preference: zsh -> bash -> sh
+  try {
+    const z = spawnSync("zsh", ["--version"], { stdio: "ignore" });
+    if (z.status === 0) return "zsh";
+  } catch {
+    // zsh not available
+  }
+
+  try {
+    const b = spawnSync("bash", ["--version"], { stdio: "ignore" });
+    if (b.status === 0) return "bash";
+  } catch {
+    // bash not available
+  }
+
+  return "sh";
+};
+
+const getShellArgs = (shell: ReturnType<typeof calculateShell>) => {
+  switch (shell) {
+    case "powershell":
+    case "pwsh":
+      return ["-NoLogo", "-NoProfile", "-NoExit", "-Command", "-"];
+    default:
+      return [];
+  }
+};
+
+let cachedShellName: ReturnType<typeof calculateShell> | null = null;
+let cacheShellArgs: string[] | null = null;
+const getShellInfo = () => {
+  cachedShellName ??= calculateShell();
+  cacheShellArgs ??= getShellArgs(cachedShellName);
+
+  return {
+    shell: cachedShellName,
+    args: cacheShellArgs,
   };
-
-  return (cachedShellName ??= calculateShell());
 };
 
 const description = () => {
-  return `Executes a given command in a persistent ${shell_name()} session on ${process.platform}.`;
+  return `Executes a given command in a persistent ${getShellInfo().shell} session on ${process.platform}.`;
 };
 
 class ShellSession {
   shell: ChildProcessWithoutNullStreams;
+  shellInfo: { shell: string; args: string[] };
   constructor() {
-    this.shell = spawn(shell_name());
+    this.shellInfo = getShellInfo();
+    this.shell = spawn(this.shellInfo.shell, this.shellInfo.args);
   }
 
   async restart() {
     return await new Promise<void>((resolve) => {
       this.shell.once("exit", () => {
-        this.shell = spawn(shell_name());
+        this.shell = spawn(this.shellInfo.shell, this.shellInfo.args);
         resolve();
       });
 
@@ -76,7 +96,7 @@ class ShellSession {
 
       const settle = () => {
         cleanup();
-        resolve({ stdout, stderr });
+        resolve({ stdout: stdout.trim(), stderr: stderr.trim() });
       };
 
       const resetTimer = () => {

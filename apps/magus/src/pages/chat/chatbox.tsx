@@ -22,7 +22,7 @@ export const ChatBox: React.FC<UIMessage> = ({ role, parts }) => {
               </Text>
             );
           default:
-            console.error(part.type);
+            //console.error(part.type);
             return null;
         }
       })}

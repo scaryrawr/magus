@@ -1,11 +1,14 @@
 import { type UIMessage, convertToModelMessages, streamText } from "ai";
 import { Hono } from "hono";
-import type { RouterFactory } from "./types.js";
+import type { RouterFactory, ServerState } from "./types";
 
-// New: Router factory for mounting under a base path
-export const chatRouter: RouterFactory = (state) => {
+export const chatRouter = (state: ServerState) => {
   const router = new Hono();
-  router.post("/chat", async (c) => {
+  return router.post("/chat", async (c) => {
+    if (!state.model) {
+      return c.text("Please select a model first", 500);
+    }
+
     const { messages }: { messages: UIMessage[] } = await c.req.json();
     try {
       const result = streamText({
@@ -23,5 +26,6 @@ export const chatRouter: RouterFactory = (state) => {
       return c.text(error.message, 500);
     }
   });
-  return router;
 };
+
+chatRouter satisfies RouterFactory<ReturnType<typeof chatRouter>>;

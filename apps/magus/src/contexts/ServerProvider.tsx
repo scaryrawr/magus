@@ -1,6 +1,6 @@
 import type { ObservableServerState } from "@magus/server";
 import type { Server } from "bun";
-import React, { createContext, useContext, useEffect, useMemo, type ReactNode } from "react";
+import React, { createContext, useContext, useEffect, type ReactNode } from "react";
 
 type ServerState = {
   server: Server;
@@ -15,14 +15,13 @@ type ServerProviderProps = {
 const ServerContext = createContext<ServerState | null>(null);
 
 export const ServerProvider: React.FC<ServerProviderProps> = ({ createServer, children }) => {
-  const serverState = useMemo(() => createServer(), [createServer]);
-  const { server } = serverState;
+  const serverState = React.useMemo(() => createServer(), [createServer]);
 
   useEffect(() => {
     return () => {
-      server.stop();
+      serverState.server.stop();
     };
-  }, [server]);
+  }, [serverState.server]);
 
   return <ServerContext.Provider value={serverState}>{children}</ServerContext.Provider>;
 };

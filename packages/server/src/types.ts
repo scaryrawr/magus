@@ -4,8 +4,8 @@ import type { Hono } from "hono";
 
 export interface ServerState {
   providers: readonly MagusProvider[];
-  model: LanguageModel;
+  model: LanguageModel | undefined;
   tools: ToolSet | undefined;
 }
 
-export type RouterFactory = (state: ServerState) => Hono;
+export type RouterFactory<THono extends Hono = Hono> = (state: ServerState) => THono;

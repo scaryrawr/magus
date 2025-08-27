@@ -1,5 +1,6 @@
 import { createLmStudioProvider, createOllamaProvider } from "@magus/providers";
-import { createServer } from "@magus/server";
+import { createServer, type MagusRoutes } from "@magus/server";
+import { ModelsResultSchema } from "@magus/server/src/models";
 import {
   createCreateFileTool,
   createEditorTool,
@@ -9,6 +10,7 @@ import {
   createViewTool,
 } from "@magus/tools";
 import type { LanguageModel, ToolSet } from "ai";
+import { hc } from "hono/client";
 import { render } from "ink";
 import { App } from "./app";
 import { ServerProvider } from "./contexts";
@@ -16,15 +18,27 @@ import { ToolSetProvider } from "./contexts/ToolSetProvider";
 
 const createMagusServer = () => {
   const providers = [createLmStudioProvider(), createOllamaProvider()];
-  const service = createServer({
+  const { listen, state } = createServer({
     providers,
     model: providers[0].model("openai/gpt-oss-20b"),
     tools: undefined,
   });
 
+  const server = listen();
+  const client = hc<MagusRoutes>(server.url.href);
+  client.v0.models.$get().then(async (modelResponse) => {
+    const models = ModelsResultSchema.parse(await modelResponse.json());
+
+    // Just select the first model
+    client.v0.model.$post({
+      json: models[0],
+    });
+  });
+
   return {
-    server: service.listen(),
-    state: service.state,
+    client,
+    server,
+    state,
   };
 };
 
@@ -48,7 +62,11 @@ const getProviderToolSet = (provider: string): ToolSet => {
 
 const getToolSet = (() => {
   const cache = new Map<string, ToolSet>();
-  return (model: LanguageModel) => {
+  return (model: LanguageModel | undefined) => {
+    if (!model) {
+      return undefined;
+    }
+
     let cacheKey = "default";
     if (typeof model !== "string") {
       cacheKey = model.provider.replace(".chat", "");

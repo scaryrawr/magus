@@ -5,8 +5,9 @@ import { chatRouter } from "./chat.js";
 import { modelsRouter } from "./models.js";
 import type { RouterFactory, ServerState } from "./types.js";
 
-export interface ServerConfig extends ServerState {
-  routers?: readonly RouterFactory[];
+export interface ServerConfig<TRouters extends readonly RouterFactory[] = readonly RouterFactory[]>
+  extends ServerState {
+  routers?: TRouters;
 }
 
 type ServerStateEvents = {
@@ -22,7 +23,7 @@ export class ObservableServerState extends EventEmitter<ServerStateEvents> imple
     return this.state.providers;
   }
 
-  get model() {
+  get model(): LanguageModel | undefined {
     return this.state.model;
   }
 
@@ -42,20 +43,22 @@ export class ObservableServerState extends EventEmitter<ServerStateEvents> imple
   }
 }
 
-export const createServer = (config: ServerConfig) => {
-  const app = new Hono();
+export const createServer = <TRouters extends readonly RouterFactory[]>(config: ServerConfig<TRouters>) => {
   const state = new ObservableServerState({
     ...config,
   });
 
-  // Default routers mounted with best-practice `route()`
-  const defaultRouters: RouterFactory[] = [chatRouter, modelsRouter];
-  const routers: RouterFactory[] = config.routers ? [...defaultRouters, ...config.routers] : defaultRouters;
-  for (const makeRouter of routers) {
-    app.route("/v0", makeRouter(state));
+  let app = new Hono();
+
+  if (config.routers) {
+    app = config.routers.reduce((app, makeRouter) => {
+      return app.route("/v0", makeRouter(state));
+    }, app);
   }
 
+  const routes = app.route("/v0", chatRouter(state)).route("/v0", modelsRouter(state));
   return {
+    app: routes,
     state,
     listen: () => {
       const server = Bun.serve({
@@ -68,3 +71,5 @@ export const createServer = (config: ServerConfig) => {
     },
   };
 };
+
+export type MagusRoutes = ReturnType<typeof createServer>["app"];

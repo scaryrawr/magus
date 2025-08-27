@@ -8,7 +8,7 @@ type ToolSetInfo = {
 
 type ToolSetProviderProps = {
   children: ReactNode;
-  getToolSet: (model: LanguageModel) => ToolSet | undefined;
+  getToolSet: (model: LanguageModel | undefined) => ToolSet | undefined;
 };
 
 const ToolSetContext = createContext<ToolSetInfo>({

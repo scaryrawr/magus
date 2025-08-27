@@ -19,6 +19,7 @@
     "@magus/server": "workspace:*",
     "@magus/tools": "workspace:*",
     "ai": "catalog:",
+    "hono": "catalog:",
     "ink": "catalog:ui",
     "ink-gradient": "catalog:ui",
     "ink-select-input": "^6.2.0",

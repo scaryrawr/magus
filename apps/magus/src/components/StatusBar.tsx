@@ -3,7 +3,11 @@ import { Box, Text } from "ink";
 import { useEffect, useState } from "react";
 import { useServerContext } from "../contexts";
 
-const modelInfo = (model: LanguageModel) => {
+const modelInfo = (model: LanguageModel | undefined) => {
+  if (!model) {
+    return "No model selected";
+  }
+
   if (typeof model === "string") {
     return model;
   }

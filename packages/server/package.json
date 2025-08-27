@@ -9,6 +9,7 @@
     "test": "bun test"
   },
   "dependencies": {
+    "@hono/zod-validator": "^0.7.2",
     "@magus/providers": "workspace:*",
     "ai": "catalog:",
     "hono": "catalog:",

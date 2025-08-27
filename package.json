@@ -33,7 +33,7 @@
     }
   },
   "scripts": {
-    "build": "bun run --filter '*' build",
+    "bundle": "bun run --filter '*' bundle",
     "test": "bun test",
     "test:coverage": "bun test --coverage --coverage-reporter=lcov",
     "typecheck": "bun run --filter '*' typecheck",

@@ -1,11 +1,9 @@
 # AGENTS.md - Coding Guidelines for Magus Monorepo
 
-## Build/Test Commands
-
 - `bun install` - Install dependencies
 - `bun test` - Run all tests (individual test: `bun test <file>.test.ts`)
 - `bun test:coverage` - Run all tests with coverage reporting
-- `bun build` - Build all packages
+- `bun bundle` - Generate single file executables
 - `bun typecheck` - Type check all packages
 - `bun lint` - Run ESLint (fix with `bun lint:fix`)
 - `bun format` - Format with Prettier

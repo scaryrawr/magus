@@ -15,8 +15,9 @@ export const ShellView: React.FC<UIToolProps> = ({ part }) => {
       const { command } = ShellInputSchema.parse(part.input);
       return (
         <Box flexDirection="row" key={toolCallId}>
-          <Text>{icon}</Text>
-          <Text> {command}</Text>
+          <Text>
+            {icon} {command}
+          </Text>
         </Box>
       );
     }

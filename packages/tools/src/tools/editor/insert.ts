@@ -44,7 +44,6 @@ export const insert = async ({ path, insert_line, new_str }: InsertFileInput): P
 
   const diff = createTwoFilesPatch(path, path, content, updatedContent);
   return {
-    type: "diff",
     diff,
   };
 };

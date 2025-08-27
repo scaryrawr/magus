@@ -1,4 +1,4 @@
-import { DiffOutputSchema } from "@magus/tools";
+import { CreateFileSchema, DiffOutputSchema } from "@magus/tools";
 import { Box, Text } from "ink";
 import type { UIToolProps } from "./type";
 
@@ -10,10 +10,13 @@ export const CreateFileView: React.FC<UIToolProps> = ({ part }) => {
 
   switch (part.state) {
     case "output-available": {
+      const { path } = CreateFileSchema.parse(part.input);
       const { diff } = DiffOutputSchema.parse(part.output);
       return (
-        <Box flexDirection="row" key={toolCallId}>
-          <Text>{icon}</Text>
+        <Box flexDirection="column" key={toolCallId}>
+          <Text>
+            {icon} Create file {path}
+          </Text>
           <Text>{diff}</Text>
         </Box>
       );

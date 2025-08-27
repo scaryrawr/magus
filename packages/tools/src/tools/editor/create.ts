@@ -40,7 +40,6 @@ export const createFile = async ({ path, content }: CreateFileInput): Promise<Di
   await fs.writeFile(path, content, "utf-8");
   const diff = createTwoFilesPatch(path, path, "", content);
   return {
-    type: "diff",
     diff,
   };
 };

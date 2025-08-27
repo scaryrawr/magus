@@ -2,7 +2,6 @@ import z from "zod";
 
 // Input schemas (discriminated by `command`)
 export const ViewSchema = z.object({
-  command: z.literal("view"),
   path: z.string().describe("The path of the file or directory to view."),
   view_range: z
     .tuple([z.number().describe("start line"), z.number().describe("end line")])
@@ -13,20 +12,17 @@ export const ViewSchema = z.object({
 });
 
 export const CreateFileSchema = z.object({
-  command: z.literal("create"),
   path: z.string().describe("The path to where the new file should be created."),
   content: z.string().describe("The content to write to the new file."),
 });
 
 export const InsertFileSchema = z.object({
-  command: z.literal("insert"),
   path: z.string().describe("The path to the file to modify."),
   insert_line: z.number().describe("The line number to insert the content at (0 for beginning of the file)."),
   new_str: z.string().describe("The text to insert."),
 });
 
 export const StringReplaceSchema = z.object({
-  command: z.literal("str_replace"),
   path: z.string().describe("The path to the file to modify."),
   old_str: z.string().describe("The text to replace (must match exactly, including whitespace and indentation)."),
   new_str: z.string().describe("The new text to insert in place of the old text."),
@@ -34,7 +30,6 @@ export const StringReplaceSchema = z.object({
 
 // Output schemas (discriminated by `type`)
 export const DiffOutputSchema = z.object({
-  type: z.literal("diff"),
   diff: z.string().describe("A diff showing the changes made to the file"),
 });
 
@@ -44,10 +39,10 @@ export const ViewOutputSchema = z
 
 // Union schemas
 export const EditorInputSchema = z.discriminatedUnion("command", [
-  ViewSchema,
-  CreateFileSchema,
-  InsertFileSchema,
-  StringReplaceSchema,
+  ViewSchema.extend({ command: z.literal("view") }),
+  CreateFileSchema.extend({ command: z.literal("create") }),
+  InsertFileSchema.extend({ command: z.literal("insert") }),
+  StringReplaceSchema.extend({ command: z.literal("str_replace") }),
 ]);
 
 export const EditorOutputSchema = z.union([ViewOutputSchema, DiffOutputSchema]);

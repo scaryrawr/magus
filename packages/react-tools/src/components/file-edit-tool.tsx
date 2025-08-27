@@ -12,36 +12,41 @@ export const FileEditToolView: React.FC<UIToolProps> = ({ part }) => {
   switch (part.state) {
     case "output-available": {
       const input = EditorInputSchema.parse(part.input);
+      const { path } = input;
       switch (input.command) {
         case "view": {
-          const { path } = input;
           return (
             <Box flexDirection="row" key={toolCallId}>
-              <Text>👀</Text>
-              <Text>{` Read ${path}.`}</Text>
+              <Text>👀 Read {path}</Text>
             </Box>
           );
         }
         case "create": {
           return (
-            <Box flexDirection="row" key={toolCallId}>
-              <Text>{icon}</Text>
+            <Box flexDirection="column" key={toolCallId}>
+              <Text>
+                {icon} Create file {path}
+              </Text>
               <Text>{diff}</Text>
             </Box>
           );
         }
         case "insert": {
           return (
-            <Box flexDirection="row" key={toolCallId}>
-              <Text>{icon}</Text>
+            <Box flexDirection="column" key={toolCallId}>
+              <Text>
+                {icon} Editing {path}
+              </Text>
               <Text>{diff}</Text>
             </Box>
           );
         }
         case "str_replace": {
           return (
-            <Box flexDirection="row" key={toolCallId}>
-              <Text>{icon}</Text>
+            <Box flexDirection="column" key={toolCallId}>
+              <Text>
+                {icon} Editing {path}
+              </Text>
               <Text>{diff}</Text>
             </Box>
           );

@@ -30,7 +30,6 @@ export const stringReplace = async ({ path, old_str, new_str }: StringReplaceInp
   await fs.writeFile(path, updatedContent, "utf-8");
   const diff = createTwoFilesPatch(path, path, content, updatedContent);
   return {
-    type: "diff",
     diff,
   };
 };

@@ -17,7 +17,7 @@ export const ToolView: React.FC<UIToolProps> = ({ part }) => {
       (React.isValidElement(element) || typeof element === "string" || typeof element === "number")
     ) {
       return (
-        <Box borderStyle="single" borderDimColor borderColor="red" flexDirection="column">
+        <Box borderStyle="single" borderDimColor borderColor="red" flexDirection="column" width="80%">
           <Text>🛠 Tool Call</Text>
           {element}
         </Box>

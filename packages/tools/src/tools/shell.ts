@@ -127,6 +127,20 @@ class ShellSession {
   }
 }
 
+export const ShellInputSchema = z.object({
+  command: z.string().describe("The shell command to execute"),
+  restart: z.boolean().optional().describe("Set to true to restart the shell session"),
+});
+
+export type ShellInput = z.infer<typeof ShellInputSchema>;
+
+export const ShellOutputSchema = z.object({
+  stdout: z.string().describe("The standard output of the command"),
+  stderr: z.string().describe("The standard error output of the command"),
+});
+
+export type ShellOutput = z.infer<typeof ShellOutputSchema>;
+
 export const createShellTool = () => {
   // Reuse a single session across calls to maintain a persistent shell
   const session = new ShellSession();
@@ -134,15 +148,9 @@ export const createShellTool = () => {
   return {
     shell: tool({
       description: description(),
-      inputSchema: z.object({
-        command: z.string().describe("The shell command to execute"),
-        restart: z.boolean().optional().describe("Set to true to restart the shell session"),
-      }),
-      outputSchema: z.object({
-        stdout: z.string().describe("The standard output of the command"),
-        stderr: z.string().describe("The standard error output of the command"),
-      }),
-      execute: async ({ command, restart }) => {
+      inputSchema: ShellInputSchema,
+      outputSchema: ShellOutputSchema,
+      execute: async ({ command, restart }): Promise<ShellOutput> => {
         if (restart) await session.restart();
         return session.exec(command);
       },

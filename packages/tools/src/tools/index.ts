@@ -1,8 +1,26 @@
 export {
+  CreateFileSchema,
+  DiffOutputSchema,
+  EditorInputSchema,
+  EditorOutputSchema,
+  InsertFileSchema,
+  StringReplaceSchema,
+  ViewOutputSchema,
+  ViewSchema,
   createCreateFileTool,
   createEditorTool,
   createInsertTool,
   createStringReplaceTool,
   createViewTool,
 } from "./editor";
-export { createShellTool } from "./shell";
+export type {
+  CreateFileInput,
+  DiffOutput,
+  EditorOutput,
+  InsertFileInput,
+  StringReplaceInput,
+  ViewInput,
+  ViewOutput,
+} from "./editor";
+export { ShellInputSchema, ShellOutputSchema, createShellTool } from "./shell";
+export type { ShellInput, ShellOutput } from "./shell";

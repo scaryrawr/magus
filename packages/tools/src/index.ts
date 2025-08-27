@@ -1,9 +1,30 @@
 export { insertHumanInTheLoop } from "./hitl";
 export {
+  CreateFileSchema,
+  DiffOutputSchema,
+  EditorInputSchema,
+  EditorOutputSchema,
+  InsertFileSchema,
+  ShellInputSchema,
+  ShellOutputSchema,
+  StringReplaceSchema,
+  ViewOutputSchema,
+  ViewSchema,
   createCreateFileTool,
   createEditorTool,
   createInsertTool,
   createShellTool,
   createStringReplaceTool,
   createViewTool,
+} from "./tools";
+export type {
+  CreateFileInput,
+  DiffOutput,
+  EditorOutput,
+  InsertFileInput,
+  ShellInput,
+  ShellOutput,
+  StringReplaceInput,
+  ViewInput,
+  ViewOutput,
 } from "./tools";

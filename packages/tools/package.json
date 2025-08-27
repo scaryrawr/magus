@@ -17,6 +17,7 @@
   "dependencies": {
     "ai": "catalog:",
     "diff": "^8.0.2",
+    "ink": "catalog:ui",
     "zod": "catalog:"
   }
 }

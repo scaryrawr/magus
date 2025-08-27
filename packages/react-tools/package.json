@@ -1,5 +1,5 @@
 {
-  "name": "@magus/react",
+  "name": "@magus/react-tools",
   "main": "src/index.ts",
   "module": "src/index.ts",
   "type": "module",
@@ -13,7 +13,8 @@
     "ink-testing-library": "catalog:test"
   },
   "dependencies": {
-    "figlet": "^1.7.0"
+    "@magus/tools": "workspace:*",
+    "ai": "catalog:"
   },
   "peerDependencies": {
     "ink": "catalog:ui",

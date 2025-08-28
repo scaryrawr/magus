@@ -1,4 +1,4 @@
-import { createLmStudioProvider, createOllamaProvider } from "@magus/providers";
+import { createLmStudioProvider, createOllamaProvider, createOpenRouterProvider } from "@magus/providers";
 import { createServer, type MagusRoutes } from "@magus/server";
 import { ModelsResultSchema } from "@magus/server/src/models";
 import {
@@ -18,9 +18,13 @@ import { ToolSetProvider } from "./contexts/ToolSetProvider";
 
 const createMagusServer = () => {
   const providers = [createLmStudioProvider(), createOllamaProvider()];
+  if (process.env.OPENROUTER_API_KEY) {
+    providers.push(createOpenRouterProvider(process.env.OPENROUTER_API_KEY));
+  }
+
   const { listen, state } = createServer({
     providers,
-    model: providers[0].model("openai/gpt-oss-20b"),
+    model: undefined,
     tools: undefined,
   });
 

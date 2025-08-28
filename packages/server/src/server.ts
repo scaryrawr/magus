@@ -11,9 +11,9 @@ export interface ServerConfig<TRouters extends readonly RouterFactory[] = readon
   routers?: TRouters;
 }
 
-type ServerStateEvents = {
-  "change:model": [newModel: LanguageModel];
-};
+type ServerStateEvents = Required<{
+  [TKey in keyof ServerState as `change:${TKey}`]: [newValue: ServerState[TKey]];
+}>;
 
 export class ObservableServerState extends EventEmitter<ServerStateEvents> implements ServerState {
   constructor(private state: ServerState) {
@@ -33,14 +33,28 @@ export class ObservableServerState extends EventEmitter<ServerStateEvents> imple
   }
 
   set tools(tools) {
+    if (this.state.tools === tools) return;
+
     this.state.tools = tools;
+    this.emit("change:tools", tools);
   }
 
-  set model(model: LanguageModel) {
-    if (model !== this.state.model) {
-      this.state.model = model;
-      this.emit("change:model", model);
-    }
+  get systemPrompt() {
+    return this.state.systemPrompt;
+  }
+
+  set systemPrompt(prompt) {
+    if (this.state.systemPrompt === prompt) return;
+
+    this.state.systemPrompt = prompt;
+    this.emit("change:systemPrompt", prompt);
+  }
+
+  set model(model) {
+    if (model === this.state.model) return;
+
+    this.state.model = model;
+    this.emit("change:model", model);
   }
 }
 

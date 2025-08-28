@@ -4,7 +4,7 @@ import { DefaultChatTransport } from "ai";
 import { useInput } from "ink";
 import { useCallback, useEffect } from "react";
 import { useLocation } from "react-router";
-import { useInputContext, useRouteInput, useServerContext } from "../../contexts";
+import { useChatContext, useInputContext, useRouteInput, useServerContext } from "../../contexts";
 import { ChatBox } from "./chatbox";
 
 type ChatState = {
@@ -14,17 +14,22 @@ type ChatState = {
 export const Chat = () => {
   const { server } = useServerContext();
   const { text: initialMessage } = useLocation().state as ChatState;
-  const { sendMessage, messages, stop } = useChat({
+  const { setChatStatus } = useChatContext();
+  const { sendMessage, messages, stop, status } = useChat({
     transport: new DefaultChatTransport({
       api: new URL("v0/chat", server.url).href,
     }),
   });
 
   useEffect(() => {
-    if (initialMessage) {
+    setChatStatus(status);
+  }, [status, setChatStatus]);
+
+  useEffect(() => {
+    if (initialMessage && messages.length === 0) {
       sendMessage({ text: initialMessage });
     }
-  }, [initialMessage, sendMessage]);
+  }, [initialMessage, messages.length, sendMessage]);
 
   const { contentHeight } = useInputContext();
 

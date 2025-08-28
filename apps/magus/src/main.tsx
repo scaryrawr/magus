@@ -13,7 +13,7 @@ import type { LanguageModel, ToolSet } from "ai";
 import { hc } from "hono/client";
 import { render } from "ink";
 import { App } from "./app";
-import { ServerProvider } from "./contexts";
+import { ChatContextProvider, ServerProvider } from "./contexts";
 import { ToolSetProvider } from "./contexts/ToolSetProvider";
 
 const createMagusServer = () => {
@@ -26,6 +26,7 @@ const createMagusServer = () => {
     providers,
     model: undefined,
     tools: undefined,
+    systemPrompt: undefined,
   });
 
   const server = listen();
@@ -87,12 +88,26 @@ const getToolSet = (() => {
   };
 })();
 
+// Let's use the .github/copilot-instructions.md if available
+const instructions: string[] = [];
+try {
+  const instruction = await Bun.file(".github/copilot-instructions.md").text();
+  instructions.push(instruction);
+} catch {
+  // Ignore missing file
+}
+
+const systemPrompt =
+  "You are Magus, an AI assistant that helps users with software engineering tasks. Provide clear and concise answers to their questions. When asked to perform tasks, create a checklist of steps to complete the task. Use the available tools when necessary, and always explain your reason for using the tool. Do not end your turn until your checklist is completely done. Only perform actions that are on your checklist.";
+
 try {
   await render(
     <ServerProvider createServer={createMagusServer}>
-      <ToolSetProvider getToolSet={getToolSet}>
-        <App />
-      </ToolSetProvider>
+      <ChatContextProvider systemPrompt={systemPrompt} instructions={instructions}>
+        <ToolSetProvider getToolSet={getToolSet}>
+          <App />
+        </ToolSetProvider>
+      </ChatContextProvider>
     </ServerProvider>,
   ).waitUntilExit();
 } catch (error) {

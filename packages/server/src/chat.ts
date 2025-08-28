@@ -19,6 +19,7 @@ export const chatRouter = (state: ServerState) => {
           // it's over 9000
           return steps.length > 9000;
         },
+        system: state.systemPrompt,
       });
       return result.toUIMessageStreamResponse();
     } catch (e) {

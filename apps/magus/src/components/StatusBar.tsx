@@ -1,7 +1,7 @@
 import type { LanguageModel } from "ai";
 import { Box, Text } from "ink";
 import { useEffect, useState } from "react";
-import { useServerContext } from "../contexts";
+import { useChatContext, useServerContext } from "../contexts";
 
 const modelInfo = (model: LanguageModel | undefined) => {
   if (!model) {
@@ -17,10 +17,11 @@ const modelInfo = (model: LanguageModel | undefined) => {
 
 export const StatusBar: React.FC = () => {
   const { state } = useServerContext();
+  const { chatStatus } = useChatContext();
   const [model, setModel] = useState<string | null>(() => modelInfo(state.model));
 
   useEffect(() => {
-    const updateModel = (newModel: LanguageModel) => {
+    const updateModel = (newModel: LanguageModel | undefined) => {
       setModel(modelInfo(newModel));
     };
 
@@ -31,8 +32,9 @@ export const StatusBar: React.FC = () => {
   }, [state]);
 
   return (
-    <Box height={1}>
+    <Box height={1} flexDirection="row" justifyContent="space-between">
       <Text dimColor>{model}</Text>
+      <Text>{chatStatus}</Text>
     </Box>
   );
 };

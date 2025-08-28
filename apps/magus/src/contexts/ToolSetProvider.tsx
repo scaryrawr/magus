@@ -30,7 +30,7 @@ export const ToolSetProvider: React.FC<ToolSetProviderProps> = ({ children, getT
   }, [model, getToolSet]);
 
   useEffect(() => {
-    const handler = (model: LanguageModel) => {
+    const handler = (model: LanguageModel | undefined) => {
       setModel(model);
     };
 

@@ -1,6 +1,6 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { z } from "zod";
-import type { MagusProvider, ModelInfo } from "./types.js";
+import type { MagusProvider, ModelInfo } from "./types";
 
 /** Schema for parsing /api/tags */
 export const OllamaTagsSchema = z.object({
@@ -74,7 +74,7 @@ export interface OllamaOptions {
 }
 
 // Default to some "reasonable" minimal context length
-const DEFAULT_CONTEXT_LENGTH = 1024;
+const DEFAULT_CONTEXT_LENGTH = 4096;
 
 export const createOllamaProvider = ({ origin = "http://localhost:11434" }: OllamaOptions = {}): MagusProvider => {
   const ollama = createOpenAICompatible({

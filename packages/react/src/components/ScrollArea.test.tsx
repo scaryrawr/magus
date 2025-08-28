@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { Text } from "ink";
 import { render } from "ink-testing-library";
-import { ScrollArea } from "./ScrollArea.js";
+import { ScrollArea } from "./ScrollArea";
 
 /**
  * ScrollArea Autoscroll Behavior:

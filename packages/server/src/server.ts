@@ -1,9 +1,9 @@
 import type { LanguageModel } from "ai";
 import { Hono } from "hono";
 import { EventEmitter } from "node:events";
-import { chatRouter } from "./chat.js";
-import { modelsRouter } from "./models.js";
-import type { RouterFactory, ServerState } from "./types.js";
+import { chatRouter } from "./chat";
+import { modelsRouter } from "./models";
+import type { RouterFactory, ServerState } from "./types";
 
 export interface ServerConfig<TRouters extends readonly RouterFactory[] = readonly RouterFactory[]>
   extends ServerState {

@@ -1,2 +1,2 @@
-export { useKeypress } from "./useKeypress.js";
-export { useStdoutDimensions } from "./useStdoutDimensions.js";
+export { useKeypress } from "./useKeypress";
+export { useStdoutDimensions } from "./useStdoutDimensions";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { LmStudioModelInfoSchema } from "./lmstudio.js";
+import { LmStudioModelInfoSchema } from "./lmstudio";
 
 describe("parsing lmstudio models", () => {
   const apiResponse = {

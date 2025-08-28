@@ -37,6 +37,7 @@
     "bundle": "bun run --filter '*' bundle",
     "test": "bun test",
     "test:coverage": "bun test --coverage --coverage-reporter=lcov",
+    "test:coverage:html": "bun run test:coverage && genhtml coverage/lcov.info -o coverage/html --ignore-errors source",
     "typecheck": "bun run --filter '*' typecheck",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

@@ -1,5 +1,4 @@
-import { type ModelSelect } from "@magus/server";
-import { ModelsResultSchema } from "@magus/server/src/models";
+import { type MagusClient, type ModelSelect } from "@magus/server";
 import { Box } from "ink";
 import SelectInput from "ink-select-input";
 import { useCallback, useMemo } from "react";
@@ -59,17 +58,16 @@ export const Models = () => {
   );
 };
 
-export const createModelRoute = (serverUrl: URL) => {
+export const createModelRoute = (client: MagusClient) => {
   return {
     path: "models",
     loader: async () => {
-      const modelsUrl = new URL("v0/models", serverUrl);
-      const res = await fetch(modelsUrl);
+      const res = await client.v0.models.$get();
       if (!res.ok) {
         throw new Error(`Failed to fetch models: ${res.status} ${res.statusText}`);
       }
 
-      const models: ModelSelect[] = ModelsResultSchema.parse(await res.json());
+      const models = await res.json();
       return { models };
     },
     Component: Models,

@@ -5,8 +5,7 @@ import { Layout } from "./layout";
 import { Chat, createModelRoute, Exit, Home } from "./pages";
 
 const useMagusRouter = () => {
-  const { server } = useServerContext();
-  const serverUrl = server.url;
+  const { client } = useServerContext();
   const routes = useMemo(() => {
     return createMemoryRouter([
       {
@@ -22,11 +21,11 @@ const useMagusRouter = () => {
             path: "exit",
             Component: Exit,
           },
-          createModelRoute(serverUrl),
+          createModelRoute(client),
         ],
       },
     ]);
-  }, [serverUrl]);
+  }, [client]);
 
   return routes;
 };

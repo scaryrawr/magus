@@ -1,8 +1,9 @@
-import type { ObservableServerState } from "@magus/server";
+import type { MagusClient, ObservableServerState } from "@magus/server";
 import type { Server } from "bun";
 import React, { createContext, useContext, useEffect, type ReactNode } from "react";
 
 type ServerState = {
+  client: MagusClient;
   server: Server;
   state: ObservableServerState;
 };

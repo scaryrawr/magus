@@ -1,5 +1,6 @@
 import type { LanguageModel } from "ai";
 import { Hono } from "hono";
+import type { hc } from "hono/client";
 import { EventEmitter } from "node:events";
 import { chatRouter } from "./chat";
 import { modelsRouter } from "./models";
@@ -73,3 +74,4 @@ export const createServer = <TRouters extends readonly RouterFactory[]>(config: 
 };
 
 export type MagusRoutes = ReturnType<typeof createServer>["app"];
+export type MagusClient = ReturnType<typeof hc<MagusRoutes>>;

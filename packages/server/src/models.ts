@@ -14,9 +14,10 @@ export type ModelSelect = z.infer<typeof ModelSelectSchema>;
 
 export const modelsRouter = (state: ServerState) => {
   const router = new Hono();
+  let modelsCache: ModelSelect[] | undefined = undefined;
   return router
     .get("/models", async (c) => {
-      const models: ModelSelect[] = (
+      modelsCache ??= (
         await Promise.all(
           state.providers.map(async (provider) => {
             try {
@@ -33,7 +34,7 @@ export const modelsRouter = (state: ServerState) => {
         )
       ).flat();
 
-      return c.json(models);
+      return c.json(modelsCache);
     })
     .get("/model", async (c) => {
       if (!state.model) {

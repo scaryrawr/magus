@@ -11,7 +11,7 @@ describe("ShellSession", () => {
   it("executes a command and captures stdout", async () => {
     const session = new ShellSession();
     try {
-      const res = await session.exec("echo hello world");
+      const res = await session.exec("echo 'hello world'");
       expect(lines(res.stdout)).toContain("hello world");
     } finally {
       session.shell.kill();

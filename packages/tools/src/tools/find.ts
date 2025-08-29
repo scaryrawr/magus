@@ -100,7 +100,7 @@ export const findFile = async ({ pattern, path }: FindInput): Promise<FindOutput
     case "find":
       // Use standard Unix find: search under path for files (-type f) with case-insensitive name match
       // Note: BSD/macOS find supports -iname
-      command = [findTool, path, "-type", "f", "-iname", `*${pattern}*`];
+      command = [findTool, path, "-iname", `*${pattern}*`];
       break;
     case "fd":
       command = [findTool, pattern, path];

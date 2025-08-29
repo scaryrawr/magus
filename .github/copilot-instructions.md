@@ -1,52 +1,97 @@
-# Copilot instructions for the Magus monorepo
+# Magus Monorepo
 
-## Big picture
+## Architecture Overview
 
-- Bun monorepo with workspaces in `apps/*` and `packages/*` (see root `package.json`).
-- Example app: terminal UI chat client at `apps/magus/src/index.tsx` (Ink + React). It renders a chat UI and talks to a local HTTP server using `@ai-sdk/react`.
-- The app spins up an embedded HTTP server via `@magus/server` (`packages/server`), built on Hono + `ai`. Default route: POST `/v0/chat` (apps can add more endpoints).
-- Providers live in `packages/providers` and implement `MagusProvider` (LM Studio and Ollama today) using `@ai-sdk/openai-compatible` and Zod for typed discovery.
-- Ink helpers live in `packages/react` (e.g., `ScrollArea`).
+Magus is a Bun monorepo for composable agentic tools with these core components:
 
-## How things talk
+- **Terminal UI Chat Client** (`apps/magus`): Ink + React app with embedded HTTP server
+- **Modular Server** (`packages/server`): Hono + `ai` package for streaming LLM responses
+- **Provider System** (`packages/providers`): Unified interface for LM Studio, Ollama, OpenRouter
+- **Tool System** (`packages/tools`, `packages/react-tools`): File operations, shell, editor tools
+- **UI Components** (`packages/react`): Reusable Ink components like `ScrollArea`
 
-1. App creates a provider (e.g., `createLmStudioProvider()`), builds a server via `createServer({ providers, model })`, then calls `listen()` to start on a random port.
-2. UI uses `@ai-sdk/react` with `api: ${baseUrl}/v0/chat` to send `useChat` messages via `DefaultChatTransport`.
-3. `packages/server/src/chat.ts` handles `/v0/chat`: converts UI messages, calls `streamText`, and returns `toUIMessageStreamResponse()`; `packages/server/src/server.ts` wires Hono + routers.
-4. Server context passed via React Context (`ServerProvider`) to access `server.url` in UI components.
-5. `packages/server/src/models.ts` exposes a models router mounted under `/v0/models` to enumerate available models across configured providers. Also supports runtime model switching via POST `/v0/model`.
+Key data flow: UI → embedded server (`/v0/chat`) → provider → streaming response
 
-## Dev workflow (Bun workspaces)
+## Essential Workflows
 
-- Install: `bun install`
-- Run app: from repo root run `bun apps/magus/src/index.tsx`, or from the app dir `cd apps/magus && bun src/index.tsx`. The UI connects to `/v0/chat` via `server.url`.
-- Tests: `bun run test` (workspace-aware); per package: `bun run --filter @magus/<package> test`. Individual file: `bun test <file>.test.ts`. Coverage: `bun test:coverage`.
-- Lint/format: `bun run lint`, `bun run format` (ESLint flat config + Prettier with 120 char width).
-- Build: `bun run build` (all packages), or `bun run --filter @magus/magus build` for just the app (emits `dist/magus` executable via Bun `--compile`).
-- Typecheck: `bun run typecheck` (all packages) or per-package via filter.
+```bash
+# Development
+bun install                     # Install all workspace dependencies
+bun apps/magus/src/main.ts     # Run app from repo root
+cd apps/magus && bun src/main.ts # Alternative from app directory
 
-## Conventions and patterns
+# Testing & Quality
+bun test                       # All tests (individual: bun test file.test.ts)
+bun test:coverage             # Coverage with lcov output
+bun run --filter @magus/providers test  # Package-specific tests
+bun typecheck                 # TypeScript checking
+bun lint                      # ESLint (fix with bun lint:fix)
+bun format                    # Prettier formatting
 
-- **MagusProvider** (see `packages/providers/src/types.ts`): `model(id): LanguageModel`; `models(): Promise<ModelInfo[]>` with `{ id, reasoning, context_length, tool_use }`.
-- **Server composition**: `createServer({ providers, model, routers? })` pattern. New `RouterFactory[]` pattern mounts under `/v0`; legacy `EndpointRegistrar[]` still supported for backward compatibility.
-- **Provider discovery**: LM Studio GET `${origin}/api/v0/models` filtered by type !== "embeddings"; Ollama GET `/api/tags` then POST `/api/show` per model, reads `${arch}.context_length` (defaults to 1024).
-- **Router factories**: See `packages/server/src/chat.ts` - return Hono instance from function taking `ServerState`. Preferred over EndpointRegistrar.
-- **UI patterns**: Ink app with React Router, uses `useInput` for navigation (ESC to home), command patterns (`/exit`, `/home`). ScrollArea component has autoscroll behavior (pinned to bottom unless user scrolled up).
-- **Testing**: Mock providers using `MagusProvider` interface; comprehensive endpoint testing; Ink component tests limited by measureElement() in test environment.
-- **TypeScript**: ESM everywhere (`"type": "module"`), strict typing, workspace deps via `workspace:*`.
+# Building
+bun run build                 # All packages
+bun run bundle               # Cross-platform executables (see bundle.ts)
+```
 
-## Integration details and gotchas
+## Code Patterns & Conventions
 
-- **Provider defaults**: LM Studio `http://localhost:1234`, Ollama `http://localhost:11434`.
-- **Model selection**: Example uses `openai/gpt-oss-20b` via LM Studio (see `apps/magus/src/index.tsx`).
-- **Server lifecycle**: Listens on random free port (`port: 0`); UI reads `server.url`. The app calls `server.stop()` automatically on exit.
-- **Streaming**: Uses `ai` package's `streamText` → `toUIMessageStreamResponse()` for UI compatibility.
-- **Runtime requirements**: Ensure LM Studio or Ollama running locally; `/v0/chat` fails without active model.
-- **Bundling**: App build uses Bun's `--compile` to produce `dist/magus`.
+**Provider Interface** (`packages/providers/src/types.ts`):
 
-## Typical edits
+```typescript
+interface MagusProvider {
+  name: string;
+  model(id: string): LanguageModel;
+  models(): Promise<ModelInfo[]>; // { id, reasoning, context_length, tool_use }
+}
+```
 
-- **Switch providers**: In `apps/magus/src/index.tsx`, swap `createLmStudioProvider()` for `createOllamaProvider()` and update `model: provider.model("<model-id>")`.
-- **Add routes**: Implement `RouterFactory` (pattern: `(state) => router`) and pass via `createServer({ routers: [yourRouter] })`.
-- **Extend providers**: Add file in `packages/providers/src`, export from `index.ts`, implement `MagusProvider` with Zod schemas for API validation.
-- **UI navigation**: Modify `apps/magus/src/App.tsx` routes; use `useInput` hooks for custom key bindings in components.
+**Server Composition**:
+
+```typescript
+// RouterFactory pattern - preferred for new endpoints
+const myRouter: RouterFactory = (state) => new Hono().get("/my-route", handler);
+createServer({ providers, model, routers: [myRouter] });
+```
+
+**Observable State**: Server uses `ObservableServerState` with events (`change:model`, `change:tools`) for reactive updates.
+
+**Tool Sets**: Provider-specific tool configuration in `getProviderToolSet()` - LM Studio gets file tools, others get editor tools.
+
+## Critical Dependencies & Integration
+
+- **Workspace resolution**: Uses `workspace:*` for internal packages, catalog references for shared deps
+- **ESLint config**: Flat config with React hooks, unused imports, 120-char Prettier
+- **Provider discovery**: Filters out embeddings models; LM Studio uses `/api/v0/models`, Ollama uses `/api/tags` + `/api/show`
+- **UI Router**: React Router with memory history, routes defined in `apps/magus/src/routes.tsx`
+- **Server lifecycle**: Random port (`port: 0`), auto-selects first available model on startup
+
+## Testing Approach
+
+- **Provider mocking**: Implement `MagusProvider` interface for tests
+- **Zod validation**: All API responses validated with schemas (see `LmStudioModelInfoSchema`)
+- **Ink limitations**: Component tests constrained by `measureElement()` in test environment
+- **Coverage**: Use `bun test:coverage` → generates `coverage/lcov.info`
+
+## Common Gotchas
+
+- **Runtime deps**: Requires LM Studio (`:1234`) or Ollama (`:11434`) running locally
+- **Model selection**: App auto-selects first model from `/v0/models` response
+- **ScrollArea behavior**: Auto-pins to bottom unless user manually scrolls up
+- **Bundle targets**: Cross-platform builds via `bundle.ts` for multiple architectures
+- **System prompts**: Loaded from `.github/copilot-instructions.md` if available (see `app.tsx`)
+
+## Extending the System
+
+**New provider**: Implement `MagusProvider` in `packages/providers/src/`, add Zod schemas for API validation
+**New tools**: Add to `packages/tools/src/tools/`, update tool set mapping in `app.tsx`
+**New routes**: Create `RouterFactory` function, add to `createServer({ routers })` array
+**UI components**: Add to `packages/react/src/components/`, follow Ink patterns with `useInput` for navigation
+
+## Making Changes
+
+When making changes to the Magus monorepo, follow these steps to ensure consistency and maintainability:
+
+1. Add unit tests.
+2. Ensure all tests pass by running `bun test`.
+3. Run `bun lint` and `bun format` to maintain code quality.
+4. Fix all linter errors.

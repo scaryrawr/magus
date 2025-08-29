@@ -9,6 +9,7 @@ import {
   createStringReplaceTool,
   createViewTool,
 } from "@magus/tools";
+import { createGrepTool } from "@magus/tools/src/tools";
 import type { LanguageModel, ToolSet } from "ai";
 import { hc } from "hono/client";
 import React from "react";
@@ -49,6 +50,7 @@ const createMagusServer = () => {
 
 const getProviderToolSet = (provider: string): ToolSet => {
   switch (provider) {
+    // lmstudio has issues with the complex Editor Tool (so do most models... may need to fix it up)
     case "lmstudio":
       return {
         ...createShellTool(),
@@ -56,11 +58,13 @@ const getProviderToolSet = (provider: string): ToolSet => {
         ...createInsertTool(),
         ...createViewTool(),
         ...createStringReplaceTool(),
+        ...createGrepTool(),
       };
     default:
       return {
         ...createShellTool(),
         ...createEditorTool(),
+        ...createGrepTool(),
       };
   }
 };

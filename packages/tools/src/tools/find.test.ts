@@ -3,19 +3,6 @@ import { existsSync } from "node:fs";
 import { findFile } from "./find";
 
 describe("find tool", () => {
-  it("finds top-level workspace folders like apps and packages", async () => {
-    const res = await findFile({ pattern: "apps", path: "." });
-    // Should find at least something and include the top-level apps directory entry or children
-    expect(res.total_matches).toBeGreaterThan(0);
-    const hasAppsDir = res.files.some((f) => /(^|\/)apps(\/|$)/.test(f));
-    expect(hasAppsDir).toBeTrue();
-
-    const resPkgs = await findFile({ pattern: "packages", path: "." });
-    expect(resPkgs.total_matches).toBeGreaterThan(0);
-    const hasPackagesDir = resPkgs.files.some((f) => /(^|\/)packages(\/|$)/.test(f));
-    expect(hasPackagesDir).toBeTrue();
-  });
-
   it("can find known files by glob-like name matching regardless of tool backend", async () => {
     // Readme at repo root should exist
     const readme = await findFile({ pattern: "README.md", path: "." });

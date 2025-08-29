@@ -9,26 +9,41 @@ type ModelsData = {
   models: ModelSelect[];
 };
 
+// Create a fuzzy regex pattern by escaping special characters and inserting .* between each character
+const createFuzzyRegex = (input: string): RegExp => {
+  if (!input.trim()) {
+    return /.*/; // Match everything if input is empty
+  }
+
+  // Escape special regex characters
+  const escaped = input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  // Split into characters and join with .* to allow any characters in between
+  const pattern = escaped.split("").join(".*");
+
+  // Create case-insensitive regex
+  return new RegExp(pattern, "i");
+};
+
 export const Models = () => {
   const { models } = useLoaderData<ModelsData>();
   const { value, setValue, contentHeight } = useInputContext();
   const navigate = useNavigate();
   const { server } = useServerContext();
 
-  const items = useMemo(
-    () =>
-      models
-        .filter((model) => model.id.includes(value) || model.provider.includes(value))
-        .map((model) => {
-          const label = `${model.provider}: ${model.id}`;
-          return {
-            label,
-            key: label,
-            value: model,
-          };
-        }),
-    [models, value],
-  );
+  const items = useMemo(() => {
+    const fuzzyRegex = createFuzzyRegex(value);
+    return models
+      .map((model) => {
+        const label = `${model.provider}: ${model.id}`;
+        return {
+          label,
+          key: label,
+          value: model,
+        };
+      })
+      .filter(({ label }) => fuzzyRegex.test(label));
+  }, [models, value]);
 
   const onSelection = useCallback(
     async ({ value: model }: { label: string; value: ModelSelect }) => {

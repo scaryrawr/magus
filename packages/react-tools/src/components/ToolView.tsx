@@ -1,4 +1,4 @@
-import { Box, Text } from "ink";
+import { Box } from "ink";
 import React, { useMemo } from "react";
 import { CreateFileView, FileEditToolView, FileInsertView, ShellView, StringReplaceView, ViewFileView } from ".";
 import type { UIToolProps } from "./type";
@@ -17,8 +17,14 @@ export const ToolView: React.FC<UIToolProps> = ({ part }) => {
       (React.isValidElement(element) || typeof element === "string" || typeof element === "number")
     ) {
       return (
-        <Box borderStyle="single" borderDimColor borderColor="red" flexDirection="column" width="80%">
-          <Text>🛠 Tool Call</Text>
+        <Box
+          borderStyle="single"
+          borderDimColor
+          borderColor="yellow"
+          flexDirection="column"
+          width="80%"
+          alignSelf="center"
+        >
           {element}
         </Box>
       );

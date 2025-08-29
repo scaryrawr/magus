@@ -166,7 +166,7 @@ export class ShellSession {
 
       const settle = () => {
         cleanup();
-        resolve({ stdout: stdout, stderr: stderr });
+        resolve({ stdout: stdout.trimEnd(), stderr: stderr.trimEnd() });
       };
 
       // Start idle timer in case the command produces no output

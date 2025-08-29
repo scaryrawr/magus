@@ -8,7 +8,7 @@ describe("find tool", () => {
     const readme = await findFile({ pattern: "README.md", path: "." });
     expect(readme.total_matches).toBeGreaterThan(0);
     // Confirm at least one is the actual repo root README
-    const hasRootReadme = readme.files.some((f) => f === "./README.md" || f === "README.md");
+    const hasRootReadme = readme.files.some((f) => f === "./README.md" || f === "README.md" || f === ".\\README.md");
     expect(hasRootReadme).toBeTrue();
   });
 

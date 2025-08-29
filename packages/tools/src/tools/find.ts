@@ -112,7 +112,7 @@ export const findFile = async ({ pattern, path }: FindInput): Promise<FindOutput
         "-NoProfile",
         "-NoLogo",
         "-Command",
-        `Get-ChildItem -Path "${path}" -Recurse -Filter "*${pattern}*" | Select-Object -ExpandProperty FullName`,
+        `Get-ChildItem -Path '${path}' -Recurse -Filter '*${pattern}*' | Select-Object -ExpandProperty FullName`,
       ];
       break;
   }

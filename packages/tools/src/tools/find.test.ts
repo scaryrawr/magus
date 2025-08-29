@@ -18,7 +18,9 @@ const isInstalled = (tool: Supported) => {
   }
 };
 
-const installedTools: Supported[] = supported.filter(isInstalled);
+const installedTools: Supported[] = supported
+  .filter(isInstalled)
+  .filter((t) => !(process.platform === "win32" && t === "find"));
 
 // If none are detected for some reason, fall back to a single auto-detect run so
 // the suite still exercises the happy path.

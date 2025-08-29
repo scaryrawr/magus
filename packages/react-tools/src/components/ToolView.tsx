@@ -1,12 +1,20 @@
 import { Box } from "ink";
 import React, { useMemo } from "react";
-import { CreateFileView, FileEditToolView, FileInsertView, ShellView, StringReplaceView, ViewFileView } from ".";
+import {
+  CreateFileView,
+  FileEditToolView,
+  FileInsertView,
+  GrepView,
+  ShellView,
+  StringReplaceView,
+  ViewFileView,
+} from ".";
 import type { UIToolProps } from "./type";
 
 export const ToolView: React.FC<UIToolProps> = ({ part }) => {
   // Initialize the array inside the component to avoid circular dependency issues
   const toolViews = useMemo(
-    () => [CreateFileView, FileEditToolView, FileInsertView, ShellView, StringReplaceView, ViewFileView],
+    () => [CreateFileView, FileEditToolView, FileInsertView, GrepView, ShellView, StringReplaceView, ViewFileView],
     [],
   );
 

@@ -1,6 +1,7 @@
 export { CreateFileView } from "./create-file";
 export { FileEditToolView } from "./file-edit-tool";
 export { FileInsertView } from "./file-insert";
+export { GrepView } from "./grep";
 export { ShellView } from "./shell";
 export { StringReplaceView } from "./string-replace";
 export { ToolView } from "./ToolView";

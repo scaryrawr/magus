@@ -54,14 +54,10 @@ export const GrepInputSchema = z.object({
     .optional()
     .describe("The file or directory to search in. Defaults to a recursive search in the current directory.")
     .default(getGrepTool() === "findstr" ? "*.*" : "."),
-  file_names_only: z
-    .boolean()
-    .describe("Flag to return only file names with matches [default = false].")
-    .default(false),
+  file_names_only: z.optional(z.boolean()).describe("Flag to return only file names with matches [default = false]."),
   ignore_case: z
-    .boolean()
-    .describe("Flag to ignore casing and do a case insensitive search [default = false].")
-    .default(false),
+    .optional(z.boolean())
+    .describe("Flag to ignore casing and do a case insensitive search [default = false]."),
 });
 
 export type GrepInput = z.infer<typeof GrepInputSchema>;
@@ -80,21 +76,21 @@ export const grepFile = async ({ pattern, path, file_names_only, ignore_case }: 
     throw new Error("A compatible grep tool (rg, grep, or findstr) is not installed or not found in PATH.");
   }
 
+  const ignorePatterns = [".git", ".yarn", ".backfill", "node_modules"];
+
   const command: string[] = [grepTool];
   switch (grepTool) {
     case "rg":
       // Get ripgrep formatting to match grep
-      command.push("--no-heading", "--color=never");
+      command.push("--no-heading", "--color=never", "--line-number");
       break;
     case "grep":
       command.push(
-        // recursive
-        "-r",
+        "--recursive",
         // skip binary files
         "-I",
-        // exclude certain directories
-        "--exclude-dir=.git",
-        "--exclude-dir=node_modules",
+        // exclude well known... directories not to search
+        ...ignorePatterns.map((dir) => `--exclude-dir=${dir}`),
       );
       break;
     case "findstr":
@@ -149,7 +145,14 @@ export const grepFile = async ({ pattern, path, file_names_only, ignore_case }: 
   // Execute the grep command
   const result = spawnSync(command);
   const stdout = result.stdout.toString().trim();
-  const matches = stdout ? stdout.split("\n") : [];
+  let matches = stdout ? stdout.split("\n") : [];
+  if (grepTool === "findstr") {
+    // filter out known problem directories.
+    matches = matches.filter((match) => {
+      // try not to over match.
+      return !ignorePatterns.some((pattern) => match.includes(`\\${pattern}\\`) || match.startsWith(`${pattern}\\`));
+    });
+  }
 
   return {
     matches,

@@ -7,7 +7,7 @@
   "module": "src/main.tsx",
   "bin": "src/main.tsx",
   "scripts": {
-    "build": "bun build --compile --minify --sourcemap ./src/main.tsx --outfile dist/magus",
+    "build": "bun build --compile --minify --sourcemap ./src/main.ts --outfile dist/magus",
     "bundle": "bun run bundle.ts",
     "typecheck": "tsc --noEmit",
     "test": "bun test"

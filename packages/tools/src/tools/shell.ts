@@ -85,20 +85,6 @@ class ShellSession {
       let stderr = "";
       let timer: NodeJS.Timeout | null = null;
 
-      const cleanup = () => {
-        if (timer) {
-          clearTimeout(timer);
-          timer = null;
-        }
-        this.shell.stdout.off("data", onStdout);
-        this.shell.stderr.off("data", onStderr);
-      };
-
-      const settle = () => {
-        cleanup();
-        resolve({ stdout: stdout, stderr: stderr });
-      };
-
       const resetTimer = () => {
         if (timer) clearTimeout(timer);
         timer = setTimeout(settle, idleMs);
@@ -117,6 +103,20 @@ class ShellSession {
 
       this.shell.stdout.on("data", onStdout);
       this.shell.stderr.on("data", onStderr);
+
+      const cleanup = () => {
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+        this.shell.stdout.off("data", onStdout);
+        this.shell.stderr.off("data", onStderr);
+      };
+
+      const settle = () => {
+        cleanup();
+        resolve({ stdout: stdout, stderr: stderr });
+      };
 
       // Start idle timer in case the command produces no output
       resetTimer();

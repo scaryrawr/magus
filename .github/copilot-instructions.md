@@ -89,7 +89,7 @@ createServer({ providers, model, routers: [myRouter] });
 
 ## Making Changes
 
-When making changes to the Magus monorepo, follow these steps to ensure consistency and maintainability:
+When making changes to the Magus monorepo, you must follow these steps to ensure consistency and maintainability:
 
 1. Add unit tests.
 2. Ensure all tests pass by running `bun test`.

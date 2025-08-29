@@ -22,6 +22,8 @@ export type {
   ViewInput,
   ViewOutput,
 } from "./editor";
+export { FindInputSchema, FindOutputSchema, createFindTool } from "./find";
+export type { FindInput, FindOutput } from "./find";
 export { GrepInputSchema, GrepOutputSchema, createGrepTool } from "./grep";
 export type { GrepInput, GrepOutput } from "./grep";
 export { ShellInputSchema, ShellOutputSchema, createShellTool } from "./shell";

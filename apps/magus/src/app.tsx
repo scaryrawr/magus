@@ -4,12 +4,13 @@ import { ModelsResultSchema } from "@magus/server/src/models";
 import {
   createCreateFileTool,
   createEditorTool,
+  createFindTool,
+  createGrepTool,
   createInsertTool,
   createShellTool,
   createStringReplaceTool,
   createViewTool,
 } from "@magus/tools";
-import { createGrepTool } from "@magus/tools/src/tools";
 import type { LanguageModel, ToolSet } from "ai";
 import { hc } from "hono/client";
 import React from "react";
@@ -59,12 +60,14 @@ const getProviderToolSet = (provider: string): ToolSet => {
         ...createViewTool(),
         ...createStringReplaceTool(),
         ...createGrepTool(),
+        ...createFindTool(),
       };
     default:
       return {
         ...createShellTool(),
         ...createEditorTool(),
         ...createGrepTool(),
+        ...createFindTool(),
       };
   }
 };

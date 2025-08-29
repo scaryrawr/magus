@@ -1,12 +1,12 @@
 import { tool, type ToolSet } from "ai";
-import { spawn, spawnSync, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { z } from "zod";
+const { spawnSync, spawn } = Bun;
 
 const calculateShell = () => {
   if (process.platform === "win32") {
     try {
-      const result = spawnSync("pwsh", ["--version"], { stdio: "ignore" });
-      if (result.status === 0) return "pwsh";
+      spawnSync(["pwsh", "--version"]);
+      return "pwsh";
     } catch {
       // ignore and fall back to powershell
     }
@@ -16,15 +16,15 @@ const calculateShell = () => {
 
   // POSIX preference: zsh -> bash -> sh
   try {
-    const z = spawnSync("zsh", ["--version"], { stdio: "ignore" });
-    if (z.status === 0) return "zsh";
+    spawnSync(["zsh", "--version"]);
+    return "zsh";
   } catch {
     // zsh not available
   }
 
   try {
-    const b = spawnSync("bash", ["--version"], { stdio: "ignore" });
-    if (b.status === 0) return "bash";
+    spawnSync(["bash", "--version"]);
+    return "bash";
   } catch {
     // bash not available
   }
@@ -60,28 +60,37 @@ const description = () => {
   return `Executes a given command in a persistent ${getShellInfo().shell} session on ${process.platform}.`;
 };
 
-class ShellSession {
-  shell: ChildProcessWithoutNullStreams;
+export class ShellSession {
   shellInfo: { shell: string; args: string[] };
+  shell: Bun.Subprocess<"pipe", "pipe", "pipe">;
   constructor() {
     this.shellInfo = getShellInfo();
-    this.shell = spawn(this.shellInfo.shell, this.shellInfo.args);
+    this.shell = this.spawnShell();
+  }
+
+  spawnShell() {
+    return spawn([this.shellInfo.shell, ...this.shellInfo.args], {
+      stdin: "pipe",
+      stdout: "pipe",
+      stderr: "pipe",
+    });
   }
 
   async restart() {
-    return await new Promise<void>((resolve) => {
-      this.shell.once("exit", () => {
-        this.shell = spawn(this.shellInfo.shell, this.shellInfo.args);
-        resolve();
-      });
-
+    return await new Promise<void>((resolve, reject) => {
       this.shell.kill();
+      this.shell.exited
+        .then(() => {
+          this.shell = this.spawnShell();
+          resolve();
+        })
+        .catch(reject);
     });
   }
 
   async exec(command: string) {
     // Windows PowerShell can be slow to start up
-    let idleMs = process.platform === "win32" ? 10000 : 50;
+    let idleMs = process.platform === "win32" ? 10000 : 200;
     return await new Promise<{ stdout: string; stderr: string }>((resolve) => {
       let stdout = "";
       let stderr = "";
@@ -103,16 +112,56 @@ class ShellSession {
         resetTimer();
       };
 
-      this.shell.stdout.on("data", onStdout);
-      this.shell.stderr.on("data", onStderr);
+      const stdoutReader = this.shell.stdout.getReader();
+      const stderrReader = this.shell.stderr.getReader();
 
+      const readStdout = async () => {
+        while (true) {
+          try {
+            const { done, value } = await stdoutReader.read();
+            if (done) break;
+            if (value) onStdout(Buffer.from(value));
+          } catch {
+            // aborted
+            break;
+          }
+        }
+      };
+
+      const readStderr = async () => {
+        while (true) {
+          try {
+            const { done, value } = await stderrReader.read();
+            if (done) break;
+            if (value) onStderr(Buffer.from(value));
+          } catch {
+            // aborted
+            break;
+          }
+        }
+      };
+
+      const abortController = new AbortController();
+
+      // Start async reading of stdout and stderr
+      void Promise.all([readStdout(), readStderr()]);
       const cleanup = () => {
         if (timer) {
           clearTimeout(timer);
           timer = null;
         }
-        this.shell.stdout.off("data", onStdout);
-        this.shell.stderr.off("data", onStderr);
+
+        abortController.abort();
+        try {
+          stdoutReader.releaseLock();
+        } catch {
+          /* ignore */
+        }
+        try {
+          stderrReader.releaseLock();
+        } catch {
+          /* ignore */
+        }
       };
 
       const settle = () => {

@@ -83,6 +83,8 @@ export const grepFile = async ({ pattern, path, file_names_only, ignore_case }: 
   const args: string[] = [];
   switch (grepTool) {
     case "rg":
+      // Get ripgrep formatting to match grep
+      args.push("--no-heading", "--color=never");
       break;
     case "grep":
       args.push(
@@ -146,10 +148,8 @@ export const grepFile = async ({ pattern, path, file_names_only, ignore_case }: 
 
   // Execute the grep command
   const result = spawnSync(grepTool, args, { encoding: "utf-8" });
-  if (result.status !== 0) {
-    throw new Error(`Grep command failed with error: ${result.stderr || result.stdout}`);
-  }
 
+  // ignore result.exit since grep returns a failure on no matches found
   const matches = result.stdout.trim() ? result.stdout.trim().split("\n") : [];
 
   return {

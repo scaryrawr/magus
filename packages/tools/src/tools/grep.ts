@@ -1,4 +1,5 @@
 import { tool, type ToolSet } from "ai";
+import { statSync } from "node:fs";
 import { z } from "zod";
 const { spawnSync } = Bun;
 
@@ -148,9 +149,20 @@ export const grepFile = async ({
     }
   }
 
-  // Use `/C` for findstr so it doesn't treat spaces as separate patterns
-  const patternOption = grepTool === "findstr" ? `/C:${pattern}` : pattern;
-  command.push(patternOption, path);
+  switch (grepTool) {
+    case "findstr": {
+      // Check if path is a directory to determine if we need to append *.*
+      let searchPath = path;
+      if (statSync(path).isDirectory()) {
+        searchPath = path.endsWith("\\") ? `${path}*.*` : `${path}\\*.*`;
+      }
+
+      command.push(`/C:${pattern}`, searchPath);
+      break;
+    }
+    default:
+      command.push(pattern, path);
+  }
 
   // Execute the grep command
   const result = spawnSync(command);

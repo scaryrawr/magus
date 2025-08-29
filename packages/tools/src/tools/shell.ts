@@ -42,17 +42,19 @@ const getShellArgs = (shell: ReturnType<typeof calculateShell>) => {
   }
 };
 
-let cachedShellName: ReturnType<typeof calculateShell> | null = null;
-let cacheShellArgs: string[] | null = null;
-const getShellInfo = () => {
-  cachedShellName ??= calculateShell();
-  cacheShellArgs ??= getShellArgs(cachedShellName);
+const getShellInfo = (() => {
+  let cachedShellName: ReturnType<typeof calculateShell> | null = null;
+  let cacheShellArgs: string[] | null = null;
+  return () => {
+    cachedShellName ??= calculateShell();
+    cacheShellArgs ??= getShellArgs(cachedShellName);
 
-  return {
-    shell: cachedShellName,
-    args: cacheShellArgs,
+    return {
+      shell: cachedShellName,
+      args: cacheShellArgs,
+    };
   };
-};
+})();
 
 const description = () => {
   return `Executes a given command in a persistent ${getShellInfo().shell} session on ${process.platform}.`;

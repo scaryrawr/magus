@@ -17,7 +17,7 @@ export const FileEditToolView: React.FC<UIToolProps> = ({ part }) => {
         case "view": {
           return (
             <Box flexDirection="row" key={toolCallId}>
-              <Text>👀 Read {path}</Text>
+              <Text>📖 Read {path}</Text>
             </Box>
           );
         }

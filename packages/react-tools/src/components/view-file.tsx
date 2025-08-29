@@ -6,7 +6,7 @@ export const ViewFileView: React.FC<UIToolProps> = ({ part }) => {
   if (part.type !== "tool-view_file") return null;
 
   const { toolCallId } = part;
-  const icon = "👀";
+  const icon = "📖";
 
   switch (part.state) {
     case "output-available": {

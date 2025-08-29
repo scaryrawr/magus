@@ -1,11 +1,11 @@
 import { tool, type ToolSet } from "ai";
-import { spawnSync } from "node:child_process";
 import { z } from "zod";
+const { spawnSync } = Bun;
 
 // Check if ripgrep is available
 const hasRipgrep = () => {
   try {
-    spawnSync("rg", ["--version"], { stdio: "ignore" });
+    spawnSync(["rg", "--version"]);
     return true;
   } catch {
     return false;
@@ -15,7 +15,7 @@ const hasRipgrep = () => {
 // Check if grep is available as fallback
 const hasGrep = () => {
   try {
-    spawnSync("grep", ["--version"], { stdio: "ignore" });
+    spawnSync(["grep", "--version"]);
     return true;
   } catch {
     return false;
@@ -24,7 +24,7 @@ const hasGrep = () => {
 
 const hasFindStr = () => {
   try {
-    spawnSync("findstr", ["/?"], { stdio: "ignore" });
+    spawnSync(["findstr", "/?"]);
     return true;
   } catch {
     return false;
@@ -80,14 +80,14 @@ export const grepFile = async ({ pattern, path, file_names_only, ignore_case }: 
     throw new Error("A compatible grep tool (rg, grep, or findstr) is not installed or not found in PATH.");
   }
 
-  const args: string[] = [];
+  const command: string[] = [grepTool];
   switch (grepTool) {
     case "rg":
       // Get ripgrep formatting to match grep
-      args.push("--no-heading", "--color=never");
+      command.push("--no-heading", "--color=never");
       break;
     case "grep":
-      args.push(
+      command.push(
         // recursive
         "-r",
         // skip binary files
@@ -98,7 +98,7 @@ export const grepFile = async ({ pattern, path, file_names_only, ignore_case }: 
       );
       break;
     case "findstr":
-      args.push(
+      command.push(
         // Recursive
         "/S",
         // Skip files with non-printable characters (binaries?)
@@ -112,11 +112,11 @@ export const grepFile = async ({ pattern, path, file_names_only, ignore_case }: 
   if (ignore_case) {
     switch (grepTool) {
       case "findstr":
-        args.push("/I");
+        command.push("/I");
         break;
       case "rg":
       case "grep":
-        args.push("-i");
+        command.push("-i");
         break;
     }
   }
@@ -124,33 +124,32 @@ export const grepFile = async ({ pattern, path, file_names_only, ignore_case }: 
   if (file_names_only) {
     switch (grepTool) {
       case "findstr":
-        args.push("/M");
+        command.push("/M");
         break;
       case "rg":
       case "grep":
-        args.push("-l");
+        command.push("-l");
         break;
     }
   } else {
     switch (grepTool) {
       case "grep":
-        args.push("-n");
+        command.push("-n");
         break;
       case "findstr":
-        args.push("/N");
+        command.push("/N");
         break;
     }
   }
 
   // Use `/C` for findstr so it doesn't treat spaces as separate patterns
   const patternOption = grepTool === "findstr" ? `/C:${pattern}` : pattern;
-  args.push(patternOption, path);
+  command.push(patternOption, path);
 
   // Execute the grep command
-  const result = spawnSync(grepTool, args, { encoding: "utf-8" });
-
-  // ignore result.exit since grep returns a failure on no matches found
-  const matches = result.stdout.trim() ? result.stdout.trim().split("\n") : [];
+  const result = spawnSync(command);
+  const stdout = result.stdout.toString().trim();
+  const matches = stdout ? stdout.split("\n") : [];
 
   return {
     matches,

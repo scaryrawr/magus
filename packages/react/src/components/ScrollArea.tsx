@@ -1,6 +1,6 @@
 // Modified from https://gist.github.com/janis-me/1a55a8747f12e1c4fc86ebe2d05a0a55
 import { Box, type BoxProps, type DOMElement, measureElement, useFocus, useInput } from "ink";
-import React, { useEffect, useReducer, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useReducer, useRef } from "react";
 
 interface ScrollAreaState {
   innerRef: React.RefObject<DOMElement | null>;
@@ -83,7 +83,7 @@ export const ScrollArea = ({ height, children, ...boxProps }: ScrollAreaProps) =
   }, [height]);
 
   // Measure inner content height on content changes and update; if user was pinned to bottom, stay pinned.
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!innerRef.current) return;
     const { height: measuredInnerHeight } = measureElement(innerRef.current);
     dispatch({ type: "SET_INNER_HEIGHT", innerHeight: measuredInnerHeight });

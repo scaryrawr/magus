@@ -7,7 +7,7 @@
 - `bun typecheck` - Type check all packages
 - `bun lint` - Run ESLint (fix with `bun lint:fix`)
 - `bun format` - Format with Prettier
-- Run app: `bun apps/magus/src/index.tsx` (from repo root) or `cd apps/magus && bun src/index.tsx`
+- Run app: `bun apps/magus/src/main.ts` (from repo root) or `cd apps/magus && bun src/index.tsx`
 
 ## Code Style & Conventions
 

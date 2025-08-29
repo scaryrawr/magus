@@ -1,6 +1,6 @@
 import { useStdoutDimensions } from "@magus/react";
 import { Box, measureElement, type DOMElement } from "ink";
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { Outlet } from "react-router";
 import { InputBar } from "./components";
 import { StatusBar } from "./components/StatusBar";
@@ -10,7 +10,7 @@ const ChatSection: React.FC = () => {
   const { value, setInputAreaHeight } = useInputContext();
   const containerRef = useRef<DOMElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!containerRef.current) return;
     const { height } = measureElement(containerRef.current);
     setInputAreaHeight(height);

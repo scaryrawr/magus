@@ -8,7 +8,7 @@ import { viewFile } from "./view";
 export const createEditorTool = () =>
   ({
     file_edit_tool: tool({
-      description: "The text editor tool supports several commands for viewing and modifying files.",
+      description: "The file edit tool supports several commands for viewing and modifying files.",
       inputSchema: EditorInputSchema,
       outputSchema: EditorOutputSchema,
       execute: async (input): Promise<EditorOutput> => {

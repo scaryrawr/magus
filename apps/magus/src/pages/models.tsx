@@ -1,5 +1,5 @@
+import { ScrollArea } from "@magus/react";
 import { type MagusClient, type ModelSelect } from "@magus/server";
-import { Box } from "ink";
 import SelectInput from "ink-select-input";
 import { useCallback, useMemo } from "react";
 import { useLoaderData, useNavigate } from "react-router";
@@ -11,7 +11,7 @@ type ModelsData = {
 
 export const Models = () => {
   const { models } = useLoaderData<ModelsData>();
-  const { value, setValue } = useInputContext();
+  const { value, setValue, contentHeight } = useInputContext();
   const navigate = useNavigate();
   const { server } = useServerContext();
 
@@ -52,9 +52,9 @@ export const Models = () => {
   );
 
   return (
-    <Box flexDirection="column">
+    <ScrollArea width="100%" height={contentHeight}>
       <SelectInput items={items} onSelect={onSelection} />
-    </Box>
+    </ScrollArea>
   );
 };
 

@@ -84,8 +84,12 @@ export const FindOutputSchema = z.object({
 
 export type FindOutput = z.infer<typeof FindOutputSchema>;
 
-export const findFile = async ({ pattern, path }: FindInput): Promise<FindOutput> => {
-  const findTool = getFindTool();
+export type FindFileOptions = FindInput & {
+  findToolOverride?: ReturnType<typeof getFindTool>;
+};
+
+export const findFile = async ({ pattern, path, findToolOverride }: FindFileOptions): Promise<FindOutput> => {
+  const findTool = findToolOverride ?? getFindTool();
 
   if (!findTool) {
     // todo: implement a fallback file search

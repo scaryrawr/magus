@@ -69,8 +69,18 @@ export const GrepOutputSchema = z.object({
 
 export type GrepOutput = z.infer<typeof GrepOutputSchema>;
 
-export const grepFile = async ({ pattern, path, file_names_only, ignore_case }: GrepInput): Promise<GrepOutput> => {
-  const grepTool = getGrepTool();
+export type GrepFileOptions = GrepInput & {
+  grepToolOverride?: ReturnType<typeof getGrepTool>;
+};
+
+export const grepFile = async ({
+  pattern,
+  path,
+  file_names_only,
+  ignore_case,
+  grepToolOverride,
+}: GrepFileOptions): Promise<GrepOutput> => {
+  const grepTool = grepToolOverride ?? getGrepTool();
 
   if (!grepTool) {
     throw new Error("A compatible grep tool (rg, grep, or findstr) is not installed or not found in PATH.");

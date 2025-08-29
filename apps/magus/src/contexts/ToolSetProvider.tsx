@@ -1,5 +1,6 @@
 import type { LanguageModel, ToolSet } from "ai";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useModelContext } from ".";
 import { useServerContext } from "./ServerProvider";
 
 type ToolSetInfo = {
@@ -17,7 +18,7 @@ const ToolSetContext = createContext<ToolSetInfo>({
 
 export const ToolSetProvider: React.FC<ToolSetProviderProps> = ({ children, getToolSet }) => {
   const { state: serverState } = useServerContext();
-  const [model, setModel] = useState(() => serverState.model);
+  const { model } = useModelContext();
   const [toolSet, setToolset] = useState(() => getToolSet(model));
 
   useEffect(() => {
@@ -28,17 +29,6 @@ export const ToolSetProvider: React.FC<ToolSetProviderProps> = ({ children, getT
   useEffect(() => {
     setToolset(getToolSet(model));
   }, [model, getToolSet]);
-
-  useEffect(() => {
-    const handler = (model: LanguageModel | undefined) => {
-      setModel(model);
-    };
-
-    serverState.on("change:model", handler);
-    return () => {
-      serverState.off("change:model", handler);
-    };
-  }, [serverState]);
 
   return <ToolSetContext.Provider value={{ tools: toolSet }}>{children}</ToolSetContext.Provider>;
 };

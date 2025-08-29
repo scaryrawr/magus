@@ -14,7 +14,7 @@ import {
 import type { LanguageModel, ToolSet } from "ai";
 import { hc } from "hono/client";
 import React from "react";
-import { ChatContextProvider, RoutesProvider, ServerProvider } from "./contexts";
+import { ChatContextProvider, ModelProvider, RoutesProvider, ServerProvider, SystemPromptProvider } from "./contexts";
 import { ToolSetProvider } from "./contexts/ToolSetProvider";
 import { MagusRouterProvider } from "./routes";
 
@@ -95,28 +95,83 @@ const getToolSet = (() => {
   };
 })();
 
-// Let's use the .github/copilot-instructions.md if available
-const instructions: string[] = [];
-try {
-  const instruction = await Bun.file(".github/copilot-instructions.md").text();
-  instructions.push(instruction);
-} catch {
-  // Ignore missing file
-}
+const getModelSpecificPrompt = (model: LanguageModel | undefined): string => {
+  if (!model || typeof model === "string") {
+    return "";
+  }
 
-const systemPrompt =
-  "You are Magus, an AI assistant that helps users with software engineering tasks. Provide clear and concise answers to their questions. When asked to perform tasks, create a checklist of steps to complete the task. Use the available tools when necessary, and always explain your reason for using the tool. Do not end your turn until your checklist is completely done. Only perform actions that are on your checklist.";
+  const provider = model.provider.replace(".chat", "");
+
+  switch (provider) {
+    case "lmstudio":
+    case "ollama":
+    default:
+      return "";
+  }
+};
+
+const getToolSpecificPrompt = (tools: ToolSet | undefined): string => {
+  if (!tools) {
+    return "";
+  }
+
+  const toolNames = Object.keys(tools);
+  const hasEditor = toolNames.includes("editFile");
+  const hasShell = toolNames.includes("shell");
+
+  let prompt = `Available tools: ${toolNames.join(", ")}.`;
+
+  if (hasEditor) {
+    prompt += " You have access to the advanced editor tool for complex file modifications.";
+  }
+
+  if (hasShell) {
+    prompt += " You can execute shell commands to interact with the system.";
+  }
+
+  return prompt;
+};
+
+// Let's use the .github/copilot-instructions.md if available
+const loadInstructions = async (): Promise<string[]> => {
+  const instructions: string[] = [];
+  try {
+    const instruction = await Bun.file(".github/copilot-instructions.md").text();
+    instructions.push(instruction);
+  } catch {
+    // Ignore missing file
+  }
+  return instructions;
+};
 
 export const App: React.FC = () => {
+  const [instructions, setInstructions] = React.useState<string[]>([]);
+
+  React.useEffect(() => {
+    loadInstructions().then(setInstructions);
+  }, []);
+
   return (
     <ServerProvider createServer={createMagusServer}>
-      <ChatContextProvider systemPrompt={systemPrompt} instructions={instructions}>
+      <ModelProvider>
         <ToolSetProvider getToolSet={getToolSet}>
-          <RoutesProvider>
-            <MagusRouterProvider />
-          </RoutesProvider>
+          <SystemPromptProvider
+            config={{
+              basePrompt:
+                "You are Magus, an AI assistant that helps users with software engineering tasks. Provide clear and concise answers to their questions. When asked to perform tasks, create a checklist of steps to complete the task. Use the available tools when necessary, and always explain your reason for using the tool. Do not end your turn until your checklist is completely done. Only perform actions that are on your checklist. You are a wizard, you talk like Gandalf. You aim to inspire. When you see bad coding practices or anti-patterns, you should be open about it and speak as Gandalf would when concerned or deep in thought.",
+              instructions,
+              getModelSpecificPrompt,
+              getToolSpecificPrompt,
+            }}
+          >
+            <ChatContextProvider>
+              <RoutesProvider>
+                <MagusRouterProvider />
+              </RoutesProvider>
+            </ChatContextProvider>
+          </SystemPromptProvider>
         </ToolSetProvider>
-      </ChatContextProvider>
+      </ModelProvider>
     </ServerProvider>
   );
 };

@@ -1,12 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { ShellSession, type ShellOptions } from "./shell";
 
-const lines = (s: string) =>
-  s
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0);
-
 // Detect which shells are actually available on this system so we can
 // run the suite against each supported backend using the override.
 const supported = ["pwsh", "powershell", "zsh", "bash", "sh"] as const;
@@ -42,7 +36,7 @@ for (const override of shellsToTest) {
       const session = new ShellSession({ shellOverride: override });
       try {
         const res = await session.exec("echo 'hello world'");
-        expect(lines(res.stdout)).toContain("hello world");
+        expect(res.stdout).toContain("hello world");
       } finally {
         session.shell.kill();
       }
@@ -55,7 +49,7 @@ for (const override of shellsToTest) {
         const cmd =
           shell === "powershell" || shell === "pwsh" ? "[Console]::Error.WriteLine('oops')" : "echo oops 1>&2";
         const res = await session.exec(cmd);
-        expect(lines(res.stderr)).toContain("oops");
+        expect(res.stderr).toContain("oops");
       } finally {
         session.shell.kill();
       }
@@ -68,21 +62,21 @@ for (const override of shellsToTest) {
         const pidCmd = shell === "powershell" || shell === "pwsh" ? 'echo "$PID"' : 'echo "$$"';
 
         const first = await session.exec(pidCmd);
-        const pid1Line = lines(first.stdout)[0];
+        const pid1Line = first.stdout;
         const pid1 = Number(pid1Line);
         expect(Number.isFinite(pid1)).toBeTrue();
 
         await session.restart();
 
         const second = await session.exec(pidCmd);
-        const pid2Line = lines(second.stdout)[0];
+        const pid2Line = second.stdout;
         const pid2 = Number(pid2Line);
         expect(Number.isFinite(pid2)).toBeTrue();
         expect(pid2).not.toBe(pid1);
 
         // sanity: session still works post-restart
         const res = await session.exec("echo ok");
-        expect(lines(res.stdout)).toContain("ok");
+        expect(res.stdout).toContain("ok");
       } finally {
         session.shell.kill();
       }

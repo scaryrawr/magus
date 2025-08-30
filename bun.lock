@@ -65,15 +65,16 @@
     "packages/react": {
       "name": "@magus/react",
       "dependencies": {
-        "@types/marked-terminal": "^6.1.1",
         "figlet": "^1.7.0",
         "marked": "^16.2.1",
         "marked-terminal": "^7.3.0",
+        "strip-ansi": "^7.1.0",
       },
       "devDependencies": {
         "@types/bun": "catalog:ts",
         "@types/cardinal": "^2.1.1",
         "@types/figlet": "catalog:ts",
+        "@types/marked-terminal": "^6.1.1",
         "ink-testing-library": "catalog:test",
       },
       "peerDependencies": {
@@ -85,6 +86,7 @@
     "packages/react-tools": {
       "name": "@magus/react-tools",
       "dependencies": {
+        "@magus/react": "workspace:*",
         "@magus/tools": "workspace:*",
         "ai": "catalog:",
       },

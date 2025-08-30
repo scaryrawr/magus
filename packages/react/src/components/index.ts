@@ -1,3 +1,4 @@
+export { DiffViewer } from "./DiffViewer";
 export { FigletText } from "./FigletText";
 export type { FigletTextProps } from "./FigletText";
 export { Markdown } from "./Markdown";

@@ -1,6 +1,6 @@
 import { Text } from "ink";
 import React from "react";
-
+import stripAnsi from "strip-ansi";
 type SubprocessOutputProps = {
   command: string;
   args?: string[];
@@ -12,21 +12,11 @@ export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, arg
 
   React.useEffect(() => {
     const stdinBuffer = stdin ? new TextEncoder().encode(stdin) : undefined;
-    const subProcess = Bun.spawn([command, ...args], {
+    const subProcess = Bun.spawnSync([command, ...args], {
       stdin: stdinBuffer,
-      stdout: "pipe",
-      stderr: "pipe",
     });
 
-    let disposed = false;
-    subProcess.stdout.text().then((text) => {
-      if (disposed) return;
-      setOutput(text);
-    });
-
-    return () => {
-      disposed = true;
-    };
+    setOutput(stripAnsi(subProcess.stdout.toString()));
   }, [args, command, setOutput, stdin]);
 
   return <Text>{output}</Text>;

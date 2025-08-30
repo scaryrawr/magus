@@ -11,7 +11,6 @@
  */
 
 import { tool, type ToolSet } from "ai";
-import stripAnsi from "strip-ansi";
 import { z } from "zod";
 const { spawnSync, spawn } = Bun;
 
@@ -276,16 +275,6 @@ export class ShellSession {
 
         stdout = stdout.trimEnd();
         stderr = stderr.trimEnd();
-
-        // On non-Windows, PowerShell emits ANSI codes which I don't seem to see occur on Windows.
-        // We don't really expect people on *nix to use PowerShell, but eh... it's supported?
-        if (
-          (this.shellInfo.shell === "pwsh" || this.shellInfo.shell === "powershell") &&
-          process.platform !== "win32"
-        ) {
-          stdout = stripAnsi(stdout);
-          stderr = stripAnsi(stderr);
-        }
 
         resolve({ stdout, stderr });
       };

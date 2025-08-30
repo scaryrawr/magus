@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import stripAnsi from "strip-ansi";
 import { ShellSession, type ShellOptions } from "./shell";
 
 // Detect which shells are actually available on this system so we can
@@ -62,14 +63,14 @@ for (const override of shellsToTest) {
         const pidCmd = shell === "powershell" || shell === "pwsh" ? 'echo "$PID"' : 'echo "$$"';
 
         const first = await session.exec(pidCmd);
-        const pid1Line = first.stdout;
+        const pid1Line = stripAnsi(first.stdout);
         const pid1 = Number(pid1Line);
         expect(Number.isFinite(pid1)).toBeTrue();
 
         await session.restart();
 
         const second = await session.exec(pidCmd);
-        const pid2Line = second.stdout;
+        const pid2Line = stripAnsi(second.stdout);
         const pid2 = Number(pid2Line);
         expect(Number.isFinite(pid2)).toBeTrue();
         expect(pid2).not.toBe(pid1);

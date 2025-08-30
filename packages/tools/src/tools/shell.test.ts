@@ -9,6 +9,10 @@ type Supported = (typeof supported)[number];
 
 const isInstalled = (shell: Supported) => {
   try {
+    if (shell === "pwsh" && process.platform === "darwin") {
+      return false;
+    }
+
     // --version is a safe probe for most shells; if the command exists,
     // Bun.spawnSync will not throw even if the exit code is non-zero.
     if (shell === "sh") {

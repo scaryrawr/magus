@@ -76,7 +76,7 @@ export interface OllamaOptions {
 // Default to some "reasonable" minimal context length
 const DEFAULT_CONTEXT_LENGTH = 4096;
 
-export const createOllamaProvider = ({ origin = "http://localhost:11434" }: OllamaOptions = {}): MagusProvider => {
+export const createOllamaProvider = ({ origin = "http://localhost:11434" }: OllamaOptions = {}) => {
   const ollama = createOpenAICompatible({
     baseURL: `${origin}/v1`,
     name: "ollama",
@@ -109,7 +109,7 @@ export const createOllamaProvider = ({ origin = "http://localhost:11434" }: Olla
         }),
       );
     },
-  };
+  } as const satisfies MagusProvider;
 };
 
 export default createOllamaProvider;

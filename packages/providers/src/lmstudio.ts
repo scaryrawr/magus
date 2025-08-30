@@ -20,7 +20,7 @@ export interface LmStudioOptions {
   origin?: string;
 }
 
-export const createLmStudioProvider = ({ origin = "http://localhost:1234" }: LmStudioOptions = {}): MagusProvider => {
+export const createLmStudioProvider = ({ origin = "http://localhost:1234" }: LmStudioOptions = {}) => {
   const lmstudio = createOpenAICompatible({
     name: "lmstudio",
     baseURL: `${origin}/v1`,
@@ -43,5 +43,5 @@ export const createLmStudioProvider = ({ origin = "http://localhost:1234" }: LmS
           tool_use: m.capabilities?.includes("tool_use") ?? false,
         }));
     },
-  };
+  } as const satisfies MagusProvider;
 };

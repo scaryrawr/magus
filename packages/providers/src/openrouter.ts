@@ -12,7 +12,7 @@ export const OpenRouterModelsResponseSchema = z.object({
   data: z.array(OpenRouterModelSchema),
 });
 
-export const createOpenRouterProvider = (apiKey: string): MagusProvider => {
+export const createOpenRouterProvider = (apiKey: string) => {
   const openrouter = createOpenAICompatible({
     name: "openrouter",
     apiKey,
@@ -36,5 +36,5 @@ export const createOpenRouterProvider = (apiKey: string): MagusProvider => {
         tool_use: m.supported_parameters.includes("tools") || m.supported_parameters.includes("tool_choice"),
       }));
     },
-  };
+  } as const satisfies MagusProvider;
 };

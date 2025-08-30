@@ -11,7 +11,7 @@ export const ModelInfoSchema = z.object({
 export type ModelInfo = z.infer<typeof ModelInfoSchema>;
 
 export interface MagusProvider {
-  name: string;
+  readonly name: string;
   model(id: string): LanguageModel;
   models(): Promise<ModelInfo[]>;
 }

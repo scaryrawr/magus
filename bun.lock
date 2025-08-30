@@ -123,6 +123,7 @@
         "ai": "catalog:",
         "diff": "^8.0.2",
         "ink": "catalog:ui",
+        "strip-ansi": "^7.1.0",
         "zod": "catalog:",
       },
       "devDependencies": {

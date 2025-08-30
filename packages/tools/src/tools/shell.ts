@@ -11,6 +11,7 @@
  */
 
 import { tool, type ToolSet } from "ai";
+import stripAnsi from "strip-ansi";
 import { z } from "zod";
 const { spawnSync, spawn } = Bun;
 
@@ -93,9 +94,13 @@ const getShellInfo = (() => {
     return {
       shell: cachedShellName,
       args: cacheShellArgs,
-    };
+    } as const;
   };
 })();
+
+export type ShellOptions = {
+  shellOverride?: ReturnType<typeof calculateShell>;
+};
 
 /**
  * Manages a persistent shell session for executing commands.
@@ -114,10 +119,28 @@ export class ShellSession {
    * The constructor sets up the shell environment by determining the appropriate
    * shell and arguments, then spawns the actual shell process for command execution.
    * It initializes the internal state needed for persistent command execution.
+   *
+   * @param options - Optional configuration including shell override for testing
    */
-  constructor() {
-    this.shellInfo = getShellInfo();
+  constructor(options: ShellOptions = {}) {
+    this.shellInfo = this.getShellInfoWithOverride(options.shellOverride);
     this.shell = this.spawnShell();
+  }
+
+  /**
+   * Gets shell information with optional override for testing.
+   *
+   * @param shellOverride - Optional shell to use instead of auto-detection
+   * @returns Shell information with name and arguments
+   */
+  private getShellInfoWithOverride(shellOverride?: ReturnType<typeof calculateShell>) {
+    if (shellOverride) {
+      return {
+        shell: shellOverride,
+        args: getShellArgs(shellOverride),
+      } as const;
+    }
+    return getShellInfo();
   }
 
   /**
@@ -171,8 +194,8 @@ export class ShellSession {
    * @returns A Promise resolving with the command's stdout and stderr output
    */
   async exec(command: string) {
-    // Windows PowerShell can be slow to start up
-    let idleMs = process.platform === "win32" ? 10000 : 200;
+    // PowerShell can be slow to start up
+    let idleMs = getShellInfo().shell === "pwsh" || getShellInfo().shell === "powershell" ? 30000 : 5000;
     return await new Promise<{ stdout: string; stderr: string }>((resolve) => {
       let stdout = "";
       let stderr = "";
@@ -226,7 +249,7 @@ export class ShellSession {
       const abortController = new AbortController();
 
       // Start async reading of stdout and stderr
-      void Promise.all([readStdout(), readStderr()]);
+      const readPromises = Promise.allSettled([readStdout(), readStderr()]);
       const cleanup = () => {
         if (timer) {
           clearTimeout(timer);
@@ -246,9 +269,25 @@ export class ShellSession {
         }
       };
 
-      const settle = () => {
+      const settle = async () => {
         cleanup();
-        resolve({ stdout: stdout.trimEnd(), stderr: stderr.trimEnd() });
+
+        await readPromises;
+
+        stdout = stdout.trimEnd();
+        stderr = stderr.trimEnd();
+
+        // On non-Windows, PowerShell emits ANSI codes which I don't seem to see occur on Windows.
+        // We don't really expect people on *nix to use PowerShell, but eh... it's supported?
+        if (
+          (this.shellInfo.shell === "pwsh" || this.shellInfo.shell === "powershell") &&
+          process.platform !== "win32"
+        ) {
+          stdout = stripAnsi(stdout);
+          stderr = stripAnsi(stderr);
+        }
+
+        resolve({ stdout, stderr });
       };
 
       // Start idle timer in case the command produces no output
@@ -268,11 +307,12 @@ export class ShellSession {
  * This approach provides better performance by avoiding repeated shell
  * initialization and allows commands to maintain context and state.
  *
+ * @param options - Optional configuration including shell override for testing
  * @returns A ToolSet containing the shell tool with persistent session
  */
-export const createShellTool = () => {
+export const createShellTool = (options: ShellOptions = {}) => {
   // Reuse a single session across calls to maintain a persistent shell
-  const session = new ShellSession();
+  const session = new ShellSession(options);
 
   return {
     shell: tool({

@@ -1,3 +1,4 @@
+import { DiffViewer } from "@magus/react";
 import { DiffOutputSchema, StringReplaceSchema } from "@magus/tools";
 import { Box, Text } from "ink";
 import type { UIToolProps } from "./type";
@@ -17,7 +18,7 @@ export const StringReplaceView: React.FC<UIToolProps> = ({ part }) => {
           <Text>
             {icon} Modifying {path}
           </Text>
-          <Text>{diff}</Text>
+          <DiffViewer>{diff}</DiffViewer>
         </Box>
       );
     }

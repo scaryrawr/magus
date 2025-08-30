@@ -1,3 +1,4 @@
+import { DiffViewer } from "@magus/react";
 import { EditorInputSchema, EditorOutputSchema } from "@magus/tools";
 import { Box, Text } from "ink";
 import type { UIToolProps } from "./type";
@@ -27,7 +28,7 @@ export const FileEditToolView: React.FC<UIToolProps> = ({ part }) => {
               <Text>
                 {icon} Create file {path}
               </Text>
-              <Text>{diff}</Text>
+              <DiffViewer>{diff}</DiffViewer>
             </Box>
           );
         }
@@ -37,7 +38,7 @@ export const FileEditToolView: React.FC<UIToolProps> = ({ part }) => {
               <Text>
                 {icon} Editing {path}
               </Text>
-              <Text>{diff}</Text>
+              <DiffViewer>{diff}</DiffViewer>
             </Box>
           );
         }
@@ -47,7 +48,7 @@ export const FileEditToolView: React.FC<UIToolProps> = ({ part }) => {
               <Text>
                 {icon} Editing {path}
               </Text>
-              <Text>{diff}</Text>
+              <DiffViewer>{diff}</DiffViewer>
             </Box>
           );
         }

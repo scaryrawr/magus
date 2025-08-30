@@ -1,3 +1,4 @@
+import { DiffViewer } from "@magus/react";
 import { DiffOutputSchema, InsertFileSchema } from "@magus/tools";
 import { Box, Text } from "ink";
 import type { UIToolProps } from "./type";
@@ -17,7 +18,7 @@ export const FileInsertView: React.FC<UIToolProps> = ({ part }) => {
           <Text>
             {icon} Editing {path}
           </Text>
-          <Text>{diff}</Text>
+          <DiffViewer>{diff}</DiffViewer>
         </Box>
       );
     }

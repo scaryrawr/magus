@@ -98,18 +98,6 @@ const getShellInfo = (() => {
 })();
 
 /**
- * Generates a descriptive text for the shell tool.
- *
- * This function creates a human-readable description of what the shell tool does,
- * including the detected shell name and operating system.
- *
- * @returns A descriptive string for the shell tool
- */
-const description = () => {
-  return `Executes a given command in a persistent ${getShellInfo().shell} session on ${process.platform}.`;
-};
-
-/**
  * Manages a persistent shell session for executing commands.
  *
  * This class encapsulates the logic for maintaining a long-lived shell process
@@ -288,7 +276,10 @@ export const createShellTool = () => {
 
   return {
     shell: tool({
-      description: description(),
+      description: `Executes a given command in a persistent ${getShellInfo().shell} session on ${process.platform}. 
+This tool is essential for system operations, running scripts, checking file systems, and executing commands.
+Use this tool when you need to run commands/binaries, check directory structures, or perform system operations.
+The shell session is persistent to improve performance and maintain context between command executions.`,
       inputSchema: ShellInputSchema,
       outputSchema: ShellOutputSchema,
       execute: async ({ command, restart }): Promise<ShellOutput> => {

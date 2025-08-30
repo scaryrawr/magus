@@ -47,7 +47,9 @@ export const createFile = async ({ path, content }: CreateFileInput): Promise<Di
 export const createCreateFileTool = () =>
   ({
     create_file: tool({
-      description: "Create a new file with specified content.",
+      description: `Create a new file with specified content.
+This tool is essential for generating new files in the codebase, such as source code files, configuration files, or documentation.
+This tool ensures parent directories are created automatically and prevents overwriting existing files.`,
       inputSchema: CreateFileSchema,
       outputSchema: DiffOutputSchema,
       execute: async (input): Promise<DiffOutput> => {

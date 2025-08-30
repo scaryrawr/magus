@@ -37,8 +37,11 @@ export const stringReplace = async ({ path, old_str, new_str }: StringReplaceInp
 export const createStringReplaceTool = () =>
   ({
     string_replace: tool({
-      description:
-        "Replace a specific string in a file with a new string. If multiple occurrences exist, the tool will throw an error.",
+      description: `Replace a specific string in a file with a new string.
+This tool is essential for making targeted text replacements in files.
+Use this tool when you need to update specific values, change function names, or modify configuration parameters in existing files.
+It's particularly useful for refactoring code, updating version numbers, or making precise text replacements in a file.
+When making a replacement, include 3-5 surrounding lines to prevent replacement errors.`,
       inputSchema: StringReplaceSchema,
       outputSchema: DiffOutputSchema,
       execute: async (input): Promise<DiffOutput> => {

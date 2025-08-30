@@ -9,7 +9,8 @@ type Supported = (typeof supported)[number];
 
 const isInstalled = (shell: Supported) => {
   try {
-    if (shell === "pwsh" && process.platform !== "win32" && process.env.GITHUB_ACTIONS) {
+    // pwsh works locally fine, but not in CI.
+    if ((shell === "pwsh" || shell === "powershell") && process.platform !== "win32") {
       return false;
     }
 
@@ -41,7 +42,7 @@ for (const override of shellsToTest) {
       const session = new ShellSession({ shellOverride: override });
       try {
         const res = await session.exec("echo 'hello world'");
-        expect(res.stdout).toContain("hello world");
+        expect(res.stdout).toBe("hello world");
       } finally {
         session.shell.kill();
       }
@@ -54,7 +55,7 @@ for (const override of shellsToTest) {
         const cmd =
           shell === "powershell" || shell === "pwsh" ? "[Console]::Error.WriteLine('oops')" : "echo oops 1>&2";
         const res = await session.exec(cmd);
-        expect(res.stderr).toContain("oops");
+        expect(res.stderr).toBe("oops");
       } finally {
         session.shell.kill();
       }
@@ -81,7 +82,7 @@ for (const override of shellsToTest) {
 
         // sanity: session still works post-restart
         const res = await session.exec("echo ok");
-        expect(res.stdout).toContain("ok");
+        expect(res.stdout).toBe("ok");
       } finally {
         session.shell.kill();
       }

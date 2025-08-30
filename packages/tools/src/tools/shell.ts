@@ -261,6 +261,7 @@ export class ShellSession {
         } catch {
           /* ignore */
         }
+
         try {
           stderrReader.releaseLock();
         } catch {

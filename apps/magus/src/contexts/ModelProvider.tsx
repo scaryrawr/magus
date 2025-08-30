@@ -5,6 +5,7 @@ import { useServerContext } from "./ServerProvider";
 interface ModelContextValue {
   model: LanguageModel | undefined;
   provider: string | undefined;
+  modelName: string | undefined;
   modelInfo: string;
   isLoading: boolean;
 }
@@ -16,6 +17,7 @@ interface ModelProviderProps {
 const ModelContext = createContext<ModelContextValue>({
   model: undefined,
   provider: undefined,
+  modelName: undefined,
   modelInfo: "No model selected",
   isLoading: false,
 });
@@ -40,6 +42,14 @@ const getProvider = (model: LanguageModel | undefined): string | undefined => {
   return model.provider.replace(".chat", "");
 };
 
+const getModelName = (model: LanguageModel | undefined): string | undefined => {
+  if (!model || typeof model === "string") {
+    return undefined;
+  }
+
+  return model.modelId;
+};
+
 export const ModelProvider: React.FC<ModelProviderProps> = ({ children }) => {
   const { state: serverState } = useServerContext();
   const [model, setModel] = useState<LanguageModel | undefined>(() => serverState.model);
@@ -58,11 +68,13 @@ export const ModelProvider: React.FC<ModelProviderProps> = ({ children }) => {
   }, [serverState]);
 
   const provider = getProvider(model);
+  const modelName = getModelName(model);
   const modelInfo = getModelInfo(model);
 
   const contextValue: ModelContextValue = {
     model,
     provider,
+    modelName,
     modelInfo,
     isLoading,
   };

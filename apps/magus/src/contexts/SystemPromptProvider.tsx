@@ -1,4 +1,4 @@
-import type { LanguageModel, ToolSet } from "ai";
+import type { ToolSet } from "ai";
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useModelContext } from ".";
 import { useServerContext } from "./ServerProvider";
@@ -7,7 +7,7 @@ import { useToolSetContext } from "./ToolSetProvider";
 type SystemPromptConfig = {
   basePrompt?: string;
   instructions?: string[];
-  getModelSpecificPrompt?: (model: LanguageModel | undefined) => string;
+  getModelSpecificPrompt?: (provider: string | undefined, modelName: string | undefined) => string;
   getToolSpecificPrompt?: (tools: ToolSet | undefined) => string;
 };
 
@@ -26,15 +26,13 @@ type SystemPromptProviderProps = {
   config: SystemPromptConfig;
 };
 
-const DEFAULT_BASE_PROMPT =
-  "You are Magus, an AI assistant that helps users with software engineering tasks. Provide clear and concise answers to their questions. When asked to perform tasks, create a checklist of steps to complete the task. Use the available tools when necessary, and always explain your reason for using the tool. Do not end your turn until your checklist is completely done. Only perform actions that are on your checklist. You are a wizard, you talk like Gandalf. You aim to inspire. When you see bad coding practices or anti-patterns, you should be open about it and speak as Gandalf would when concerned or deep in thought.";
-
 export const SystemPromptProvider: React.FC<SystemPromptProviderProps> = ({ children, config }) => {
   const { state } = useServerContext();
   const { tools } = useToolSetContext();
-  const { model } = useModelContext();
+  const { provider, modelName } = useModelContext();
+  const { getModelSpecificPrompt, getToolSpecificPrompt } = config;
 
-  const [basePrompt, setBasePrompt] = useState(config.basePrompt || DEFAULT_BASE_PROMPT);
+  const [basePrompt, setBasePrompt] = useState(config.basePrompt || "");
   const [instructions, setInstructions] = useState<string[]>(config.instructions || []);
 
   // Calculate the full system prompt
@@ -42,28 +40,24 @@ export const SystemPromptProvider: React.FC<SystemPromptProviderProps> = ({ chil
     let prompt = basePrompt;
 
     // Add model-specific prompt if available
-    if (config.getModelSpecificPrompt) {
-      const modelPrompt = config.getModelSpecificPrompt(model);
-      if (modelPrompt) {
-        prompt += `\n\n${modelPrompt}`;
-      }
+    const modelPrompt = getModelSpecificPrompt?.(provider, modelName);
+    if (modelPrompt) {
+      prompt += `\n\n${modelPrompt}`;
     }
 
     // Add tool-specific prompt if available
-    if (config.getToolSpecificPrompt) {
-      const toolPrompt = config.getToolSpecificPrompt(tools);
-      if (toolPrompt) {
-        prompt += `\n\n${toolPrompt}`;
-      }
+    const toolPrompt = getToolSpecificPrompt?.(tools);
+    if (toolPrompt) {
+      prompt += `\n\n${toolPrompt}`;
     }
 
     // Add instructions
     if (instructions.length > 0) {
-      prompt += `\n\n${instructions.join("\n")}`;
+      prompt += `\n\n${instructions.join("\n\n")}`;
     }
 
     return prompt;
-  }, [basePrompt, model, tools, instructions, config]);
+  }, [basePrompt, getModelSpecificPrompt, getToolSpecificPrompt, instructions, provider, modelName, tools]);
 
   // Update server state when system prompt changes
   useEffect(() => {

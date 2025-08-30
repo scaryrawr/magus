@@ -38,7 +38,7 @@ export const createStringReplaceTool = () =>
   ({
     string_replace: tool({
       description:
-        "Replace a specific string in a file with a new string. This is used for making precise edits. Include 3-5 surrounding lines of context to isolate the change.",
+        "Replace a specific string in a file with a new string. If multiple occurrences exist, the tool will throw an error.",
       inputSchema: StringReplaceSchema,
       outputSchema: DiffOutputSchema,
       execute: async (input): Promise<DiffOutput> => {

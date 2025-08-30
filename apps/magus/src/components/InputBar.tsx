@@ -2,8 +2,7 @@ import { Box, Text } from "ink";
 import TextInput from "ink-text-input";
 import React, { useCallback } from "react";
 import { useNavigate } from "react-router";
-import { useRoutes } from "../contexts";
-import { useInputContext } from "../contexts/InputProvider";
+import { useInputContext, useRoutes } from "../contexts";
 
 export const InputBar: React.FC = () => {
   const { value, setValue, submit, placeholder } = useInputContext();

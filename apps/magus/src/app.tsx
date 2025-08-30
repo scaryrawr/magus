@@ -1,4 +1,9 @@
-import { createLmStudioProvider, createOllamaProvider, createOpenRouterProvider } from "@magus/providers";
+import {
+  createLmStudioProvider,
+  createOllamaProvider,
+  createOpenRouterProvider,
+  type MagusProvider,
+} from "@magus/providers";
 import { createServer, type MagusRoutes } from "@magus/server";
 import { ModelsResultSchema } from "@magus/server/src/models";
 import {
@@ -14,16 +19,22 @@ import {
 import type { LanguageModel, ToolSet } from "ai";
 import { hc } from "hono/client";
 import React from "react";
-import { ChatContextProvider, ModelProvider, RoutesProvider, ServerProvider, SystemPromptProvider } from "./contexts";
-import { ToolSetProvider } from "./contexts/ToolSetProvider";
+import {
+  ChatContextProvider,
+  ModelProvider,
+  RoutesProvider,
+  ServerProvider,
+  SystemPromptProvider,
+  ToolSetProvider,
+} from "./contexts";
 import { MagusRouterProvider } from "./routes";
 
-const createMagusServer = () => {
-  const providers = [createLmStudioProvider(), createOllamaProvider()];
-  if (process.env.OPENROUTER_API_KEY) {
-    providers.push(createOpenRouterProvider(process.env.OPENROUTER_API_KEY));
-  }
+const providers: MagusProvider[] = [createLmStudioProvider(), createOllamaProvider()];
+if (process.env.OPENROUTER_API_KEY) {
+  providers.push(createOpenRouterProvider(process.env.OPENROUTER_API_KEY));
+}
 
+const createMagusServer = () => {
   const { listen, state } = createServer({
     providers,
     model: undefined,
@@ -95,12 +106,10 @@ const getToolSet = (() => {
   };
 })();
 
-const getModelSpecificPrompt = (model: LanguageModel | undefined): string => {
-  if (!model || typeof model === "string") {
+const getModelSpecificPrompt = (provider: string | undefined, modelName: string | undefined): string => {
+  if (!provider || !modelName) {
     return "";
   }
-
-  const provider = model.provider.replace(".chat", "");
 
   switch (provider) {
     case "lmstudio":

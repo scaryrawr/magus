@@ -11,9 +11,10 @@ export const InputBar: React.FC = () => {
 
   const onSubmit = useCallback(
     (value: string) => {
-      if (routes.includes(value)) {
+      const foundRoute = routes.find((route) => route.path.trim() === value.trim());
+      if (foundRoute) {
         setValue("");
-        navigate(value);
+        navigate(foundRoute.path);
         return;
       }
 

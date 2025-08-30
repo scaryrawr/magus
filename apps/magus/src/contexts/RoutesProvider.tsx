@@ -1,8 +1,14 @@
 import { createContext, useContext, useState } from "react";
 
+export type RouteInfo = {
+  path: string;
+  description: string | undefined;
+  hidden?: boolean;
+};
+
 type RoutesContext = {
-  routes: string[];
-  setRoutes: (routes: string[]) => void;
+  routes: RouteInfo[];
+  setRoutes: (routes: RouteInfo[]) => void;
 };
 
 const RoutesContext = createContext<RoutesContext | null>(null);
@@ -12,7 +18,7 @@ type RoutesProviderProps = {
 };
 
 export const RoutesProvider: React.FC<RoutesProviderProps> = ({ children }) => {
-  const [routes, setRoutes] = useState<string[]>([]);
+  const [routes, setRoutes] = useState<RouteInfo[]>([]);
 
   return <RoutesContext.Provider value={{ routes, setRoutes }}>{children}</RoutesContext.Provider>;
 };

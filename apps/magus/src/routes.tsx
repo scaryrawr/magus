@@ -1,8 +1,16 @@
 import { useEffect, useMemo } from "react";
 import { createMemoryRouter, RouterProvider, type RouteObject } from "react-router";
-import { useRoutes, useServerContext } from "./contexts";
+import { useRoutes, useServerContext, type RouteInfo } from "./contexts";
 import { Layout } from "./layout";
 import { Chat, createModelRoute, Exit, Home } from "./pages";
+
+// Route metadata for descriptions
+const routeDescriptions: Record<string, { description: string; hidden?: boolean }> = {
+  "/home": { description: "Welcome screen and main entry point" },
+  "/chat": { description: "Interactive chat interface" },
+  "/models": { description: "Select and configure AI models" },
+  "/exit": { description: "Exit the application" },
+};
 
 const useMagusRouter = () => {
   const { client } = useServerContext();
@@ -13,6 +21,7 @@ const useMagusRouter = () => {
         Component: Layout,
         children: [
           { index: true, Component: Home },
+          { path: "home", Component: Home },
           {
             path: "chat",
             children: [{ index: true, Component: Chat }],
@@ -30,8 +39,8 @@ const useMagusRouter = () => {
   return routes;
 };
 
-const buildRoutePaths = (routes: RouteObject[], basePath = ""): string[] => {
-  const paths: string[] = [];
+const buildRouteInfos = (routes: RouteObject[], basePath = ""): RouteInfo[] => {
+  const routeInfos: RouteInfo[] = [];
   for (const route of routes) {
     let currentPath = basePath;
     if (route.path) {
@@ -40,22 +49,34 @@ const buildRoutePaths = (routes: RouteObject[], basePath = ""): string[] => {
       currentPath = basePath || "/";
     }
 
-    // Not guaranteed to be an end route
+    // Not guaranteed to be an end routes
     if (currentPath && !route.children) {
-      paths.push(currentPath);
+      const routeInfo = routeDescriptions[currentPath];
+      if (routeInfo) {
+        routeInfos.push({
+          path: currentPath,
+          description: routeInfo.description,
+          hidden: routeInfo.hidden,
+        });
+      } else {
+        routeInfos.push({
+          path: currentPath,
+          description: undefined,
+        });
+      }
     }
 
     if (route.children) {
-      paths.push(...buildRoutePaths(route.children, currentPath.endsWith("/") ? currentPath : `${currentPath}/`));
+      routeInfos.push(...buildRouteInfos(route.children, currentPath.endsWith("/") ? currentPath : `${currentPath}/`));
     }
   }
 
-  return paths;
+  return routeInfos;
 };
 
 export const MagusRouterProvider = () => {
   const router = useMagusRouter();
-  const routes = useMemo(() => buildRoutePaths(router.routes), [router.routes]);
+  const routes = useMemo(() => buildRouteInfos(router.routes), [router.routes]);
   const { setRoutes } = useRoutes();
 
   useEffect(() => {

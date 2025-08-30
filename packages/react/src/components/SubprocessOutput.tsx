@@ -1,6 +1,6 @@
 import { Text } from "ink";
 import React from "react";
-import stripAnsi from "strip-ansi";
+import { parseAnsiToSegments } from "../utils/ansi";
 type SubprocessOutputProps = {
   command: string;
   args?: string[];
@@ -16,8 +16,28 @@ export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, arg
       stdin: stdinBuffer,
     });
 
-    setOutput(stripAnsi(subProcess.stdout.toString()));
+    setOutput(subProcess.stdout.toString());
   }, [args, command, setOutput, stdin]);
 
-  return <Text>{output}</Text>;
+  const segments = React.useMemo(() => parseAnsiToSegments(output), [output]);
+
+  return (
+    <Text>
+      {segments.map((seg, i) => (
+        <Text
+          key={i}
+          color={seg.color}
+          backgroundColor={seg.backgroundColor}
+          bold={seg.bold}
+          underline={seg.underline}
+          italic={seg.italic}
+          strikethrough={seg.strikethrough}
+          dimColor={seg.dimColor}
+          inverse={seg.inverse}
+        >
+          {seg.text}
+        </Text>
+      ))}
+    </Text>
+  );
 };

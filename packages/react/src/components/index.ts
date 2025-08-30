@@ -3,3 +3,4 @@ export type { FigletTextProps } from "./FigletText";
 export { Markdown } from "./Markdown";
 export { ScrollArea } from "./ScrollArea";
 export type { ScrollAreaProps } from "./ScrollArea";
+export { SubprocessOutput } from "./SubprocessOutput";

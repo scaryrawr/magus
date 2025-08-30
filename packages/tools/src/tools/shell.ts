@@ -11,6 +11,7 @@
  */
 
 import { tool, type ToolSet } from "ai";
+import stripAnsi from "strip-ansi";
 import { z } from "zod";
 const { spawnSync, spawn } = Bun;
 
@@ -261,6 +262,7 @@ export class ShellSession {
         } catch {
           /* ignore */
         }
+
         try {
           stderrReader.releaseLock();
         } catch {
@@ -273,8 +275,8 @@ export class ShellSession {
 
         await readPromises;
 
-        stdout = stdout.trimEnd();
-        stderr = stderr.trimEnd();
+        stdout = stripAnsi(stdout).trimEnd();
+        stderr = stripAnsi(stderr).trimEnd();
 
         resolve({ stdout, stderr });
       };

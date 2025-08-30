@@ -17,8 +17,7 @@
   "dependencies": {
     "figlet": "^1.7.0",
     "marked": "^16.2.1",
-    "marked-terminal": "^7.3.0",
-    "strip-ansi": "^7.1.0"
+    "marked-terminal": "^7.3.0"
   },
   "peerDependencies": {
     "ink": "catalog:ui",

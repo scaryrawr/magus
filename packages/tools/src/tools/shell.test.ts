@@ -10,7 +10,7 @@ type Supported = (typeof supported)[number];
 const isInstalled = (shell: Supported) => {
   try {
     // pwsh works locally fine, but not in CI.
-    if (shell === "pwsh" && process.platform !== "win32") {
+    if ((shell === "pwsh" || shell === "powershell") && process.platform !== "win32") {
       return false;
     }
 

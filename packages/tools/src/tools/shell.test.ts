@@ -9,7 +9,7 @@ type Supported = (typeof supported)[number];
 
 const isInstalled = (shell: Supported) => {
   try {
-    if (shell === "pwsh" && process.platform === "darwin") {
+    if (shell === "pwsh" && process.platform !== "win32" && process.env.GITHUB_ACTIONS) {
       return false;
     }
 

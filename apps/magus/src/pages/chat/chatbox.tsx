@@ -1,3 +1,4 @@
+import { Markdown } from "@magus/react";
 import { ToolView } from "@magus/react-tools";
 import type { UIMessage } from "ai";
 import { Box, Text } from "ink";
@@ -25,7 +26,7 @@ export const ChatBox: React.FC<UIMessage> = ({ role, parts }) => {
         }
         switch (part.type) {
           case "text":
-            return <Text key={index}>{part.text}</Text>;
+            return <Markdown key={index}>{part.text}</Markdown>;
           case "reasoning":
             return (
               <Text dimColor key={index}>

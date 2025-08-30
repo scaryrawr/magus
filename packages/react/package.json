@@ -8,12 +8,16 @@
     "test": "bun test"
   },
   "devDependencies": {
-    "@types/figlet": "catalog:ts",
     "@types/bun": "catalog:ts",
+    "@types/cardinal": "^2.1.1",
+    "@types/figlet": "catalog:ts",
+    "@types/marked-terminal": "^6.1.1",
     "ink-testing-library": "catalog:test"
   },
   "dependencies": {
-    "figlet": "^1.7.0"
+    "figlet": "^1.7.0",
+    "marked": "^16.2.1",
+    "marked-terminal": "^7.3.0"
   },
   "peerDependencies": {
     "ink": "catalog:ui",

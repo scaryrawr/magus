@@ -194,7 +194,8 @@ export class ShellSession {
    */
   async exec(command: string) {
     // PowerShell can be slow to start up
-    let idleMs = getShellInfo().shell === "pwsh" || getShellInfo().shell === "powershell" ? 30000 : 5000;
+    let idleMs = this.shellInfo.shell === "pwsh" || this.shellInfo.shell === "powershell" ? 30000 : 5000;
+
     return await new Promise<{ stdout: string; stderr: string }>((resolve) => {
       let stdout = "";
       let stderr = "";
@@ -206,66 +207,52 @@ export class ShellSession {
         idleMs = 50;
       };
 
-      const onStdout = (data: Buffer) => {
-        stdout += data.toString();
-        resetTimer();
-      };
-
-      const onStderr = (data: Buffer) => {
-        stderr += data.toString();
-        resetTimer();
-      };
-
-      const stdoutReader = this.shell.stdout.getReader();
-      const stderrReader = this.shell.stderr.getReader();
-
-      const readStdout = async () => {
-        while (true) {
-          try {
-            const { done, value } = await stdoutReader.read();
+      const readStdout = async (abortSignal: AbortSignal) => {
+        const stdoutReader = this.shell.stdout.getReader();
+        try {
+          const aborted = new Promise<{ done: true; value: undefined }>((res) => {
+            abortSignal.addEventListener("abort", () => res({ done: true, value: undefined }), { once: true });
+          });
+          while (true) {
+            const { done, value } = await Promise.race([stdoutReader.read(), aborted]);
             if (done) break;
-            if (value) onStdout(Buffer.from(value));
-          } catch {
-            // aborted
-            break;
+            if (value) {
+              stdout += Buffer.from(value).toString();
+              resetTimer();
+            }
           }
+        } finally {
+          stdoutReader.releaseLock();
         }
       };
 
-      const readStderr = async () => {
-        while (true) {
-          try {
-            const { done, value } = await stderrReader.read();
+      const readStderr = async (abortSignal: AbortSignal) => {
+        const stderrReader = this.shell.stderr.getReader();
+        try {
+          const aborted = new Promise<{ done: true; value: undefined }>((res) => {
+            abortSignal.addEventListener("abort", () => res({ done: true, value: undefined }), { once: true });
+          });
+          while (true) {
+            const { done, value } = await Promise.race([stderrReader.read(), aborted]);
             if (done) break;
-            if (value) onStderr(Buffer.from(value));
-          } catch {
-            // aborted
-            break;
+            if (value) {
+              stderr += Buffer.from(value).toString();
+              resetTimer();
+            }
           }
+        } finally {
+          stderrReader.releaseLock();
         }
       };
-
-      const abortController = new AbortController();
 
       // Start async reading of stdout and stderr
-      const readPromises = Promise.allSettled([readStdout(), readStderr()]);
+      const abortController = new AbortController();
+      const readPromises = Promise.allSettled([readStdout(abortController.signal), readStderr(abortController.signal)]);
       const cleanup = () => {
+        abortController.abort();
         if (timer) {
           clearTimeout(timer);
           timer = null;
-        }
-
-        abortController.abort();
-        try {
-          stdoutReader.releaseLock();
-        } catch {
-          /* ignore */
-        }
-
-        try {
-          stderrReader.releaseLock();
-        } catch {
-          /* ignore */
         }
       };
 

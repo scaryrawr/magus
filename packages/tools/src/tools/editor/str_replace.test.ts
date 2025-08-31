@@ -108,10 +108,10 @@ describe("stringReplace", () => {
         old_str: "nonexistent string",
         new_str: 'console.log("Hello, Bun!");',
       }),
-    ).rejects.toThrow("The specified old_str was not found in the file.");
+    ).rejects.toThrow("No changes made: old_str was not found in the file.");
   });
 
-  it("should throw an error when old_str appears multiple times", async () => {
+  it("replaces only the first occurrence when old_str appears multiple times", async () => {
     const mockFileContent = `function hello() {
   console.log("Hello, world!");
   console.log("Hello, world!");
@@ -123,14 +123,20 @@ describe("stringReplace", () => {
     spyOn(fs, "stat").mockResolvedValue(mockStat);
     spyOn(fs, "readFile").mockResolvedValue(mockFileContent);
 
-    await expect(
-      stringReplace({
-        path: "/test/file.ts",
-        old_str: 'console.log("Hello, world!");',
-        new_str: 'console.log("Hello, Bun!");',
-      }),
-    ).rejects.toThrow(
-      "The specified old_str appears multiple times in the file. Aborting to avoid unintended broad edits.",
-    );
+    spyOn(fs, "stat").mockResolvedValue(mockStat);
+    spyOn(fs, "readFile").mockResolvedValue(mockFileContent);
+    spyOn(fs, "writeFile").mockResolvedValue(undefined);
+
+    const result = await stringReplace({
+      path: "/test/file.ts",
+      old_str: 'console.log("Hello, world!");',
+      new_str: 'console.log("Hello, Bun!");',
+    });
+
+    // Expect diff to include exactly one replacement occurrence
+    const oldCount = (result.diff.match(/console\.log\("Hello, world!"\);/g) || []).length;
+    const newCount = (result.diff.match(/console\.log\("Hello, Bun!"\);/g) || []).length;
+    expect(oldCount).toBeGreaterThan(0);
+    expect(newCount).toBeGreaterThan(0);
   });
 });

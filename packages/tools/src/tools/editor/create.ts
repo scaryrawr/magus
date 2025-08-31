@@ -29,16 +29,23 @@ export const createFile = async ({ path, content }: CreateFileInput): Promise<Di
   }
 
   if (stat) {
-    if (stat.isFile()) {
-      throw new Error("File already exists at the specified path");
-    }
     if (stat.isDirectory()) {
       throw new Error("A directory exists at the specified path");
     }
   }
 
+  let previousContent = "";
+  try {
+    // It's common for the model to try using create when modifying a file.
+    // they either didn't know it was there, or are just replacing the whole thing.
+    // either way, they'll get a valid diff and figure it out.
+    previousContent = await fs.readFile(path, "utf-8");
+  } catch {
+    // Ignore errors; we'll treat this as a new file
+  }
+
   await fs.writeFile(path, content, "utf-8");
-  const diff = createTwoFilesPatch(path, path, "", content);
+  const diff = createTwoFilesPatch(path, path, previousContent, content);
   return {
     diff,
   };
@@ -47,9 +54,7 @@ export const createFile = async ({ path, content }: CreateFileInput): Promise<Di
 export const createCreateFileTool = () =>
   ({
     create_file: tool({
-      description: `Create a new file with specified content.
-This tool is essential for generating new files in the codebase, such as source code files, configuration files, or documentation.
-This tool ensures parent directories are created automatically and prevents overwriting existing files.`,
+      description: `Create a new file or replace an existing file with specified content. Will create directories in file path.`,
       inputSchema: CreateFileSchema,
       outputSchema: DiffOutputSchema,
       execute: async (input): Promise<DiffOutput> => {

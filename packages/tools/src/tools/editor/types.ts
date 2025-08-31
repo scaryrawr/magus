@@ -18,7 +18,9 @@ export const CreateFileSchema = z.object({
 
 export const InsertFileSchema = z.object({
   path: z.string().describe("The path to the file to modify."),
-  insert_line: z.number().describe("The line number to insert the content at (0 for beginning of the file)."),
+  insert_line: z
+    .number()
+    .describe("The line number to insert the content at (0 to insert at the beginning of the file)."),
   new_str: z.string().describe("The text to insert."),
 });
 
@@ -26,6 +28,7 @@ export const StringReplaceSchema = z.object({
   path: z.string().describe("The path to the file to modify."),
   old_str: z.string().describe("The text to replace (must match exactly, including whitespace and indentation)."),
   new_str: z.string().describe("The new text to insert in place of the old text."),
+  replace_all: z.optional(z.boolean()).describe("Flag to replace all occurrences of the old text. [default = false]"),
 });
 
 // Output schemas (discriminated by `type`)
@@ -48,6 +51,7 @@ export const EditorInputSchema = z.discriminatedUnion("command", [
 export const EditorOutputSchema = z.union([ViewOutputSchema, DiffOutputSchema]);
 
 export type DiffOutput = z.infer<typeof DiffOutputSchema>;
+export type EditorInput = z.infer<typeof EditorInputSchema>;
 export type EditorOutput = z.infer<typeof EditorOutputSchema>;
 export type ViewInput = Omit<z.infer<typeof ViewSchema>, "command">;
 export type ViewOutput = z.infer<typeof ViewOutputSchema>;

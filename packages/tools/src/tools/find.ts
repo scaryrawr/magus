@@ -71,7 +71,11 @@ const getFindTool = (() => {
 })();
 
 export const FindInputSchema = z.object({
-  pattern: z.string().describe(`The file glob pattern to use for finding files.`),
+  pattern: z
+    .optional(z.string())
+    .describe(
+      `The optional file glob pattern to use for finding files. Default behavior will list all files recursively.`,
+    ),
   path: z.optional(z.string()).describe("The directory to search in. Defaults to current directory.").default("."),
 });
 
@@ -99,15 +103,17 @@ export const findFile = async ({ pattern, path, findToolOverride }: FindFileOpti
   let command: string[];
   switch (findTool) {
     case "rg":
-      command = [findTool, "--files", path, "--glob", `*${pattern}*`];
+      command = [findTool, "--files", path];
+      if (pattern) command.push("--iglob", `'*${pattern}*'`);
       break;
     case "find":
       // Use standard Unix find: search under path for files (-type f) with case-insensitive name match
       // Note: BSD/macOS find supports -iname
-      command = [findTool, path, "-iname", `*${pattern}*`];
+      command = [findTool, path];
+      if (pattern) command.push("-iname", `*${pattern}*`);
       break;
     case "fd":
-      command = [findTool, pattern, path];
+      command = [findTool, pattern ?? ".", path];
       break;
     case "pwsh":
     case "powershell":
@@ -116,7 +122,9 @@ export const findFile = async ({ pattern, path, findToolOverride }: FindFileOpti
         "-NoProfile",
         "-NoLogo",
         "-Command",
-        `Get-ChildItem -Path '${path}' -Recurse -Filter '*${pattern}*' | Select-Object -ExpandProperty FullName`,
+        pattern
+          ? `Get-ChildItem -Path '${path}' -Recurse -Filter '*${pattern}*' | Select-Object -ExpandProperty FullName`
+          : `Get-ChildItem -Path '${path}' -Recurse | Select-Object -ExpandProperty FullName`,
       ];
       break;
   }
@@ -158,9 +166,9 @@ export const createFindTool = () => {
   return {
     find: tool({
       description: `Recursively search for files with a given name pattern.
-This tool is essential for locating files in the codebase by filename or pattern.
-Use this tool when you need to find specific files, such as configuration files, source code files, or test files.
-It's particularly useful for exploring the project structure and finding files that match specific naming conventions.`,
+      This tool is essential for locating files in the codebase by filename or pattern.
+      Use this tool when you need to find specific files, such as configuration files, source code files, or test files.
+      It's particularly useful for exploring the project structure and finding files that match specific naming conventions.`,
       inputSchema: FindInputSchema,
       outputSchema: FindOutputSchema,
       execute: async (input): Promise<FindOutput> => {

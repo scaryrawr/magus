@@ -1,6 +1,6 @@
 import { tool, type ToolSet } from "ai";
 import { z } from "zod";
-const { spawnSync } = Bun;
+const { spawn, spawnSync } = Bun;
 
 const hasFd = () => {
   try {
@@ -129,32 +129,40 @@ export const findFile = async ({ pattern, path, findToolOverride }: FindFileOpti
       break;
   }
 
-  // Execute the find command
-  const result = spawnSync(command);
-  const stdout = result.stdout.toString().trim();
-
+  // Execute the find command asynchronously
+  const proc = spawn(command);
   const ignorePatterns = [".git", ".yarn", ".backfill", "node_modules"];
 
-  // Parse the output
-  let files = stdout
-    ? stdout
-        .split("\n")
-        .filter((line) => line.trim() !== "")
-        .map((line) => line.replace(process.cwd(), "."))
-        .filter(
-          (file) =>
-            !ignorePatterns.some(
-              (pattern) =>
-                file.includes(`/${pattern}/`) ||
-                file.startsWith(`${pattern}/`) ||
-                file.includes(`\\${pattern}\\`) ||
-                file.startsWith(`${pattern}\\`),
-            ),
-        )
-    : [];
+  // Collect stdout asynchronously
+  const files = [];
+  const keep = (line: string) => {
+    return (
+      line.trim() &&
+      !ignorePatterns.some(
+        (pattern) =>
+          line.includes(`/${pattern}/`) ||
+          line.startsWith(`${pattern}/`) ||
+          line.includes(`\\${pattern}\\`) ||
+          line.startsWith(`${pattern}\\`),
+      )
+    );
+  };
 
-  // Clean up paths
-  files = files.map((file) => file.trim());
+  let stdout = "";
+  for await (const chunk of proc.stdout) {
+    stdout += new TextDecoder().decode(chunk);
+    if (stdout.includes("\n")) {
+      const newFiles = stdout.split("\n");
+      stdout = newFiles.pop() ?? "";
+      files.push(...newFiles.filter(keep).map((line) => line.replace(process.cwd(), ".").trim()));
+    }
+  }
+
+  // Trailing contents
+  if (stdout) {
+    const newFiles = stdout.split("\n");
+    files.push(...newFiles.filter(keep).map((line) => line.replace(process.cwd(), ".").trim()));
+  }
 
   return {
     files,

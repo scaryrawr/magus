@@ -1,7 +1,7 @@
 import { tool, type ToolSet } from "ai";
 import { statSync } from "node:fs";
 import { z } from "zod";
-const { spawnSync } = Bun;
+const { spawn, spawnSync } = Bun;
 
 // Check if ripgrep is available
 const hasRipgrep = () => {
@@ -92,15 +92,15 @@ export const grepFile = async ({
   const command: string[] = [grepTool];
   switch (grepTool) {
     case "rg":
-      // Get ripgrep formatting to match grep
-      command.push("--no-heading", "--color=never", "--line-number");
+      // Configure ripgrep output similar to grep
+      command.push("--no-heading", "--color=never");
       break;
     case "grep":
       command.push(
         "--recursive",
         // skip binary files
         "-I",
-        // exclude well known... directories not to search
+        // exclude well known directories not to search
         ...ignorePatterns.map((dir) => `--exclude-dir=${dir}`),
       );
       break;
@@ -140,6 +140,9 @@ export const grepFile = async ({
     }
   } else {
     switch (grepTool) {
+      case "rg":
+        command.push("--line-number");
+        break;
       case "grep":
         command.push("-n");
         break;
@@ -153,8 +156,12 @@ export const grepFile = async ({
     case "findstr": {
       // Check if path is a directory to determine if we need to append *.*
       let searchPath = path;
-      if (statSync(path).isDirectory()) {
-        searchPath = path.endsWith("\\") ? `${path}*.*` : `${path}\\*.*`;
+      try {
+        if (statSync(path).isDirectory()) {
+          searchPath = path.endsWith("\\") ? `${path}*.*` : `${path}\\*.*`;
+        }
+      } catch {
+        // If stat fails (e.g., pattern like *.*), use as-is
       }
 
       command.push(`/C:${pattern}`, searchPath);
@@ -164,22 +171,44 @@ export const grepFile = async ({
       command.push(pattern, path);
   }
 
-  // Execute the grep command
-  const result = spawnSync(command);
-  const stdout = result.stdout.toString().trim();
-  let matches = stdout ? stdout.split("\n") : [];
-  if (grepTool === "findstr") {
-    // filter out known problem directories.
-    matches = matches.filter((match) => {
-      // try not to over match.
-      return !ignorePatterns.some((pattern) => match.includes(`\\${pattern}\\`) || match.startsWith(`${pattern}\\`));
-    });
+  // Execute the grep command with streaming to reduce memory usage
+  const proc = spawn(command);
+
+  const matches: string[] = [];
+  let buffer = "";
+  const keep = (line: string) => {
+    return (
+      line.trim() &&
+      !ignorePatterns.some(
+        (pattern) =>
+          line.includes(`/${pattern}/`) ||
+          line.startsWith(`${pattern}/`) ||
+          line.includes(`\\${pattern}\\`) ||
+          line.startsWith(`${pattern}\\`),
+      )
+    );
+  };
+
+  for await (const chunk of proc.stdout) {
+    buffer += new TextDecoder().decode(chunk);
+    if (buffer.includes("\n")) {
+      const split = buffer.split("\n");
+      buffer = split.pop() ?? "";
+      for (const line of split) {
+        if (keep(line)) matches.push(line.trim());
+      }
+    }
   }
 
-  return {
-    matches,
-    total_matches: matches.length,
-  };
+  // Flush trailing buffer
+  if (buffer.trim() !== "") {
+    const split = buffer.split("\n");
+    for (const line of split) {
+      if (keep(line)) matches.push(line.trim());
+    }
+  }
+
+  return { matches, total_matches: matches.length };
 };
 
 export const createGrepTool = () => {

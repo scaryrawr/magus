@@ -18,7 +18,7 @@ export const StringReplaceView: React.FC<UIToolProps> = ({ part }) => {
           <Text>
             {icon} Modifying {path}
           </Text>
-          <DiffViewer>{diff}</DiffViewer>
+          <DiffViewer path={path}>{diff}</DiffViewer>
         </Box>
       );
     }

@@ -28,7 +28,7 @@ export const FileEditToolView: React.FC<UIToolProps> = ({ part }) => {
               <Text>
                 {icon} Create file {path}
               </Text>
-              <DiffViewer>{diff}</DiffViewer>
+              <DiffViewer path={path}>{diff}</DiffViewer>
             </Box>
           );
         }
@@ -38,7 +38,7 @@ export const FileEditToolView: React.FC<UIToolProps> = ({ part }) => {
               <Text>
                 {icon} Editing {path}
               </Text>
-              <DiffViewer>{diff}</DiffViewer>
+              <DiffViewer path={path}>{diff}</DiffViewer>
             </Box>
           );
         }
@@ -48,7 +48,7 @@ export const FileEditToolView: React.FC<UIToolProps> = ({ part }) => {
               <Text>
                 {icon} Editing {path}
               </Text>
-              <DiffViewer>{diff}</DiffViewer>
+              <DiffViewer path={path}>{diff}</DiffViewer>
             </Box>
           );
         }

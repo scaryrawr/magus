@@ -18,7 +18,7 @@ export const CreateFileView: React.FC<UIToolProps> = ({ part }) => {
           <Text>
             {icon} Create file {path}
           </Text>
-          <DiffViewer>{diff}</DiffViewer>
+          <DiffViewer path={path}>{diff}</DiffViewer>
         </Box>
       );
     }

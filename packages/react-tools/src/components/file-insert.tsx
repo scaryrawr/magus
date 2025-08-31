@@ -18,7 +18,7 @@ export const FileInsertView: React.FC<UIToolProps> = ({ part }) => {
           <Text>
             {icon} Editing {path}
           </Text>
-          <DiffViewer>{diff}</DiffViewer>
+          <DiffViewer path={path}>{diff}</DiffViewer>
         </Box>
       );
     }

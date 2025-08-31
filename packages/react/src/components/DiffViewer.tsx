@@ -1,7 +1,8 @@
 import { Text } from "ink";
-import { SubprocessOutput } from "./SubprocessOutput";
+import { Bat, Delta, SubprocessOutput } from ".";
 
 type DiffViewerProps = {
+  path: string;
   children: string;
 };
 
@@ -35,11 +36,16 @@ const getDiffViewerCmd = (() => {
   };
 })();
 
-export const DiffViewer: React.FC<DiffViewerProps> = ({ children }) => {
+export const DiffViewer: React.FC<DiffViewerProps> = ({ children, path }) => {
   const diffCmd = getDiffViewerCmd();
-  if (diffCmd) {
-    return <SubprocessOutput command={diffCmd}>{children}</SubprocessOutput>;
+  switch (diffCmd) {
+    case "delta":
+      return <Delta path={path}>{children}</Delta>;
+    case "bat":
+      return <Bat path={path}>{children}</Bat>;
   }
+
+  if (diffCmd) return <SubprocessOutput command={diffCmd}>{children}</SubprocessOutput>;
 
   return children.split("\n").map((line, i) => {
     switch (line[0]) {

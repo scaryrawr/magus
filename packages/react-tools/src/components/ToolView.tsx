@@ -47,42 +47,9 @@ export const ToolView: React.FC<UIToolProps> = ({ part }) => {
     }
   }
 
-  const { input } = part;
-  let message: string = "";
-  if (input) {
-    switch (typeof input) {
-      case "string":
-        message = input;
-        break;
-      case "object":
-        message = Object.entries(input).reduce((msg, [key, value]) => {
-          let valueMsg: string = "";
-          switch (typeof value) {
-            case "string":
-            case "number":
-            case "boolean":
-              valueMsg = String(value);
-              break;
-            case "object":
-              if (Array.isArray(value)) {
-                valueMsg = value.join(", ");
-              }
-          }
-
-          return `${msg} --${key} "${valueMsg}"`;
-        }, "");
-        break;
-      default:
-        message = String(input);
-        break;
-    }
-  }
-
   return (
     <ToolBox>
-      <Text>
-        ⚒️ {part.type.replace("tool-", "")} {message}
-      </Text>
+      <Text>⚒️ Calling {part.type.replace("tool-", "")} tool...</Text>
     </ToolBox>
   );
 };

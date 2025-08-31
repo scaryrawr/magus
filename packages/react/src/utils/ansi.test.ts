@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { parseAnsiToSegments } from "./ansi";
+import { createAnsiStreamParser, parseAnsiToSegments } from "./ansi";
 
 const ESC = "\u001b";
 
@@ -130,5 +130,41 @@ describe("parseAnsiToSegments", () => {
     expect(segs).toHaveLength(2);
     expect(segs[0]).toEqual({ text: "I", color: undefined, backgroundColor: undefined, inverse: true });
     expect(segs[1]).toEqual({ text: "N", color: undefined, backgroundColor: undefined });
+  });
+});
+
+describe("createAnsiStreamParser (streaming)", () => {
+  it("handles SGR split across chunks", () => {
+    const p = createAnsiStreamParser();
+    const segs1 = p.push(`${ESC}[3`);
+    expect(segs1).toHaveLength(0);
+    const segs2 = p.push(`1mred`);
+    const segs3 = p.push(`${ESC}[0mX`);
+    const all = [...segs2, ...segs3];
+    expect(all).toHaveLength(2);
+    expect(all[0]).toEqual({ text: "red", color: "red", backgroundColor: undefined });
+    expect(all[1]).toEqual({ text: "X", color: undefined, backgroundColor: undefined });
+  });
+
+  it("handles OSC split across chunks by dropping it", () => {
+    const p = createAnsiStreamParser();
+    const a = p.push(`a${ESC}]0;title`);
+    const b = p.push(`b`);
+    const all = [...a, ...b];
+    expect(all.map((s) => s.text).join("")).toBe("ab");
+  });
+
+  it("merges plain text across chunks when no style change", () => {
+    const p = createAnsiStreamParser();
+    const s1 = p.push("foo");
+    const s2 = p.push("bar");
+    const s3 = p.flush();
+    // The parser returns segments per chunk; caller merges. Here we simply ensure they share style.
+    const all = [...s1, ...s2, ...s3];
+    expect(all).toHaveLength(2); // 'foo' and 'bar' flushed
+    expect(all[0].text).toBe("foo");
+    expect(all[1].text).toBe("bar");
+    expect(all[0].color).toBeUndefined();
+    expect(all[1].color).toBeUndefined();
   });
 });

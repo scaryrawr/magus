@@ -24,10 +24,10 @@ describe("SubprocessOutput", () => {
     unmount();
   });
 
-  it("passes args to the command and renders output (/bin/echo)", async () => {
-    const msg = "Echo with args works";
+  it("passes args to the command and renders output (echo)", async () => {
+    const msg = "'Echo with args works'";
     const { lastFrame, unmount } = render(
-      <SubprocessOutput command="/bin/echo" args={[msg]}>
+      <SubprocessOutput command="echo" args={[msg]}>
         {undefined}
       </SubprocessOutput>,
     );

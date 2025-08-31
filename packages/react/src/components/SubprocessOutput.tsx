@@ -1,21 +1,58 @@
 import { Text } from "ink";
 import React from "react";
-import { parseAnsiToSegments } from "../utils/ansi";
+import { createAnsiStreamParser, type AnsiSegment } from "../utils/ansi";
 type SubprocessOutputProps = {
   command: string;
   args?: string[];
   children: string | undefined;
 };
 
-export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, args = [], children: stdin }) => {
-  const [output, setOutput] = React.useState("");
+export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, args, children: stdin }) => {
+  const [segments, setSegments] = React.useState<AnsiSegment[]>([]);
+  const parserRef = React.useRef(createAnsiStreamParser());
+
+  const appendSegments = React.useCallback((incoming: AnsiSegment[]) => {
+    if (incoming.length === 0) return;
+    setSegments((prev) => {
+      if (prev.length === 0) return incoming;
+
+      const merged = [...prev];
+      let last = merged[merged.length - 1];
+      for (const seg of incoming) {
+        const sameStyle =
+          last.color === seg.color &&
+          last.backgroundColor === seg.backgroundColor &&
+          last.bold === seg.bold &&
+          last.underline === seg.underline &&
+          last.italic === seg.italic &&
+          last.strikethrough === seg.strikethrough &&
+          last.dimColor === seg.dimColor &&
+          last.inverse === seg.inverse;
+        if (sameStyle) {
+          last = { ...last, text: (last.text ?? "") + seg.text };
+          merged[merged.length - 1] = last;
+        } else {
+          merged.push(seg);
+          last = seg;
+        }
+      }
+      return merged;
+    });
+  }, []);
+
+  // Ensure a stable dependency when args is omitted (avoid new [] identity each render)
+  const { argsArr } = React.useMemo(() => {
+    const arr = args ?? [];
+    return { argsArr: arr };
+  }, [args]);
+
   const process = React.useMemo(() => {
     const stdinBuffer = stdin ? new TextEncoder().encode(stdin) : undefined;
 
-    return Bun.spawn([command, ...args], {
+    return Bun.spawn([command, ...argsArr], {
       stdin: stdinBuffer,
     });
-  }, [args, command, stdin]);
+  }, [argsArr, command, stdin]);
 
   React.useEffect(() => {
     const stdout = process.stdout.getReader();
@@ -31,7 +68,11 @@ export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, arg
             process.exited.then(() => ({ done: true, value: undefined })),
           ]);
           if (signal.aborted || done) break;
-          if (value) setOutput((prev) => prev + Buffer.from(value).toString());
+          if (value) {
+            const chunk = Buffer.from(value).toString();
+            const segs = parserRef.current.push(chunk);
+            appendSegments(segs);
+          }
         }
       } finally {
         try {
@@ -50,9 +91,26 @@ export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, arg
       abortController.abort();
       stdout.cancel().catch(() => {});
     };
+  }, [process, appendSegments]);
+
+  // Reset segments and parser whenever the process object changes (i.e., new command/args/stdin)
+  React.useEffect(() => {
+    setSegments([]);
+    parserRef.current.reset();
   }, [process]);
 
-  const segments = React.useMemo(() => parseAnsiToSegments(output), [output]);
+  // When the process exits, flush any buffered text into segments
+  React.useEffect(() => {
+    let disposed = false;
+    process.exited.then(() => {
+      if (disposed) return;
+      const tail = parserRef.current.flush();
+      appendSegments(tail);
+    });
+    return () => {
+      disposed = true;
+    };
+  }, [process, appendSegments]);
 
   return (
     <Text>

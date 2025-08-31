@@ -1,10 +1,46 @@
 import { Text } from "ink";
+import { SubprocessOutput } from "./SubprocessOutput";
 
 type DiffViewerProps = {
   children: string;
 };
 
+const getDeltaCmd = () => {
+  try {
+    Bun.spawnSync(["delta", "--version"]);
+    return "delta";
+  } catch {
+    return null;
+  }
+};
+
+const getBatCmd = () => {
+  try {
+    Bun.spawnSync(["bat", "--version"]);
+    return "bat";
+  } catch {
+    return null;
+  }
+};
+
+const getDiffViewerCmd = (() => {
+  const getCmd = () => getDeltaCmd() || getBatCmd();
+  let cache: ReturnType<typeof getCmd> | undefined;
+  return () => {
+    if (cache === undefined) {
+      cache = getCmd();
+    }
+
+    return cache;
+  };
+})();
+
 export const DiffViewer: React.FC<DiffViewerProps> = ({ children }) => {
+  const diffCmd = getDiffViewerCmd();
+  if (diffCmd) {
+    return <SubprocessOutput command={diffCmd}>{children}</SubprocessOutput>;
+  }
+
   return children.split("\n").map((line, i) => {
     switch (line[0]) {
       case "@":

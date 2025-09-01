@@ -22,6 +22,23 @@ This monorepo contains multiple packages and applications:
 - `packages/server` - Magus server for providing APIs to the app
 - `packages/tools` - Core AI tools and utilities
 
+## Optional Dependencies
+
+The following external binaries are optionally used by Magus. They are not required for the core functionality, but certain features (such as advanced search, file discovery, or pretty diff rendering) will fall back to built‑in implementations when they are not present.
+
+| Binary                     | Purpose                                                          |
+| -------------------------- | ---------------------------------------------------------------- |
+| **rg** (ripgrep)           | Fast pattern searching. Used as the primary grep implementation. |
+| **fd**                     | Fast file finder for recursive file discovery.                   |
+| **pwsh** (PowerShell Core) | Used for file discovery on Windows and as a possible shell.      |
+| **zsh**                    | Preferred POSIX shell for persistent sessions.                   |
+| **bash**                   | Fallback POSIX shell.                                            |
+| **sh**                     | Generic fallback shell.                                          |
+| **delta**                  | Pretty diff rendering. Used if available.                        |
+| **bat**                    | Fallback pretty diff renderer.                                   |
+
+If any of these binaries are missing, Magus will automatically fall back to pure‑JavaScript/Node implementations, ensuring the CLI continues to work.
+
 ## Getting Started
 
 ### Prerequisites

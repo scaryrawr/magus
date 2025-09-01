@@ -68,7 +68,6 @@
         "figlet": "^1.7.0",
         "marked": "^16.2.1",
         "marked-terminal": "^7.3.0",
-        "strip-ansi": "^7.1.0",
       },
       "devDependencies": {
         "@types/bun": "catalog:ts",
@@ -89,6 +88,7 @@
         "@magus/react": "workspace:*",
         "@magus/tools": "workspace:*",
         "ai": "catalog:",
+        "zod": "^4.0.0",
       },
       "devDependencies": {
         "@types/bun": "catalog:ts",

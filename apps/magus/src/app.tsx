@@ -29,7 +29,7 @@ import {
 } from "./contexts";
 import { MagusRouterProvider } from "./routes";
 
-const providers: MagusProvider[] = [createLmStudioProvider(), createOllamaProvider()];
+const providers: MagusProvider[] = [createOllamaProvider(), createLmStudioProvider()];
 if (process.env.OPENROUTER_API_KEY) {
   providers.push(createOpenRouterProvider(process.env.OPENROUTER_API_KEY));
 }

@@ -1,24 +1,25 @@
-import { DiffViewer } from "@magus/react";
-import { DiffOutputSchema, InsertFileSchema } from "@magus/tools";
-import { Box, Text } from "ink";
-import type { UIToolProps } from "./type";
+import { DiffOutputSchema, InsertFileSchema, type InsertToolSet } from "@magus/tools";
+import type { ToolUIPart } from "ai";
+import { Box } from "ink";
+import { EditorDiffView } from "./editor-views";
+import type { MessagePart, ToolSetToUITools, UIToolProps } from "./types";
+
+const isInsertPart = (part: MessagePart): part is ToolUIPart<ToolSetToUITools<InsertToolSet>> => {
+  const partCheck = part as ToolUIPart<ToolSetToUITools<InsertToolSet>>;
+  return partCheck.type === "tool-file_insert";
+};
 
 export const FileInsertView: React.FC<UIToolProps> = ({ part }) => {
-  if (part.type !== "tool-file_insert") return null;
+  if (!isInsertPart(part)) return null;
 
   const { toolCallId } = part;
-  const icon = "✏️";
-
   switch (part.state) {
     case "output-available": {
       const { diff } = DiffOutputSchema.parse(part.output);
       const { path } = InsertFileSchema.parse(part.input);
       return (
-        <Box flexDirection="column" key={toolCallId}>
-          <Text>
-            {icon} Editing {path}
-          </Text>
-          <DiffViewer path={path}>{diff}</DiffViewer>
+        <Box key={toolCallId}>
+          <EditorDiffView action="Editing" path={path} diff={diff} />
         </Box>
       );
     }

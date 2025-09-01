@@ -1,20 +1,24 @@
-import { ViewSchema } from "@magus/tools";
-import { Box, Text } from "ink";
-import type { UIToolProps } from "./type";
+import { ViewSchema, type ViewToolSet } from "@magus/tools";
+import type { ToolUIPart } from "ai";
+import { Box } from "ink";
+import { ReadView } from "./editor-views";
+import type { MessagePart, ToolSetToUITools, UIToolProps } from "./types";
+
+const isViewPart = (part: MessagePart): part is ToolUIPart<ToolSetToUITools<ViewToolSet>> => {
+  const partCheck = part as ToolUIPart<ToolSetToUITools<ViewToolSet>>;
+  return partCheck.type === "tool-view";
+};
 
 export const ViewFileView: React.FC<UIToolProps> = ({ part }) => {
-  if (part.type !== "tool-view_file") return null;
+  if (!isViewPart(part)) return null;
 
   const { toolCallId } = part;
-  const icon = "📖";
-
   switch (part.state) {
     case "output-available": {
       const { path } = ViewSchema.parse(part.input);
       return (
-        <Box flexDirection="row" key={toolCallId}>
-          <Text>{icon}</Text>
-          <Text>{` Read ${path}.`}</Text>
+        <Box key={toolCallId}>
+          <ReadView path={path} />
         </Box>
       );
     }

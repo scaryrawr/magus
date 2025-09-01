@@ -15,7 +15,8 @@
   "dependencies": {
     "@magus/react": "workspace:*",
     "@magus/tools": "workspace:*",
-    "ai": "catalog:"
+    "ai": "catalog:",
+    "zod": "^4.0.0"
   },
   "peerDependencies": {
     "ink": "catalog:ui",

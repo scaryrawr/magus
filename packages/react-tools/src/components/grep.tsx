@@ -1,11 +1,15 @@
-import { GrepInputSchema, GrepOutputSchema } from "@magus/tools/src/tools";
+import { GrepInputSchema, GrepOutputSchema, type GrepToolSet } from "@magus/tools";
+import type { ToolUIPart } from "ai";
 import { Box, Text } from "ink";
-import type { UIToolProps } from "./type";
+import type { MessagePart, ToolSetToUITools, UIToolProps } from "./types";
+
+const isGrepPart = (part: MessagePart): part is ToolUIPart<ToolSetToUITools<GrepToolSet>> => {
+  const partCheck = part as ToolUIPart<ToolSetToUITools<GrepToolSet>>;
+  return partCheck.type === "tool-grep";
+};
 
 export const GrepView: React.FC<UIToolProps> = ({ part }) => {
-  if (part.type !== "tool-grep") {
-    return null;
-  }
+  if (!isGrepPart(part)) return null;
 
   const { toolCallId } = part;
 

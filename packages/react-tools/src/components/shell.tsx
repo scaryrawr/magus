@@ -1,11 +1,15 @@
-import { ShellInputSchema, ShellOutputSchema } from "@magus/tools";
+import { ShellInputSchema, ShellOutputSchema, type ShellToolSet } from "@magus/tools";
+import type { ToolUIPart } from "ai";
 import { Box, Text } from "ink";
-import type { UIToolProps } from "./type";
+import type { MessagePart, ToolSetToUITools, UIToolProps } from "./types";
+
+const isShellPart = (part: MessagePart): part is ToolUIPart<ToolSetToUITools<ShellToolSet>> => {
+  const partCheck = part as ToolUIPart<ToolSetToUITools<ShellToolSet>>;
+  return partCheck.type === "tool-shell";
+};
 
 export const ShellView: React.FC<UIToolProps> = ({ part }) => {
-  if (part.type !== "tool-shell") {
-    return null;
-  }
+  if (!isShellPart(part)) return null;
 
   const { toolCallId } = part;
 

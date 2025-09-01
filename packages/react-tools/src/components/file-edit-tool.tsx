@@ -1,13 +1,18 @@
-import { DiffViewer } from "@magus/react";
-import { EditorInputSchema, EditorOutputSchema } from "@magus/tools";
-import { Box, Text } from "ink";
-import type { UIToolProps } from "./type";
+import { EditorInputSchema, EditorOutputSchema, type EditorToolSet } from "@magus/tools";
+import type { ToolUIPart } from "ai";
+import { Box } from "ink";
+import { EditorDiffView, ReadView } from "./editor-views";
+import type { MessagePart, ToolSetToUITools, UIToolProps } from "./types";
+
+const isEditorPart = (part: MessagePart): part is ToolUIPart<ToolSetToUITools<EditorToolSet>> => {
+  const partCheck = part as ToolUIPart<ToolSetToUITools<EditorToolSet>>;
+  return partCheck.type === "tool-file_interaction_tool";
+};
 
 export const FileEditToolView: React.FC<UIToolProps> = ({ part }) => {
-  if (part.type !== "tool-file_edit_tool") return null;
+  if (!isEditorPart(part)) return null;
 
   const { toolCallId } = part;
-  const icon = "✏️";
   const output = part.output ? EditorOutputSchema.parse(part.output) : undefined;
   const { diff } = typeof output === "object" ? output : { diff: "" };
   switch (part.state) {
@@ -17,38 +22,29 @@ export const FileEditToolView: React.FC<UIToolProps> = ({ part }) => {
       switch (input.command) {
         case "view": {
           return (
-            <Box flexDirection="row" key={toolCallId}>
-              <Text>📖 Read {path}</Text>
+            <Box key={toolCallId}>
+              <ReadView path={path} />
             </Box>
           );
         }
         case "create": {
           return (
-            <Box flexDirection="column" key={toolCallId}>
-              <Text>
-                {icon} Create file {path}
-              </Text>
-              <DiffViewer path={path}>{diff}</DiffViewer>
+            <Box key={toolCallId}>
+              <EditorDiffView action="Create file" path={path} diff={diff} />
             </Box>
           );
         }
         case "insert": {
           return (
-            <Box flexDirection="column" key={toolCallId}>
-              <Text>
-                {icon} Editing {path}
-              </Text>
-              <DiffViewer path={path}>{diff}</DiffViewer>
+            <Box key={toolCallId}>
+              <EditorDiffView action="Editing" path={path} diff={diff} />
             </Box>
           );
         }
         case "str_replace": {
           return (
-            <Box flexDirection="column" key={toolCallId}>
-              <Text>
-                {icon} Editing {path}
-              </Text>
-              <DiffViewer path={path}>{diff}</DiffViewer>
+            <Box key={toolCallId}>
+              <EditorDiffView action="Editing" path={path} diff={diff} />
             </Box>
           );
         }

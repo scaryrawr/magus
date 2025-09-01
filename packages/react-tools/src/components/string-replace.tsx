@@ -1,24 +1,25 @@
-import { DiffViewer } from "@magus/react";
-import { DiffOutputSchema, StringReplaceSchema } from "@magus/tools";
-import { Box, Text } from "ink";
-import type { UIToolProps } from "./type";
+import { DiffOutputSchema, StringReplaceSchema, type StringReplaceToolSet } from "@magus/tools";
+import type { ToolUIPart } from "ai";
+import { Box } from "ink";
+import { EditorDiffView } from "./editor-views";
+import type { MessagePart, ToolSetToUITools, UIToolProps } from "./types";
+
+const isStringReplacePart = (part: MessagePart): part is ToolUIPart<ToolSetToUITools<StringReplaceToolSet>> => {
+  const partCheck = part as ToolUIPart<ToolSetToUITools<StringReplaceToolSet>>;
+  return partCheck.type === "tool-string_replace";
+};
 
 export const StringReplaceView: React.FC<UIToolProps> = ({ part }) => {
-  if (part.type !== "tool-string_replace") return null;
+  if (!isStringReplacePart(part)) return null;
 
   const { toolCallId } = part;
-  const icon = "✏️";
-
   switch (part.state) {
     case "output-available": {
       const { diff } = DiffOutputSchema.parse(part.output);
       const { path } = StringReplaceSchema.parse(part.input);
       return (
-        <Box flexDirection="column" key={toolCallId}>
-          <Text>
-            {icon} Modifying {path}
-          </Text>
-          <DiffViewer path={path}>{diff}</DiffViewer>
+        <Box key={toolCallId}>
+          <EditorDiffView action="Editing" path={path} diff={diff} />
         </Box>
       );
     }

@@ -4,12 +4,7 @@ import type { hc } from "hono/client";
 import { EventEmitter } from "node:events";
 import { chatRouter } from "./chat";
 import { modelsRouter } from "./models";
-import type { RouterFactory, ServerState } from "./types";
-
-export interface ServerConfig<TRouters extends readonly RouterFactory[] = readonly RouterFactory[]>
-  extends ServerState {
-  routers?: TRouters;
-}
+import type { ServerState } from "./types";
 
 type ServerStateEvents = Required<{
   [TKey in keyof ServerState as `change:${TKey}`]: [newValue: ServerState[TKey]];
@@ -18,6 +13,10 @@ type ServerStateEvents = Required<{
 export class ObservableServerState extends EventEmitter<ServerStateEvents> implements ServerState {
   constructor(private state: ServerState) {
     super();
+  }
+
+  get chatStore() {
+    return this.state.chatStore;
   }
 
   get providers() {
@@ -58,19 +57,12 @@ export class ObservableServerState extends EventEmitter<ServerStateEvents> imple
   }
 }
 
-export const createServer = <TRouters extends readonly RouterFactory[]>(config: ServerConfig<TRouters>) => {
+export const createServer = (config: ServerState) => {
   const state = new ObservableServerState({
     ...config,
   });
 
-  let app = new Hono();
-
-  if (config.routers) {
-    app = config.routers.reduce((app, makeRouter) => {
-      return app.route("/v0", makeRouter(state));
-    }, app);
-  }
-
+  const app = new Hono();
   const routes = app.route("/v0", chatRouter(state)).route("/v0", modelsRouter(state));
   return {
     app: routes,

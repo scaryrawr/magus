@@ -68,6 +68,7 @@ beforeEach(() => {
     providers: [mockProvider1, mockProvider2],
     model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
     tools: undefined,
+    chatStore: undefined!,
   };
 
   app.route("/v0", modelsRouter(state));
@@ -96,6 +97,7 @@ describe("Models Endpoints", () => {
         providers: [emptyProvider],
         model: createMockLanguageModel("test", "empty"),
         tools: undefined,
+        chatStore: undefined!,
       };
 
       emptyApp.route("/v0", modelsRouter(emptyState));
@@ -177,6 +179,7 @@ describe("Models Endpoints", () => {
         providers: [mockProvider1],
         model: "string-model", // This will trigger the error case
         tools: undefined,
+        chatStore: undefined!,
       };
 
       freshApp.route("/v0", modelsRouter(freshState));
@@ -194,6 +197,7 @@ describe("Models Endpoints", () => {
         providers: [mockProvider1, mockProvider2],
         model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
         tools: undefined,
+        chatStore: undefined!,
       };
 
       freshApp.route("/v0", modelsRouter(freshState));
@@ -264,6 +268,7 @@ describe("Models Endpoints", () => {
         providers: [mockProvider1],
         model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
         tools: undefined,
+        chatStore: undefined!,
       };
       freshApp.route("/v0", modelsRouter(freshState));
 

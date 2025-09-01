@@ -4,13 +4,16 @@ import type { RouterFactory, ServerState } from "./types";
 
 export const chatRouter = (state: ServerState) => {
   const router = new Hono();
-  return router.post("/chat", async (c) => {
-    if (!state.model) {
-      return c.text("Please select a model first", 500);
-    }
+  return router
+    .post("/chat", async (c) => {
+      if (!state.model) {
+        return c.text("Please select a model first", 500);
+      }
 
-    const { messages }: { messages: UIMessage[] } = await c.req.json();
-    try {
+      const { message, id }: { message: UIMessage; id: string } = await c.req.json();
+      const { messages: previousMessages, title } = (await state.chatStore.loadChat(id)) ?? { messages: [] };
+      const messages = [...previousMessages, message];
+
       const result = streamText({
         messages: convertToModelMessages(messages),
         model: state.model,
@@ -21,12 +24,37 @@ export const chatRouter = (state: ServerState) => {
         },
         system: state.systemPrompt,
       });
-      return result.toUIMessageStreamResponse();
-    } catch (e) {
-      const error = e as Error;
-      return c.text(error.message, 500);
-    }
-  });
+      return result.toUIMessageStreamResponse({
+        originalMessages: messages,
+        onFinish: async ({ messages }) => {
+          let newTitle = title;
+          if (!newTitle) {
+            const firstUserMessage = messages.find((m) => m.role === "user");
+            if (firstUserMessage) {
+              newTitle = firstUserMessage.content.slice(0, 70);
+            }
+          }
+          await state.chatStore.saveChat(id, { title: newTitle, messages });
+        },
+      });
+    })
+    .get("chats", async (c) => {
+      const chats = await state.chatStore.getChats();
+      return c.json(chats);
+    })
+    .post("/chat/new", async (c) => {
+      const chatId = await state.chatStore.createChat();
+      return c.json({ chatId });
+    })
+    .get("/chat/load/:chatId", async (c) => {
+      const chatId = c.req.param("chatId");
+      const chat = await state.chatStore.loadChat(chatId);
+      if (!chat) {
+        return c.text("Chat not found", 404);
+      }
+
+      return c.json(chat);
+    });
 };
 
 chatRouter satisfies RouterFactory<ReturnType<typeof chatRouter>>;

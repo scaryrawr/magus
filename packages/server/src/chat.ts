@@ -12,7 +12,7 @@ export const chatRouter = (state: ServerState) => {
 
       const { message, id }: { message: UIMessage; id: string } = await c.req.json();
       const { messages: previousMessages, title } = (await state.chatStore.loadChat(id)) ?? { messages: [] };
-      const messages = [...previousMessages, message];
+      const messages: UIMessage[] = [...previousMessages, message];
 
       const result = streamText({
         messages: convertToModelMessages(messages),
@@ -31,7 +31,7 @@ export const chatRouter = (state: ServerState) => {
           if (!newTitle) {
             const firstUserMessage = messages.find((m) => m.role === "user");
             if (firstUserMessage) {
-              newTitle = firstUserMessage.content.slice(0, 70);
+              newTitle = firstUserMessage.parts.find((p) => p.type === "text")?.text.slice(0, 70);
             }
           }
           await state.chatStore.saveChat(id, { title: newTitle, messages });

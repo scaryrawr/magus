@@ -1,0 +1,17 @@
+{
+  "inputs": [
+    {
+      "id": "attachUrl",
+      "type": "promptString",
+      "description": "WebSocket URL for attaching to Bun (e.g., ws://localhost:6499/unique_id"
+    }
+  ],
+  "configurations": [
+    {
+      "type": "bun",
+      "request": "attach",
+      "name": "Attach to Bun",
+      "url": "${input:attachUrl}"
+    }
+  ]
+}

@@ -4,8 +4,9 @@ import type { MagusChat, MagusClient } from "@magus/server";
 import { DefaultChatTransport } from "ai";
 import { useInput } from "ink";
 import { useCallback, useEffect } from "react";
-import { useLoaderData, useLocation, useParams, type RouteObject } from "react-router";
+import { useLoaderData, useParams, type RouteObject } from "react-router";
 import { useChatContext, useInputContext, useRouteInput, useServerContext } from "../../contexts";
+import { useSafeLocation } from "../../hooks";
 import { ChatBox } from "./chatbox";
 
 type ChatState = {
@@ -15,7 +16,7 @@ type ChatState = {
 export const Chat = () => {
   const { server } = useServerContext();
   const chatId = useParams().chatId;
-  const { text: initialMessage } = (useLocation().state as ChatState | undefined) ?? {};
+  const { text: initialMessage } = useSafeLocation<ChatState>().state ?? {};
   const { messages: initialMessages } = useLoaderData<MagusChat>();
   const { setChatStatus } = useChatContext();
   const { sendMessage, messages, stop, status } = useChat({

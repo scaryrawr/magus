@@ -24,7 +24,7 @@ export const viewFile = async ({ path, view_range }: ViewInput): Promise<ViewOut
 
 export const createViewTool = () =>
   ({
-    view_file: tool({
+    view: tool({
       description: `Examine the contents of a file or directory.
       This tool is essential for reading and examining file contents in the codebase.
       Use this tool when you need to understand existing code, configuration files, or any text content in the project.
@@ -37,3 +37,5 @@ export const createViewTool = () =>
       },
     }),
   }) satisfies ToolSet;
+
+export type ViewToolSet = ReturnType<typeof createViewTool>;

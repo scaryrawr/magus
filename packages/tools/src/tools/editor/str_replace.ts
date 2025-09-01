@@ -45,3 +45,5 @@ export const createStringReplaceTool = () =>
       },
     }),
   }) satisfies ToolSet;
+
+export type StringReplaceToolSet = ReturnType<typeof createStringReplaceTool>;

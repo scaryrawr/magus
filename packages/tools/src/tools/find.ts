@@ -92,8 +92,15 @@ export type FindFileOptions = FindInput & {
   findToolOverride?: ReturnType<typeof getFindTool>;
 };
 
-export const findFile = async ({ pattern, path, findToolOverride }: FindFileOptions): Promise<FindOutput> => {
+export const findFile = async ({
+  pattern,
+  path: originalPath,
+  findToolOverride,
+}: FindFileOptions): Promise<FindOutput> => {
   const findTool = findToolOverride ?? getFindTool();
+
+  // In the case where we get empty string from the LLM vs undefined, treat it as PWD.
+  const path = originalPath || ".";
 
   if (!findTool) {
     // todo: implement a fallback file search
@@ -185,3 +192,5 @@ export const createFindTool = () => {
     }),
   } satisfies ToolSet;
 };
+
+export type FindToolSet = ReturnType<typeof createFindTool>;

@@ -1,7 +1,11 @@
 export { createCreateFileTool } from "./create";
+export type { CreateFileToolSet } from "./create";
 export { createEditorTool } from "./editor";
+export type { EditorToolSet } from "./editor";
 export { createInsertTool } from "./insert";
+export type { InsertToolSet } from "./insert";
 export { createStringReplaceTool } from "./str_replace";
+export type { StringReplaceToolSet } from "./str_replace";
 export {
   CreateFileSchema,
   DiffOutputSchema,
@@ -22,3 +26,4 @@ export type {
   ViewOutput,
 } from "./types";
 export { createViewTool } from "./view";
+export type { ViewToolSet } from "./view";

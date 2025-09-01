@@ -320,3 +320,5 @@ export const ShellOutputSchema = z.object({
 });
 
 export type ShellOutput = z.infer<typeof ShellOutputSchema>;
+
+export type ShellToolSet = ReturnType<typeof createShellTool>;

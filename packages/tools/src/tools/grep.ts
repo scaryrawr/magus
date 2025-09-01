@@ -226,3 +226,5 @@ It's particularly useful for understanding existing codebase structure, finding 
     }),
   } satisfies ToolSet;
 };
+
+export type GrepToolSet = ReturnType<typeof createGrepTool>;

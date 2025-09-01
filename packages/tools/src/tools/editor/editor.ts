@@ -9,14 +9,14 @@ export const createEditorTool = () =>
   ({
     file_interaction_tool: tool({
       description: `The file interaction tool supports several commands for viewing and modifying files.
-      This is a powerful multi-purpose editor that can create files, view existing files, insert content at specific positions, and replace text in files.
+      This is a powerful multi-purpose editor that can create files, view existing files and folders, insert content at specific positions, and replace text in files.
       Use this tool when you need to make detailed file modifications, create new code files, or edit existing files with precision.
       The tool supports four main operations:
       
-      - view - Read and display file contents
-      - create - Create new files with specified content
-      - insert - Add content at specific line numbers in existing files
-      - string_replace - Replace specific text patterns in files`,
+      - view - { command: "view", path: "./path/to/file_or_directory" }
+      - create - { command: "create", path: "./path/to/new_file", content: "File content" }
+      - insert - { command: "insert", path: "./path/to/existing_file", content: "New content", line: 5 }
+      - str_replace - { command: "str_replace", path: "./path/to/existing_file", old_str: "old", new_str: "new" }`,
       inputSchema: EditorInputSchema,
       outputSchema: EditorOutputSchema,
       execute: async (input): Promise<EditorOutput> => {
@@ -37,3 +37,5 @@ export const createEditorTool = () =>
       },
     }),
   }) satisfies ToolSet;
+
+export type EditorToolSet = ReturnType<typeof createEditorTool>;

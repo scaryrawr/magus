@@ -62,3 +62,5 @@ Content will be added after the specified line number, with 0 to insert at the b
       },
     }),
   }) satisfies ToolSet;
+
+export type InsertToolSet = ReturnType<typeof createInsertTool>;

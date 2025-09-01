@@ -15,16 +15,22 @@ export {
 } from "./editor";
 export type {
   CreateFileInput,
+  // ToolSet types
+  CreateFileToolSet,
   DiffOutput,
   EditorOutput,
+  EditorToolSet,
   InsertFileInput,
+  InsertToolSet,
   StringReplaceInput,
+  StringReplaceToolSet,
   ViewInput,
   ViewOutput,
+  ViewToolSet,
 } from "./editor";
 export { FindInputSchema, FindOutputSchema, createFindTool } from "./find";
-export type { FindInput, FindOutput } from "./find";
+export type { FindInput, FindOutput, FindToolSet } from "./find";
 export { GrepInputSchema, GrepOutputSchema, createGrepTool } from "./grep";
-export type { GrepInput, GrepOutput } from "./grep";
+export type { GrepInput, GrepOutput, GrepToolSet } from "./grep";
 export { ShellInputSchema, ShellOutputSchema, createShellTool } from "./shell";
-export type { ShellInput, ShellOutput } from "./shell";
+export type { ShellInput, ShellOutput, ShellToolSet } from "./shell";

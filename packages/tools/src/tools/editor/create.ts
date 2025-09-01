@@ -62,3 +62,5 @@ export const createCreateFileTool = () =>
       },
     }),
   }) satisfies ToolSet;
+
+export type CreateFileToolSet = ReturnType<typeof createCreateFileTool>;

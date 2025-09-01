@@ -1,0 +1,1 @@
+export { useSafeLocation } from "./useSafeLocation";

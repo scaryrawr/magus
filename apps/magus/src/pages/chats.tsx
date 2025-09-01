@@ -1,9 +1,11 @@
 import { ScrollArea } from "@magus/react";
-import { type MagusClient, type ModelSelect } from "@magus/server";
+import type { MagusClient } from "@magus/server";
 import SelectInput from "ink-select-input";
 import { useCallback, useMemo } from "react";
 import { useLoaderData, useNavigate, type RouteObject } from "react-router";
-import { useInputContext, useServerContext } from "../contexts";
+import { useInputContext } from "../contexts";
+
+type ChatSummary = { id: string; title?: string };
 
 // Create a fuzzy regex pattern by escaping special characters and inserting .* between each character
 const createFuzzyRegex = (input: string): RegExp => {
@@ -21,45 +23,31 @@ const createFuzzyRegex = (input: string): RegExp => {
   return new RegExp(pattern, "i");
 };
 
-export const Models = () => {
-  const models = useLoaderData<ModelSelect[]>();
+export const Chats = () => {
+  const chats = useLoaderData<ChatSummary[]>();
   const { value, setValue, contentHeight } = useInputContext();
   const navigate = useNavigate();
-  const { server } = useServerContext();
 
   const items = useMemo(() => {
     const fuzzyRegex = createFuzzyRegex(value);
-    return models
-      .map((model) => {
-        const label = `${model.provider}: ${model.id}`;
+    return chats
+      .map((chat) => {
+        const label = chat.title ? `${chat.title} (${chat.id})` : chat.id;
         return {
           label,
-          key: label,
-          value: model,
+          key: chat.id,
+          value: chat,
         };
       })
       .filter(({ label }) => fuzzyRegex.test(label));
-  }, [models, value]);
+  }, [chats, value]);
 
   const onSelection = useCallback(
-    async ({ value: model }: { label: string; value: ModelSelect }) => {
-      const modelUrl = new URL("/v0/model", server.url);
-      try {
-        await fetch(modelUrl, {
-          body: JSON.stringify(model),
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-      } catch (e) {
-        console.error("Failed to switch models:", e);
-      }
-
-      navigate(-1);
+    ({ value: chat }: { label: string; value: ChatSummary }) => {
+      navigate(`/chat/${chat.id}`);
       setValue("");
     },
-    [navigate, server.url, setValue],
+    [navigate, setValue],
   );
 
   return (
@@ -69,18 +57,18 @@ export const Models = () => {
   );
 };
 
-export const createModelRoute = (client: MagusClient) => {
+export const createChatsRoute = (client: MagusClient) => {
   return {
-    path: "models",
-    loader: async (): Promise<ModelSelect[]> => {
-      const res = await client.v0.models.$get();
+    path: "chats",
+    loader: async (): Promise<ChatSummary[]> => {
+      const res = await client.v0.chats.$get();
       if (!res.ok) {
-        throw new Error(`Failed to fetch models: ${res.status} ${res.statusText}`);
+        throw new Error(`Failed to fetch chats: ${res.status} ${res.statusText}`);
       }
 
-      const models = await res.json();
-      return models;
+      const data = await res.json();
+      return data;
     },
-    Component: Models,
+    Component: Chats,
   } as const satisfies RouteObject;
 };

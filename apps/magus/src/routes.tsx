@@ -2,12 +2,13 @@ import { useEffect, useMemo } from "react";
 import { createMemoryRouter, RouterProvider, type RouteObject } from "react-router";
 import { useRoutes, useServerContext, type RouteInfo } from "./contexts";
 import { Layout } from "./layout";
-import { Chat, createModelRoute, Exit, Home } from "./pages";
+import { createChatsRoute, createModelRoute, Exit, Home } from "./pages";
+import { createChatRoute } from "./pages/chat/chat";
 
 // Route metadata for descriptions
 const routeDescriptions: Record<string, { description: string; hidden?: boolean }> = {
   "/home": { description: "Welcome screen and main entry point" },
-  "/chat": { description: "Interactive chat interface" },
+  "/chats": { description: "Browse existing chat sessions" },
   "/models": { description: "Select and configure AI models" },
   "/exit": { description: "Exit the application" },
 };
@@ -24,12 +25,13 @@ const useMagusRouter = () => {
           { path: "home", Component: Home },
           {
             path: "chat",
-            children: [{ index: true, Component: Chat }],
+            children: [createChatRoute(client)],
           },
           {
             path: "exit",
             Component: Exit,
           },
+          createChatsRoute(client),
           createModelRoute(client),
         ],
       },

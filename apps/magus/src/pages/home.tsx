@@ -3,19 +3,31 @@ import { Box, Text } from "ink";
 import Gradient from "ink-gradient";
 import { useCallback } from "react";
 import { useNavigate } from "react-router";
-import { useRouteInput, useRoutes } from "../contexts";
+import { useRouteInput, useRoutes, useServerContext } from "../contexts";
 
 export const Home = () => {
   const navigate = useNavigate();
   const { routes } = useRoutes();
+  const { client } = useServerContext();
 
   const onSubmit = useCallback(
-    (text: string) => {
-      navigate("/chat", {
+    async (text: string) => {
+      if (!text.trim()) {
+        return;
+      }
+
+      const res = await client.v0.chat.new.$post();
+      if (!res.ok) {
+        console.error("Failed to create new chat:", await res.text());
+        return;
+      }
+
+      const { chatId } = await res.json();
+      navigate(`/chat/${chatId}`, {
         state: { text },
       });
     },
-    [navigate],
+    [client, navigate],
   );
 
   useRouteInput({

@@ -4,7 +4,7 @@ import {
   createOpenRouterProvider,
   type MagusProvider,
 } from "@magus/providers";
-import { createServer, type MagusRoutes } from "@magus/server";
+import { createServer, MagusChatStore, type MagusRoutes } from "@magus/server";
 import { ModelsResultSchema } from "@magus/server/src/models";
 import {
   createCreateFileTool,
@@ -40,6 +40,7 @@ const createMagusServer = () => {
     model: undefined,
     tools: undefined,
     systemPrompt: undefined,
+    chatStore: new MagusChatStore(`${process.env.HOME}/.cache/magus/chats`),
   });
 
   const server = listen();

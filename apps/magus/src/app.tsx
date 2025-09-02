@@ -18,6 +18,7 @@ import {
 } from "@magus/tools";
 import type { LanguageModel, ToolSet } from "ai";
 import { hc } from "hono/client";
+import { join } from "node:path";
 import React from "react";
 import {
   ChatContextProvider,
@@ -40,7 +41,7 @@ const createMagusServer = () => {
     model: undefined,
     tools: undefined,
     systemPrompt: undefined,
-    chatStore: new MagusChatStore(`${process.env.HOME}/.cache/magus/chats`),
+    chatStore: new MagusChatStore(join(process.cwd(), ".magus", "chats")),
   });
 
   const server = listen();

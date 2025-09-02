@@ -6,7 +6,7 @@ import type { MessagePart, ToolSetToUITools, UIToolProps } from "./types";
 
 const isStringReplacePart = (part: MessagePart): part is ToolUIPart<ToolSetToUITools<StringReplaceToolSet>> => {
   const partCheck = part as ToolUIPart<ToolSetToUITools<StringReplaceToolSet>>;
-  return partCheck.type === "tool-string_replace";
+  return partCheck.type === "tool-replace";
 };
 
 export const StringReplaceView: React.FC<UIToolProps> = ({ part }) => {

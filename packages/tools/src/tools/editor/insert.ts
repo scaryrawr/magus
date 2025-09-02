@@ -4,7 +4,7 @@ import fs from "node:fs/promises";
 import { dirname } from "node:path";
 import { DiffOutputSchema, InsertFileSchema, type DiffOutput, type InsertFileInput } from "./types";
 
-export const insert = async ({ path, insert_line, new_str }: InsertFileInput): Promise<DiffOutput> => {
+export const insert = async ({ path, line, new_str }: InsertFileInput): Promise<DiffOutput> => {
   let content = "";
 
   try {
@@ -23,7 +23,7 @@ export const insert = async ({ path, insert_line, new_str }: InsertFileInput): P
       throw err;
     }
 
-    if (insert_line === 0) {
+    if (line === 0) {
       // Create parent directory if needed, then treat as inserting into an empty file
       try {
         await fs.mkdir(dirname(path), { recursive: true });
@@ -38,7 +38,7 @@ export const insert = async ({ path, insert_line, new_str }: InsertFileInput): P
   }
 
   const lines = content.split("\n");
-  lines.splice(insert_line, 0, new_str);
+  lines.splice(line, 0, new_str);
   const updatedContent = lines.join("\n");
   await fs.writeFile(path, updatedContent, "utf-8");
 

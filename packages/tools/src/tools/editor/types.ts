@@ -18,9 +18,7 @@ export const CreateFileSchema = z.object({
 
 export const InsertFileSchema = z.object({
   path: z.string().describe("The path to the file to modify."),
-  insert_line: z
-    .number()
-    .describe("The line number to insert the content at (0 to insert at the beginning of the file)."),
+  line: z.number().describe("The line number to insert the content at (0 to insert at the beginning of the file)."),
   new_str: z.string().describe("The text to insert."),
 });
 
@@ -45,7 +43,7 @@ export const EditorInputSchema = z.discriminatedUnion("command", [
   ViewSchema.extend({ command: z.literal("view") }),
   CreateFileSchema.extend({ command: z.literal("create") }),
   InsertFileSchema.extend({ command: z.literal("insert") }),
-  StringReplaceSchema.extend({ command: z.literal("str_replace") }),
+  StringReplaceSchema.extend({ command: z.literal("replace") }),
 ]);
 
 export const EditorOutputSchema = z.union([ViewOutputSchema, DiffOutputSchema]);

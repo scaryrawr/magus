@@ -41,7 +41,7 @@ export const FileEditToolView: React.FC<UIToolProps> = ({ part }) => {
             </Box>
           );
         }
-        case "str_replace": {
+        case "replace": {
           return (
             <Box key={toolCallId}>
               <EditorDiffView action="Editing" path={path} diff={diff} />

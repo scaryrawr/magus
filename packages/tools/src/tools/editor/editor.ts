@@ -16,7 +16,7 @@ export const createEditorTool = () =>
       - view - { command: "view", path: "./path/to/file_or_directory" }
       - create - { command: "create", path: "./path/to/new_file", content: "File content" }
       - insert - { command: "insert", path: "./path/to/existing_file", content: "New content", line: 5 }
-      - str_replace - { command: "str_replace", path: "./path/to/existing_file", old_str: "old", new_str: "new" }`,
+      - replace - { command: "replace", path: "./path/to/existing_file", old_str: "old", new_str: "new" }`,
       inputSchema: EditorInputSchema,
       outputSchema: EditorOutputSchema,
       execute: async (input): Promise<EditorOutput> => {
@@ -30,7 +30,7 @@ export const createEditorTool = () =>
           case "insert": {
             return insert(input);
           }
-          case "str_replace": {
+          case "replace": {
             return stringReplace(input);
           }
         }

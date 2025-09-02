@@ -34,7 +34,7 @@ export const stringReplace = async ({
 
 export const createStringReplaceTool = () =>
   ({
-    string_replace: tool({
+    replace: tool({
       description: `Replace a specific string in a file with a new string.
       Use this tool when you need to update specific values, change function names,
       or modify configuration parameters in existing files.`,

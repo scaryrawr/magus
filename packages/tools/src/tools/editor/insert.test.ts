@@ -42,7 +42,7 @@ describe("insert", () => {
     spyOn(fs, "readFile").mockResolvedValue(original);
     spyOn(fs, "writeFile").mockResolvedValue();
 
-    const result = await insert({ path: "/tmp/file.txt", insert_line: 1, new_str: "NEW" });
+    const result = await insert({ path: "/tmp/file.txt", line: 1, new_str: "NEW" });
     expect(result.diff).toContain("line1");
     expect(result.diff).toContain("NEW");
     expect(result.diff).toContain("line2");
@@ -54,7 +54,7 @@ describe("insert", () => {
     spyOn(fs, "mkdir").mockResolvedValue();
     spyOn(fs, "writeFile").mockResolvedValue();
 
-    const result = await insert({ path: "/tmp/new-file.txt", insert_line: 0, new_str: "hello" });
+    const result = await insert({ path: "/tmp/new-file.txt", line: 0, new_str: "hello" });
     expect(typeof result).toBe("object");
   });
 
@@ -62,12 +62,12 @@ describe("insert", () => {
     const enoent = Object.assign(new Error("not found"), { code: "ENOENT" });
     spyOn(fs, "stat").mockRejectedValue(enoent);
 
-    await expect(insert({ path: "/tmp/missing.txt", insert_line: 2, new_str: "x" })).rejects.toThrow("File not found");
+    await expect(insert({ path: "/tmp/missing.txt", line: 2, new_str: "x" })).rejects.toThrow("File not found");
   });
 
   it("throws if path is not file", async () => {
     spyOn(fs, "stat").mockResolvedValue({ isFile: () => false });
 
-    await expect(insert({ path: "/tmp/some-dir", insert_line: 0, new_str: "x" })).rejects.toThrow("Path is not a file");
+    await expect(insert({ path: "/tmp/some-dir", line: 0, new_str: "x" })).rejects.toThrow("Path is not a file");
   });
 });

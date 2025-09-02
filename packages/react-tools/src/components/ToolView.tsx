@@ -53,8 +53,9 @@ export const ToolView: React.FC<UIToolProps> = ({ part }) => {
     "tool-file_interaction_tool": FileEditToolView,
     "tool-file_insert": FileInsertView,
     "tool-grep": GrepView,
+    "tool-search": GrepView,
     "tool-shell": ShellView,
-    "tool-string_replace": StringReplaceView,
+    "tool-replace": StringReplaceView,
     "tool-view": ViewFileView,
   }).current;
 

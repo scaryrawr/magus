@@ -5,7 +5,7 @@ import type { MessagePart, ToolSetToUITools, UIToolProps } from "./types";
 
 const isGrepPart = (part: MessagePart): part is ToolUIPart<ToolSetToUITools<GrepToolSet>> => {
   const partCheck = part as ToolUIPart<ToolSetToUITools<GrepToolSet>>;
-  return partCheck.type === "tool-grep";
+  return partCheck.type === "tool-grep" || partCheck.type === "tool-search";
 };
 
 export const GrepView: React.FC<UIToolProps> = ({ part }) => {

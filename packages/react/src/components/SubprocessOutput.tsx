@@ -1,5 +1,5 @@
 import { Text } from "ink";
-import React from "react";
+import React, { useEffect } from "react";
 import { createAnsiStreamParser, type AnsiSegment } from "../utils/ansi";
 type SubprocessOutputProps = {
   command: string;
@@ -53,6 +53,16 @@ export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, arg
       stdin: stdinBuffer,
     });
   }, [argsArr, command, stdin]);
+
+  useEffect(() => {
+    return () => {
+      try {
+        process.kill();
+      } catch {
+        // ignore
+      }
+    };
+  }, [process]);
 
   React.useEffect(() => {
     const stdout = process.stdout.getReader();

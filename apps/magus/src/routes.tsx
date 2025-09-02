@@ -7,9 +7,9 @@ import { createChatRoute } from "./pages/chat/chat";
 
 // Route metadata for descriptions
 const routeDescriptions: Record<string, { description: string; hidden?: boolean }> = {
-  "/home": { description: "Welcome screen and main entry point" },
-  "/chats": { description: "Browse existing chat sessions" },
-  "/models": { description: "Select and configure AI models" },
+  "/home": { description: "Home screen – welcome and main entry point" },
+  "/chats": { description: "Chat overview – view and manage your conversations" },
+  "/models": { description: "AI model selection – configure your preferred model" },
   "/exit": { description: "Exit the application" },
 };
 
@@ -27,12 +27,12 @@ const useMagusRouter = () => {
             path: "chat",
             children: [createChatRoute(client)],
           },
+          createChatsRoute(client),
+          createModelRoute(client),
           {
             path: "exit",
             Component: Exit,
           },
-          createChatsRoute(client),
-          createModelRoute(client),
         ],
       },
     ]);

@@ -1,5 +1,6 @@
 import { Text } from "ink";
 import React, { useEffect } from "react";
+import stripAnsi from "strip-ansi";
 import { createAnsiStreamParser, type AnsiSegment } from "../utils/ansi";
 type SubprocessOutputProps = {
   command: string;
@@ -29,7 +30,7 @@ export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, arg
           last.dimColor === seg.dimColor &&
           last.inverse === seg.inverse;
         if (sameStyle) {
-          last = { ...last, text: (last.text ?? "") + seg.text };
+          last = { ...last, text: stripAnsi((last.text ?? "") + seg.text) };
           merged[merged.length - 1] = last;
         } else {
           merged.push(seg);
@@ -99,7 +100,9 @@ export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, arg
 
     return () => {
       abortController.abort();
-      stdout.cancel().catch(() => {});
+      stdout.cancel().catch(() => {
+        // ignore errors on cancel
+      });
     };
   }, [process, appendSegments]);
 

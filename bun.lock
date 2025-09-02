@@ -34,6 +34,7 @@
         "ink": "catalog:ui",
         "ink-gradient": "catalog:ui",
         "ink-select-input": "^6.2.0",
+        "ink-spinner": "^5.0.0",
         "ink-text-input": "catalog:ui",
         "react": "catalog:ui",
         "react-devtools-core": "catalog:ui",
@@ -43,6 +44,20 @@
       },
       "devDependencies": {
         "@types/bun": "catalog:ts",
+      },
+      "peerDependencies": {
+        "typescript": "catalog:ts",
+      },
+    },
+    "packages/config": {
+      "name": "@magus/config",
+      "dependencies": {
+        "env-paths": "^3.0.0",
+        "zod": "catalog:",
+      },
+      "devDependencies": {
+        "@types/bun": "catalog:ts",
+        "@types/turndown": "^5.0.5",
       },
       "peerDependencies": {
         "typescript": "catalog:ts",
@@ -88,6 +103,7 @@
         "@magus/react": "workspace:*",
         "@magus/tools": "workspace:*",
         "ai": "catalog:",
+        "strip-ansi": "^7.1.0",
         "zod": "^4.0.0",
       },
       "devDependencies": {
@@ -122,8 +138,6 @@
       "dependencies": {
         "ai": "catalog:",
         "diff": "^8.0.2",
-        "ink": "catalog:ui",
-        "strip-ansi": "^7.1.0",
         "turndown": "^7.2.1",
         "zod": "catalog:",
       },
@@ -202,6 +216,8 @@
     "@humanwhocodes/module-importer": ["@humanwhocodes/module-importer@1.0.1", "", {}, "sha512-bxveV4V8v5Yb4ncFTT3rPSgZBOpCkjfK0y4oVVVJwIuDVBRMDXrPyXRL988i5ap9m9bnyEEjWfm5WkBmtffLfA=="],
 
     "@humanwhocodes/retry": ["@humanwhocodes/retry@0.4.3", "", {}, "sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ=="],
+
+    "@magus/config": ["@magus/config@workspace:packages/config"],
 
     "@magus/magus": ["@magus/magus@workspace:apps/magus"],
 
@@ -386,6 +402,8 @@
     "emoji-regex": ["emoji-regex@10.4.0", "", {}, "sha512-EC+0oUMY1Rqm4O6LLrgjtYDvcVYTy7chDnM4Q7030tP4Kwj3u/pR6gP9ygnp2CJMK5Gq+9Q2oqmrFJAz01DXjw=="],
 
     "emojilib": ["emojilib@2.4.0", "", {}, "sha512-5U0rVMU5Y2n2+ykNLQqMoqklN9ICBT/KsvC1Gz6vqHbz2AXXGkG+Pm5rMWk/8Vjrr/mY9985Hi8DYzn1F09Nyw=="],
+
+    "env-paths": ["env-paths@3.0.0", "", {}, "sha512-dtJUTepzMW3Lm/NPxRf3wP4642UWhjL2sQxc+ym2YMj1m/H2zDNQOlezafzkHwn6sMstjHTwG6iQQsctDW/b1A=="],
 
     "environment": ["environment@1.1.0", "", {}, "sha512-xUtoPkMggbz0MPyPiIWr1Kp4aeWJjDZ6SMvURhimjdZgsRuDplF5/s9hcgGhyXMhs+6vpnuoiZ2kFiu3FMnS8Q=="],
 

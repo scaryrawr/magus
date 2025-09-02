@@ -4,6 +4,10 @@ import { Bat, Delta, SubprocessOutput } from ".";
 type DiffViewerProps = {
   path: string;
   children: string;
+  commandOverride?: {
+    command: string;
+    args?: string[];
+  };
 };
 
 const getDeltaCmd = () => {
@@ -36,8 +40,8 @@ const getDiffViewerCmd = (() => {
   };
 })();
 
-export const DiffViewer: React.FC<DiffViewerProps> = ({ children, path }) => {
-  const diffCmd = getDiffViewerCmd();
+export const DiffViewer: React.FC<DiffViewerProps> = ({ children, path, commandOverride }) => {
+  const diffCmd = commandOverride?.command ?? getDiffViewerCmd();
   switch (diffCmd) {
     case "delta":
       return <Delta path={path}>{children}</Delta>;
@@ -45,7 +49,13 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({ children, path }) => {
       return <Bat path={path}>{children}</Bat>;
   }
 
-  if (diffCmd) return <SubprocessOutput command={diffCmd}>{children}</SubprocessOutput>;
+  if (diffCmd) {
+    return (
+      <SubprocessOutput command={diffCmd} args={commandOverride?.args}>
+        {children}
+      </SubprocessOutput>
+    );
+  }
 
   return children.split("\n").map((line, i) => {
     switch (line[0]) {

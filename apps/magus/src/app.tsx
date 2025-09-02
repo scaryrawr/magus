@@ -15,6 +15,7 @@ import {
   createShellTool,
   createStringReplaceTool,
   createViewTool,
+  createWebFetchTool,
 } from "@magus/tools";
 import type { LanguageModel, ToolSet } from "ai";
 import { hc } from "hono/client";
@@ -74,6 +75,7 @@ const getProviderToolSet = (provider: string): ToolSet => {
         ...createStringReplaceTool(),
         ...createGrepTool(),
         ...createFindTool(),
+        ...createWebFetchTool(),
       };
     default:
       return {
@@ -81,6 +83,7 @@ const getProviderToolSet = (provider: string): ToolSet => {
         ...createEditorTool(),
         ...createGrepTool(),
         ...createFindTool(),
+        ...createWebFetchTool(),
       };
   }
 };

@@ -9,7 +9,8 @@
     "test": "bun test"
   },
   "devDependencies": {
-    "@types/bun": "catalog:ts"
+    "@types/bun": "catalog:ts",
+    "@types/turndown": "^5.0.5"
   },
   "peerDependencies": {
     "typescript": "catalog:ts"
@@ -19,6 +20,7 @@
     "diff": "^8.0.2",
     "ink": "catalog:ui",
     "strip-ansi": "^7.1.0",
+    "turndown": "^7.2.1",
     "zod": "catalog:"
   }
 }

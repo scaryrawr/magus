@@ -14,6 +14,8 @@ export {
   StringReplaceSchema,
   ViewOutputSchema,
   ViewSchema,
+  WebFetchInputSchema,
+  WebFetchOutputSchema,
   createCreateFileTool,
   createEditorTool,
   createFindTool,
@@ -22,6 +24,7 @@ export {
   createShellTool,
   createStringReplaceTool,
   createViewTool,
+  createWebFetchTool,
 } from "./tools";
 export type {
   CreateFileInput,
@@ -41,4 +44,6 @@ export type {
   ViewInput,
   ViewOutput,
   ViewToolSet,
+  WebFetchInput,
+  WebFetchOutput,
 } from "./tools";

@@ -34,3 +34,5 @@ export { GrepInputSchema, GrepOutputSchema, createGrepTool } from "./grep";
 export type { GrepInput, GrepOutput, GrepToolSet } from "./grep";
 export { ShellInputSchema, ShellOutputSchema, createShellTool } from "./shell";
 export type { ShellInput, ShellOutput, ShellToolSet } from "./shell";
+export { WebFetchInputSchema, WebFetchOutputSchema, createWebFetchTool } from "./webfetch";
+export type { WebFetchInput, WebFetchOutput } from "./webfetch";

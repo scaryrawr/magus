@@ -4,7 +4,15 @@
 
 Magus is a personal CLI AI project heavily inspired by [sst/opencode](https://github.com/sst/opencode) and the CLI agent trend.
 
+It is under heavy development and not yet stable.
+
 If you're looking for a complete tool, I heavily recommend opencode, this tool is more of a personal project for developing and figuring out LLM based tools.
+
+![Home Route](./assets/magus/home.png)
+
+![Markdown Preview](./assets/magus/markdown.png)
+
+![File Diff](./assets/magus/delta.png)
 
 ## Project Structure
 

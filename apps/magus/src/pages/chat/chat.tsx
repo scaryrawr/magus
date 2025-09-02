@@ -61,9 +61,9 @@ export const Chat = () => {
 
   return (
     <ScrollArea width="100%" height={contentHeight}>
-      {messages.map((message) => (
-        <ChatBox key={message.id} {...message} />
-      ))}
+      {messages.map((message, i) => {
+        return <ChatBox key={message.id || `${i}:${message.role}`} {...message} />;
+      })}
     </ScrollArea>
   );
 };

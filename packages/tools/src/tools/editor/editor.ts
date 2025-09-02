@@ -15,7 +15,7 @@ export const createEditorTool = () =>
       
       - view - { command: "view", path: "./path/to/file_or_directory" }
       - create - { command: "create", path: "./path/to/new_file", content: "File content" }
-      - insert - { command: "insert", path: "./path/to/existing_file", content: "New content", line: 5 }
+      - insert - { command: "insert", path: "./path/to/existing_file", new_str: "New content", line: 5 }
       - replace - { command: "replace", path: "./path/to/existing_file", old_str: "old", new_str: "new" }`,
       inputSchema: EditorInputSchema,
       outputSchema: EditorOutputSchema,

@@ -1,20 +1,22 @@
 import { Markdown } from "@magus/react";
 import { ToolView } from "@magus/react-tools";
 import type { UIMessage } from "ai";
-import { Box, Text } from "ink";
+import { Box, Text, useStderr } from "ink";
+import { userInfo } from "node:os";
 
 const getName = (role: "system" | "user" | "assistant") => {
   switch (role) {
     case "system":
       return "System";
     case "user":
-      return process.env.USER || "User";
+      return userInfo().username || "User";
     case "assistant":
       return "Magus";
   }
 };
 
 export const ChatBox: React.FC<UIMessage> = ({ role, parts }) => {
+  const stderr = useStderr();
   return (
     <Box flexDirection="column" padding={1} borderColor={role === "user" ? "green" : "blue"}>
       <Text color={role === "user" ? "green" : "blue"} bold>
@@ -34,7 +36,7 @@ export const ChatBox: React.FC<UIMessage> = ({ role, parts }) => {
               </Text>
             );
           default:
-            //console.error(part.type);
+            stderr.write(`Undisplayed message part type: ${part.type}\n`);
             return null;
         }
       })}

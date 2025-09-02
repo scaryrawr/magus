@@ -1,5 +1,6 @@
 import { ScrollArea } from "@magus/react";
 import { type MagusClient, type ModelSelect } from "@magus/server";
+import { useStderr } from "ink";
 import SelectInput from "ink-select-input";
 import { useCallback, useMemo } from "react";
 import { useLoaderData, useNavigate, type RouteObject } from "react-router";
@@ -26,6 +27,7 @@ export const Models = () => {
   const { value, setValue, contentHeight } = useInputContext();
   const navigate = useNavigate();
   const { server } = useServerContext();
+  const stderr = useStderr();
 
   const items = useMemo(() => {
     const fuzzyRegex = createFuzzyRegex(value);
@@ -53,13 +55,13 @@ export const Models = () => {
           },
         });
       } catch (e) {
-        console.error("Failed to switch models:", e);
+        stderr.write(`Failed to switch models: ${e}\n`);
       }
 
       navigate(-1);
       setValue("");
     },
-    [navigate, server.url, setValue],
+    [navigate, server.url, setValue, stderr],
   );
 
   return (

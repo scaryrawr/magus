@@ -1,7 +1,8 @@
 import type { CardinalOptions } from "cardinal";
 import { Text } from "ink";
-import { marked, type MarkedExtension } from "marked";
+import { Marked, type MarkedExtension } from "marked";
 import { markedTerminal, type TerminalRendererOptions } from "marked-terminal";
+import { useMemo } from "react";
 
 export type MarkdownProps = {
   children: string;
@@ -10,6 +11,11 @@ export type MarkdownProps = {
 };
 
 export const Markdown = ({ children, options, highlightOptions }: MarkdownProps) => {
-  marked.use(markedTerminal(options, highlightOptions) as MarkedExtension);
-  return <Text>{marked.parse(children.trimEnd())}</Text>;
+  const markedInstance = useMemo(
+    () => new Marked(markedTerminal(options, highlightOptions) as MarkedExtension),
+    [highlightOptions, options],
+  );
+
+  const text = useMemo(() => markedInstance.parse(children.trimEnd()), [children, markedInstance]);
+  return <Text>{text}</Text>;
 };

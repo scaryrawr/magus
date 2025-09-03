@@ -1,11 +1,10 @@
 import { useChat } from "@ai-sdk/react";
-import { ScrollArea } from "@magus/react";
 import type { MagusChat, MagusClient } from "@magus/server";
 import { DefaultChatTransport } from "ai";
 import { useInput } from "ink";
 import { useCallback, useEffect } from "react";
 import { useLoaderData, useParams, type RouteObject } from "react-router";
-import { useChatContext, useInputContext, useRouteInput, useServerContext } from "../../contexts";
+import { useChatContext, useRouteInput, useServerContext } from "../../contexts";
 import { useSafeLocation } from "../../hooks";
 import { ChatBox } from "./chatbox";
 
@@ -40,8 +39,6 @@ export const Chat = () => {
     }
   }, [initialMessage, messages.length, sendMessage]);
 
-  const { contentHeight } = useInputContext();
-
   useInput((_, key) => {
     if (key.escape) {
       stop();
@@ -60,11 +57,11 @@ export const Chat = () => {
   useRouteInput({ onSubmit, placeholder: "Send a message..." });
 
   return (
-    <ScrollArea width="100%" height={contentHeight}>
+    <>
       {messages.map((message, i) => {
         return <ChatBox key={message.id || `${i}:${message.role}`} {...message} />;
       })}
-    </ScrollArea>
+    </>
   );
 };
 

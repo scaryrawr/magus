@@ -1,4 +1,3 @@
-import { useStdoutDimensions } from "@magus/react";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 type RouteInputHandler = (text: string) => void | Promise<void>;
@@ -8,12 +7,6 @@ interface InputContextValue {
   value: string;
   setValue: (v: string) => void;
   placeholder?: string;
-
-  // Layout
-  columns: number;
-  rows: number;
-  contentHeight: number; // rows reserved for routed content area (excludes input bar)
-  setInputAreaHeight: (h: number) => void; // allow input bar to report its dynamic height
 
   // Submission
   submit: () => void;
@@ -36,11 +29,6 @@ interface HandlerState {
 }
 
 export const InputProvider: React.FC<InputProviderProps> = ({ children }) => {
-  const { rows, columns } = useStdoutDimensions();
-  // Track input area (bar + hint) height dynamically; default to 4 to match initial UI
-  const [inputAreaHeight, setInputAreaHeight] = useState<number>(4);
-  const contentHeight = Math.max(0, rows - 1 - inputAreaHeight); // App subtracts 1 row
-
   const [value, setValue] = useState("");
   const handlerRef = useRef<HandlerState>({ clearOnSubmit: true });
   const [placeholder, setPlaceholder] = useState<string | undefined>();
@@ -78,15 +66,11 @@ export const InputProvider: React.FC<InputProviderProps> = ({ children }) => {
       value,
       setValue,
       placeholder,
-      columns,
-      rows,
-      contentHeight,
-      setInputAreaHeight,
       submit,
       setRouteInput,
       clearRouteInput,
     }),
-    [value, placeholder, columns, rows, contentHeight, setInputAreaHeight, submit, setRouteInput, clearRouteInput],
+    [value, placeholder, submit, setRouteInput, clearRouteInput],
   );
 
   return <InputContext.Provider value={ctx}>{children}</InputContext.Provider>;

@@ -1,4 +1,3 @@
-import { ScrollArea } from "@magus/react";
 import { type MagusClient, type ModelSelect } from "@magus/server";
 import { useStderr } from "ink";
 import SelectInput from "ink-select-input";
@@ -24,7 +23,7 @@ const createFuzzyRegex = (input: string): RegExp => {
 
 export const Models = () => {
   const models = useLoaderData<ModelSelect[]>();
-  const { value, setValue, contentHeight } = useInputContext();
+  const { value, setValue } = useInputContext();
   const navigate = useNavigate();
   const { server } = useServerContext();
   const stderr = useStderr();
@@ -64,11 +63,7 @@ export const Models = () => {
     [navigate, server.url, setValue, stderr],
   );
 
-  return (
-    <ScrollArea width="100%" height={contentHeight}>
-      <SelectInput items={items} onSelect={onSelection} />
-    </ScrollArea>
-  );
+  return <SelectInput items={items} onSelect={onSelection} />;
 };
 
 export const createModelRoute = (client: MagusClient) => {

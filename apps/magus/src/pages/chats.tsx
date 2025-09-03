@@ -1,4 +1,3 @@
-import { ScrollArea } from "@magus/react";
 import type { MagusClient } from "@magus/server";
 import SelectInput from "ink-select-input";
 import { useCallback, useMemo } from "react";
@@ -25,7 +24,7 @@ const createFuzzyRegex = (input: string): RegExp => {
 
 export const Chats = () => {
   const chats = useLoaderData<ChatSummary[]>();
-  const { value, setValue, contentHeight } = useInputContext();
+  const { value, setValue } = useInputContext();
   const navigate = useNavigate();
 
   const items = useMemo(() => {
@@ -50,11 +49,7 @@ export const Chats = () => {
     [navigate, setValue],
   );
 
-  return (
-    <ScrollArea width="100%" height={contentHeight}>
-      <SelectInput items={items} onSelect={onSelection} />
-    </ScrollArea>
-  );
+  return <SelectInput items={items} onSelect={onSelection} />;
 };
 
 export const createChatsRoute = (client: MagusClient) => {

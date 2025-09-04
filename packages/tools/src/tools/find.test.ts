@@ -34,7 +34,7 @@ for (const override of toolsToTest) {
       // Readme at repo root should exist. On some backends (rg), our implementation lists files
       // without shell quoting, so pattern handling differs. For rg, list all files and filter here.
       const res = await findFile({
-        pattern: override === "rg" ? undefined : "README.md",
+        pattern: "README.md",
         path: ".",
         findToolOverride: override,
       });
@@ -48,12 +48,12 @@ for (const override of toolsToTest) {
     it("finds TypeScript or JSON files under packages without relying on exact counts", async () => {
       // For rg, list all and filter in test due to --iglob quoting differences under spawn.
       const tsResults = await findFile({
-        pattern: override === "rg" ? undefined : ".ts",
+        pattern: ".ts",
         path: "packages",
         findToolOverride: override,
       });
       const jsonResults = await findFile({
-        pattern: override === "rg" ? undefined : ".json",
+        pattern: ".json",
         path: "packages",
         findToolOverride: override,
       });
@@ -76,6 +76,39 @@ for (const override of toolsToTest) {
       // Should not include entries under node_modules or .git
       const bad = res.files.filter((f) => /(\/|\\)(node_modules|\.git)(\/|\\)/.test(f));
       expect(bad.length).toBe(0);
+    });
+
+    it("treats '*' as match-all and includes README.md", async () => {
+      const res = await findFile({ pattern: "*", path: ".", findToolOverride: override });
+      expect(res.total_matches).toBeGreaterThan(0);
+      // Should include the repo README
+      const hasReadme = res.files.some(
+        (f) => f === "./README.md" || f === "README.md" || /(^|[/\\])README\.md$/.test(f),
+      );
+      expect(hasReadme).toBeTrue();
+      // Should not include vendor directories
+      const bad = res.files.filter((f) => /(\/|\\)(node_modules|\.git)(\/|\\)/.test(f));
+      expect(bad.length).toBe(0);
+      // Sample a few entries and ensure they exist
+      for (const p of res.files.slice(0, 3)) {
+        const candidate = p.startsWith("./") ? p.slice(2) : p;
+        expect(existsSync(candidate)).toBeTrue();
+      }
+    });
+
+    it("handles '.' as a broad pattern and includes README.md", async () => {
+      const res = await findFile({ pattern: ".", path: ".", findToolOverride: override });
+      expect(res.total_matches).toBeGreaterThan(0);
+      const hasReadme = res.files.some(
+        (f) => f === "./README.md" || f === "README.md" || /(^|[/\\])README\.md$/.test(f),
+      );
+      expect(hasReadme).toBeTrue();
+      const bad = res.files.filter((f) => /(\/|\\)(node_modules|\.git)(\/|\\)/.test(f));
+      expect(bad.length).toBe(0);
+      for (const p of res.files.slice(0, 3)) {
+        const candidate = p.startsWith("./") ? p.slice(2) : p;
+        expect(existsSync(candidate)).toBeTrue();
+      }
     });
   });
 }

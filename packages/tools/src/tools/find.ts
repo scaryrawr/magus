@@ -111,7 +111,7 @@ export const findFile = async ({
   switch (findTool) {
     case "rg":
       command = [findTool, "--files", path];
-      if (pattern) command.push("--iglob", `'*${pattern}*'`);
+      if (pattern) command.push("--iglob", `*${pattern}*`);
       break;
     case "find":
       // Use standard Unix find: search under path for files (-type f) with case-insensitive name match
@@ -120,7 +120,7 @@ export const findFile = async ({
       if (pattern) command.push("-iname", `*${pattern}*`);
       break;
     case "fd":
-      command = [findTool, pattern ?? ".", path];
+      command = [findTool, pattern === "*" ? "." : (pattern ?? "."), path];
       break;
     case "pwsh":
     case "powershell":

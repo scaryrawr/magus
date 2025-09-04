@@ -18,6 +18,7 @@ export const Bat: React.FC<BatProps> = ({ children, path, language }) => {
 
     return arr;
   }, [language, path]);
+
   return (
     <SubprocessOutput command="bat" args={args}>
       {children}

@@ -31,6 +31,7 @@ export const Delta: React.FC<DeltaProps> = ({ children, path, language, emulate,
 
     return arr;
   }, [emulate, language, path, view]);
+
   return (
     <SubprocessOutput command="delta" args={args}>
       {children}

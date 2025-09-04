@@ -46,6 +46,7 @@ export const Markdown = ({ children, options, highlightOptions }: MarkdownProps)
       if (starts || ends) return Math.max(1, pipes);
       return Math.max(1, pipes + 1);
     };
+
     let maxCols = 0;
     for (const line of lines) {
       if (isDelimiter(line)) {
@@ -63,7 +64,7 @@ export const Markdown = ({ children, options, highlightOptions }: MarkdownProps)
     (width: number, numCols: number): number[] | undefined => {
       if (!numCols || numCols <= 0) return undefined;
       // Determine padding and overhead based on cli-table3 defaults or user overrides
-      const tableOpts = (options?.tableOptions ?? {}) as TableOptionsPartial;
+      const tableOpts: TableOptionsPartial = options?.tableOptions ?? {};
       const paddingLeft = tableOpts.style?.["padding-left"] ?? 1;
       const paddingRight = tableOpts.style?.["padding-right"] ?? 1;
       const padPerCol = Number(paddingLeft) + Number(paddingRight);
@@ -91,11 +92,11 @@ export const Markdown = ({ children, options, highlightOptions }: MarkdownProps)
     const maxCols = computeMaxTableColumns(children);
     const userTableOptions = (options?.tableOptions ?? {}) as TableOptionsPartial;
     const hasUserColWidths = typeof userTableOptions.colWidths !== "undefined";
-    const tableOptions = {
+    const tableOptions: TerminalRendererOptions["tableOptions"] = {
       ...userTableOptions,
       wordWrap: true,
       ...(hasUserColWidths ? {} : { colWidths: computeColWidths(availableWidth, maxCols) }),
-    } as TerminalRendererOptions["tableOptions"];
+    };
 
     return new Marked(
       markedTerminal(

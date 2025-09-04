@@ -34,14 +34,8 @@ export const FileEditToolView: React.FC<UIToolProps> = ({ part }) => {
             </Box>
           );
         }
+        case "replace":
         case "insert": {
-          return (
-            <Box key={toolCallId}>
-              <EditorDiffView action="Editing" path={path} diff={diff} />
-            </Box>
-          );
-        }
-        case "replace": {
           return (
             <Box key={toolCallId}>
               <EditorDiffView action="Editing" path={path} diff={diff} />

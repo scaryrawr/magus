@@ -1,5 +1,5 @@
 import type { ToolSet } from "ai";
-import React, { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useModelContext } from ".";
 import { useServerContext } from "./ServerProvider";
 import { useToolSetContext } from "./ToolSetProvider";
@@ -64,21 +64,23 @@ export const SystemPromptProvider: React.FC<SystemPromptProviderProps> = ({ chil
     state.systemPrompt = systemPrompt;
   }, [state, systemPrompt]);
 
-  const addInstruction = (instruction: string) => {
+  const addInstruction = useCallback((instruction: string) => {
     setInstructions((prev) => [...prev, instruction]);
-  };
+  }, []);
 
-  const removeInstruction = (instruction: string) => {
+  const removeInstruction = useCallback((instruction: string) => {
     setInstructions((prev) => prev.filter((inst) => inst !== instruction));
-  };
+  }, []);
 
-  const contextValue: SystemPromptContextProps = {
-    systemPrompt,
-    setBasePrompt,
-    setInstructions,
-    addInstruction,
-    removeInstruction,
-  };
+  const contextValue = useMemo<SystemPromptContextProps>(() => {
+    return {
+      systemPrompt,
+      setBasePrompt,
+      setInstructions,
+      addInstruction,
+      removeInstruction,
+    };
+  }, [addInstruction, removeInstruction, systemPrompt]);
 
   return <SystemPromptContext.Provider value={contextValue}>{children}</SystemPromptContext.Provider>;
 };

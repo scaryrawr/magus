@@ -1,5 +1,5 @@
 import type { LanguageModel, ToolSet } from "ai";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useModelContext } from ".";
 import { useServerContext } from "./ServerProvider";
 
@@ -30,10 +30,16 @@ export const ToolSetProvider: React.FC<ToolSetProviderProps> = ({ children, getT
     setToolset(getToolSet(model));
   }, [model, getToolSet]);
 
-  return <ToolSetContext.Provider value={{ tools: toolSet }}>{children}</ToolSetContext.Provider>;
+  const value = useMemo<ToolSetInfo>(() => ({ tools: toolSet }), [toolSet]);
+
+  return <ToolSetContext.Provider value={value}>{children}</ToolSetContext.Provider>;
 };
 
 export const useToolSetContext = (): ToolSetInfo => {
   const context = useContext(ToolSetContext);
+  if (!context) {
+    throw new Error("useToolSetContext must be used within a ToolSetProvider");
+  }
+
   return context;
 };

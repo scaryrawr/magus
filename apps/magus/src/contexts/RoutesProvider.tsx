@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 
 export type RouteInfo = {
   path: string;
@@ -19,8 +19,9 @@ type RoutesProviderProps = {
 
 export const RoutesProvider: React.FC<RoutesProviderProps> = ({ children }) => {
   const [routes, setRoutes] = useState<RouteInfo[]>([]);
+  const value = useMemo<RoutesContext>(() => ({ routes, setRoutes }), [routes]);
 
-  return <RoutesContext.Provider value={{ routes, setRoutes }}>{children}</RoutesContext.Provider>;
+  return <RoutesContext.Provider value={value}>{children}</RoutesContext.Provider>;
 };
 
 export const useRoutes = () => {

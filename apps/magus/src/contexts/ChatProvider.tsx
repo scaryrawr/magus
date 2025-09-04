@@ -1,5 +1,5 @@
 import type { ChatStatus } from "ai";
-import React, { createContext, useContext, useState, type ReactNode } from "react";
+import React, { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { useSystemPromptContext } from "./SystemPromptProvider";
 
 type ChatContextProps = {
@@ -18,11 +18,14 @@ export const ChatContextProvider: React.FC<ChatContextProviderProps> = ({ childr
   const [chatStatus, setChatStatus] = useState<ChatStatus | undefined>(undefined);
   const { systemPrompt } = useSystemPromptContext();
 
-  const context: ChatContextProps = {
-    systemPrompt,
-    chatStatus,
-    setChatStatus,
-  };
+  const context = useMemo<ChatContextProps>(
+    () => ({
+      systemPrompt,
+      chatStatus,
+      setChatStatus,
+    }),
+    [systemPrompt, chatStatus],
+  );
 
   return <ChatContext.Provider value={context}>{children}</ChatContext.Provider>;
 };

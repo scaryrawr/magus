@@ -1,5 +1,5 @@
 import type { LanguageModel } from "ai";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useServerContext } from "./ServerProvider";
 
 interface ModelContextValue {
@@ -7,7 +7,6 @@ interface ModelContextValue {
   provider: string | undefined;
   modelName: string | undefined;
   modelInfo: string;
-  isLoading: boolean;
 }
 
 interface ModelProviderProps {
@@ -19,7 +18,6 @@ const ModelContext = createContext<ModelContextValue>({
   provider: undefined,
   modelName: undefined,
   modelInfo: "No model selected",
-  isLoading: false,
 });
 
 const getModelInfo = (model: LanguageModel | undefined): string => {
@@ -53,12 +51,10 @@ const getModelName = (model: LanguageModel | undefined): string | undefined => {
 export const ModelProvider: React.FC<ModelProviderProps> = ({ children }) => {
   const { state: serverState } = useServerContext();
   const [model, setModel] = useState<LanguageModel | undefined>(() => serverState.model);
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const handler = (newModel: LanguageModel | undefined) => {
       setModel(newModel);
-      setIsLoading(false);
     };
 
     serverState.on("change:model", handler);
@@ -71,13 +67,15 @@ export const ModelProvider: React.FC<ModelProviderProps> = ({ children }) => {
   const modelName = getModelName(model);
   const modelInfo = getModelInfo(model);
 
-  const contextValue: ModelContextValue = {
-    model,
-    provider,
-    modelName,
-    modelInfo,
-    isLoading,
-  };
+  const contextValue = useMemo<ModelContextValue>(
+    () => ({
+      model,
+      provider,
+      modelName,
+      modelInfo,
+    }),
+    [model, provider, modelName, modelInfo],
+  );
 
   return <ModelContext.Provider value={contextValue}>{children}</ModelContext.Provider>;
 };

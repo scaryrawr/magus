@@ -213,10 +213,9 @@ export const grepFile = async ({
 
 export const createGrepTool = () => {
   const grepTool = tool({
-    description: `Search for patterns in files/directories using ${getGrepTool()}. Falls back to standard grep if ripgrep is not available.
+    description: `Search for patterns in files using ${getGrepTool()}.
 This tool is essential for searching code, configuration files, or any text content.
-Use this tool when you need to find specific text patterns, code snippets, or configuration values within files.
-It's particularly useful for understanding existing codebase structure, finding specific functions or variables, or searching for error messages.`,
+Use this tool when you need to find specific text patterns, code snippets, or configuration values within files.`,
     inputSchema: GrepInputSchema,
     outputSchema: GrepOutputSchema,
     execute: async (input): Promise<GrepOutput> => {
@@ -224,10 +223,8 @@ It's particularly useful for understanding existing codebase structure, finding 
     },
   });
 
-  // gpt-oss expects a `search` tool
   return {
     grep: grepTool,
-    search: grepTool,
   } satisfies ToolSet;
 };
 

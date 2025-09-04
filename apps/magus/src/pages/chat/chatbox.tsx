@@ -32,7 +32,7 @@ export const ChatBox: React.FC<UIMessage> = ({ role, parts }) => {
           case "reasoning":
             return (
               <Text dimColor key={index}>
-                {part.text}
+                <Markdown>{part.text}</Markdown>
               </Text>
             );
           default:

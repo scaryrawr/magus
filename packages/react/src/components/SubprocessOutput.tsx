@@ -41,19 +41,13 @@ export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, arg
     });
   }, []);
 
-  // Ensure a stable dependency when args is omitted (avoid new [] identity each render)
-  const { argsArr } = React.useMemo(() => {
-    const arr = args ?? [];
-    return { argsArr: arr };
-  }, [args]);
-
   const process = React.useMemo(() => {
     const stdinBuffer = stdin ? new TextEncoder().encode(stdin) : undefined;
 
-    return Bun.spawn([command, ...argsArr], {
+    return Bun.spawn(args ? [command, ...args] : [command], {
       stdin: stdinBuffer,
     });
-  }, [argsArr, command, stdin]);
+  }, [args, command, stdin]);
 
   useEffect(() => {
     return () => {

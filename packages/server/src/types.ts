@@ -11,9 +11,16 @@ export const MagusChatSchema = z.object({
 
 export type MagusChat = z.infer<typeof MagusChatSchema>;
 
+// Summary information for listing chats
+export type ChatEntry = {
+  id: string;
+  title?: string;
+  modifiedAt: Date;
+};
+
 export type ChatStore = {
   createChat: () => Promise<string>;
-  getChats: () => Promise<{ id: string; title?: string }[]>;
+  getChats: () => Promise<ChatEntry[]>;
   loadChat: (chatId: string) => Promise<MagusChat>;
   saveChat: (chatId: string, chat: MagusChat) => Promise<void>;
 };

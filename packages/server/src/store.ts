@@ -1,6 +1,6 @@
 import { mkdirSync } from "node:fs";
-import { readdir, readFile } from "node:fs/promises";
-import { MagusChatSchema, type ChatStore, type MagusChat } from "./types";
+import { readdir, readFile, stat } from "node:fs/promises";
+import { MagusChatSchema, type ChatEntry, type ChatStore, type MagusChat } from "./types";
 
 export class MagusChatStore implements ChatStore {
   constructor(private storagePath: string) {
@@ -20,18 +20,25 @@ export class MagusChatStore implements ChatStore {
     return chatId;
   }
 
-  async getChats(): Promise<{ id: string; title?: string }[]> {
+  async getChats(): Promise<ChatEntry[]> {
     const files = await readdir(this.storagePath);
-    return Promise.all(
+    const chats = await Promise.all(
       files
         .filter((file) => file.endsWith(".json"))
         .map(async (file) => {
           const id = file.replace(/\.json$/, "");
-          // Probably not ideal to load each chat to get the title...
-          const title = (await this.loadChat(id)).title;
-          return { id, title };
+          const filePath = `${this.storagePath}/${file}`;
+          const [modifiedAt, title] = await Promise.all([
+            stat(filePath).then((s) => s.mtime),
+            this.loadChat(id).then((chat) => chat.title),
+          ]);
+          return { id, title, modifiedAt };
         }),
     );
+
+    // Sort by most recently modified first
+    chats.sort((a, b) => b.modifiedAt.getTime() - a.modifiedAt.getTime());
+    return chats;
   }
 
   async loadChat(chatId: string): Promise<MagusChat> {

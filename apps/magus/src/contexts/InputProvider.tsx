@@ -9,7 +9,7 @@ interface InputContextValue {
   placeholder?: string;
 
   // Submission
-  submit: () => void;
+  submit: (text: string) => void;
 
   // Route integration
   setRouteInput: (opts: { handler: RouteInputHandler; clearOnSubmit?: boolean; placeholder?: string }) => void;
@@ -33,14 +33,12 @@ export const InputProvider: React.FC<InputProviderProps> = ({ children }) => {
   const handlerRef = useRef<HandlerState>({ clearOnSubmit: true });
   const [placeholder, setPlaceholder] = useState<string | undefined>();
 
-  const submit = useCallback(() => {
-    const text = value;
+  const submit = useCallback((text: string) => {
     if (!handlerRef.current.handler) return;
-
     Promise.resolve(handlerRef.current.handler(text)).finally(() => {
       if (handlerRef.current.clearOnSubmit) setValue("");
     });
-  }, [value]);
+  }, []);
 
   const setRouteInput = useCallback(
     (opts: { handler: RouteInputHandler; clearOnSubmit?: boolean; placeholder?: string }) => {
@@ -60,7 +58,6 @@ export const InputProvider: React.FC<InputProviderProps> = ({ children }) => {
     setValue("");
   }, []);
 
-  // Expose memoized context
   const ctx = useMemo<InputContextValue>(
     () => ({
       value,

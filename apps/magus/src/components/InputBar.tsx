@@ -18,7 +18,7 @@ export const InputBar: React.FC = () => {
         return;
       }
 
-      submit();
+      submit(value);
     },
     [navigate, routes, setValue, submit],
   );

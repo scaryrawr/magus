@@ -17,7 +17,7 @@
     "@magus/tools": "workspace:*",
     "ai": "catalog:",
     "strip-ansi": "^7.1.0",
-    "zod": "^4.0.0"
+    "zod": "catalog:"
   },
   "peerDependencies": {
     "ink": "catalog:ui",

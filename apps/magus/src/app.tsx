@@ -14,6 +14,7 @@ import {
   createInsertTool,
   createShellTool,
   createStringReplaceTool,
+  createTodoTool,
   createViewTool,
   createWebFetchTool,
 } from "@magus/tools";
@@ -65,10 +66,11 @@ const createMagusServer = () => {
 
 const getProviderToolSet = (provider: string): ToolSet => {
   switch (provider) {
-    // lmstudio has issues with the complex Editor Tool (so do most models... may need to fix it up)
+    // lmstudio doesn't support the union for sub command tools
     case "lmstudio":
       return {
         ...createShellTool(),
+        //...createEditorTool(),  // unsupported in lmstudio, so we use the separated tools
         ...createCreateFileTool(),
         ...createInsertTool(),
         ...createViewTool(),
@@ -76,6 +78,7 @@ const getProviderToolSet = (provider: string): ToolSet => {
         ...createGrepTool(),
         ...createFindTool(),
         ...createWebFetchTool(),
+        //...createTodoTool(),  // unsupported in lmstudio
       };
     default:
       return {
@@ -84,6 +87,7 @@ const getProviderToolSet = (provider: string): ToolSet => {
         ...createGrepTool(),
         ...createFindTool(),
         ...createWebFetchTool(),
+        ...createTodoTool(),
       };
   }
 };
@@ -129,21 +133,7 @@ const getToolSpecificPrompt = (tools: ToolSet | undefined): string => {
     return "";
   }
 
-  const toolNames = Object.keys(tools);
-  const hasEditor = toolNames.includes("editFile");
-  const hasShell = toolNames.includes("shell");
-
-  let prompt = `Available tools: ${toolNames.join(", ")}.`;
-
-  if (hasEditor) {
-    prompt += " You have access to the advanced editor tool for complex file modifications.";
-  }
-
-  if (hasShell) {
-    prompt += " You can execute shell commands to interact with the system.";
-  }
-
-  return prompt;
+  return "";
 };
 
 // Let's use the .github/copilot-instructions.md if available

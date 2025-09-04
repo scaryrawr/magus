@@ -66,9 +66,10 @@ const reducer = (state: ScrollAreaState, action: ScrollAreaAction) => {
 export type ScrollAreaProps = React.PropsWithChildren &
   Omit<BoxProps, "overflow" | "flexDirection" | "height"> & {
     height: number;
+    focused?: boolean;
   };
 
-export const ScrollArea = ({ height, children, ...boxProps }: ScrollAreaProps) => {
+export const ScrollArea = ({ height, children, focused = true, ...boxProps }: ScrollAreaProps) => {
   useFocus();
   const innerRef = useRef<DOMElement>(null);
   const [state, dispatch] = useReducer(reducer, {
@@ -90,19 +91,24 @@ export const ScrollArea = ({ height, children, ...boxProps }: ScrollAreaProps) =
     // Re-run when children change (content grows/shrinks) or container height changes
   }, [children, height]);
 
-  useInput((_, key) => {
-    if (key.downArrow) {
-      dispatch({
-        type: "SCROLL_DOWN",
-      });
-    }
+  useInput(
+    (_, key) => {
+      if (key.downArrow) {
+        dispatch({
+          type: "SCROLL_DOWN",
+        });
+      }
 
-    if (key.upArrow) {
-      dispatch({
-        type: "SCROLL_UP",
-      });
-    }
-  });
+      if (key.upArrow) {
+        dispatch({
+          type: "SCROLL_UP",
+        });
+      }
+    },
+    {
+      isActive: focused,
+    },
+  );
 
   return (
     <Box height={height} {...boxProps} flexDirection="column" overflow="hidden">

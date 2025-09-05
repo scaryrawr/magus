@@ -1,72 +1,49 @@
+import type { MagusProvider } from "@magus/providers";
 import type { LanguageModel } from "ai";
 import { Hono } from "hono";
 import type { hc } from "hono/client";
-import { EventEmitter } from "node:events";
+import { streamSSE } from "hono/streaming";
+import { ObservableServerState } from "./ObservableServerState";
 import { chatRouter } from "./chat";
 import { modelsRouter } from "./models";
-import type { ServerState } from "./types";
+import type { ServerStateConfig } from "./types";
+import { langueModelToModelSelect } from "./utils";
 
-type ServerStateEvents = Required<{
-  [TKey in keyof ServerState as `change:${TKey}`]: [newValue: ServerState[TKey]];
-}>;
-
-export class ObservableServerState extends EventEmitter<ServerStateEvents> implements ServerState {
-  constructor(private state: ServerState) {
-    super();
-  }
-
-  get chatStore() {
-    return this.state.chatStore;
-  }
-
-  get providers() {
-    return this.state.providers;
-  }
-
-  get model(): LanguageModel | undefined {
-    return this.state.model;
-  }
-
-  get tools() {
-    return this.state.tools;
-  }
-
-  set tools(tools) {
-    if (this.state.tools === tools) return;
-
-    this.state.tools = tools;
-    this.emit("change:tools", tools);
-  }
-
-  get systemPrompt() {
-    return this.state.systemPrompt;
-  }
-
-  set systemPrompt(prompt) {
-    if (this.state.systemPrompt === prompt) return;
-
-    this.state.systemPrompt = prompt;
-    this.emit("change:systemPrompt", prompt);
-  }
-
-  set model(model) {
-    if (model === this.state.model) return;
-
-    this.state.model = model;
-    this.emit("change:model", model);
-  }
-}
-
-export const createServer = (config: ServerState) => {
+export const createServer = <MProviders extends MagusProvider = MagusProvider>(
+  config: ServerStateConfig<MProviders>,
+) => {
   const state = new ObservableServerState({
     ...config,
   });
 
   const app = new Hono();
-  const routes = app.route("/v0", chatRouter(state)).route("/v0", modelsRouter(state));
+  const routes = app
+    .route("/v0", chatRouter(state))
+    .route("/v0", modelsRouter(state))
+    .get("/v0/sse", async (c) => {
+      return streamSSE(c, async (stream) => {
+        const modelChangeCallback = (value: LanguageModel | undefined) => {
+          const data = langueModelToModelSelect(value);
+          if (!data) return;
+
+          stream.writeSSE({
+            data: JSON.stringify(data),
+            event: "model-change",
+          });
+        };
+
+        state.on("change:model", modelChangeCallback);
+        try {
+          while (true) {
+            await stream.sleep(1000);
+          }
+        } finally {
+          state.off("change:model", modelChangeCallback);
+        }
+      });
+    });
   return {
     app: routes,
-    state,
     listen: () => {
       const server = Bun.serve({
         port: 0,
@@ -81,3 +58,5 @@ export const createServer = (config: ServerState) => {
 
 export type MagusRoutes = ReturnType<typeof createServer>["app"];
 export type MagusClient = ReturnType<typeof hc<MagusRoutes>>;
+
+export type RouterFactory<THono extends Hono = Hono> = (state: ObservableServerState) => THono;

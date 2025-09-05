@@ -1,6 +1,5 @@
 import type { MagusProvider } from "@magus/providers";
-import type { LanguageModel, ToolSet } from "ai";
-import type { Hono } from "hono";
+import type { LanguageModel, ToolSet, UIMessage } from "ai";
 import z from "zod";
 
 export const MagusChatSchema = z.object({
@@ -9,7 +8,9 @@ export const MagusChatSchema = z.object({
   messages: z.array(z.any()),
 });
 
-export type MagusChat = z.infer<typeof MagusChatSchema>;
+export type MagusChat = Omit<z.infer<typeof MagusChatSchema>, "messages"> & {
+  messages: UIMessage[];
+};
 
 // Summary information for listing chats
 export type ChatEntry = {
@@ -25,12 +26,35 @@ export type ChatStore = {
   saveChat: (chatId: string, chat: MagusChat) => Promise<void>;
 };
 
-export type ServerState = {
-  providers: readonly MagusProvider[];
-  model?: LanguageModel | undefined;
-  tools?: ToolSet | undefined;
-  systemPrompt?: string | undefined;
-  readonly chatStore: ChatStore;
+type ProviderToolSets<TProviders extends MagusProvider = MagusProvider> = {
+  [Key in keyof TProviders & string]: ToolSet | undefined;
 };
 
-export type RouterFactory<THono extends Hono = Hono> = (state: ServerState) => THono;
+export type ServerStateConfig<MProvider extends MagusProvider = MagusProvider> = {
+  providers: MProvider;
+  model?: LanguageModel | undefined;
+  systemPrompt?: string | undefined;
+  readonly chatStore: ChatStore;
+} & (
+  | { tools: ToolSet | undefined }
+  | {
+      providerTools: ProviderToolSets<MProvider>;
+    }
+);
+
+export type ServerState = {
+  providers: MagusProvider;
+  model?: LanguageModel | undefined;
+  systemPrompt?: string | undefined;
+  readonly chatStore: ChatStore;
+  tools?: ToolSet | undefined;
+};
+
+export const ModelSelectSchema = z.object({
+  provider: z.string(),
+  id: z.string(),
+});
+
+export const ModelsResultSchema = z.array(ModelSelectSchema);
+
+export type ModelSelect = z.infer<typeof ModelSelectSchema>;

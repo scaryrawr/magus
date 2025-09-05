@@ -1,6 +1,7 @@
-import { type UIMessage, convertToModelMessages, streamText } from "ai";
+import { type UIMessage, convertToModelMessages, createIdGenerator, streamText } from "ai";
 import { Hono } from "hono";
-import type { RouterFactory, ServerState } from "./types";
+import type { RouterFactory } from "./server";
+import type { ServerState } from "./types";
 
 export const chatRouter = (state: ServerState) => {
   const router = new Hono();
@@ -12,12 +13,20 @@ export const chatRouter = (state: ServerState) => {
 
       const { message, id }: { message: UIMessage; id: string } = await c.req.json();
       const { messages: previousMessages, title } = (await state.chatStore.loadChat(id)) ?? { messages: [] };
-      const messages: UIMessage[] = [...previousMessages, message];
+      const tools = state.tools;
+      // const validMessages: UIMessage[] = tools
+      //   ? await validateUIMessages({
+      //       messages: previousMessages,
+      //       tools: tools as Parameters<typeof validateUIMessages>[0]["tools"],
+      //     })
+      //   : previousMessages;
 
+      // const messages = [...validMessages, message];
+      const messages = [...previousMessages, message];
       const result = streamText({
         messages: convertToModelMessages(messages),
         model: state.model,
-        tools: state.tools,
+        tools,
         stopWhen: async ({ steps }) => {
           // it's over 9000
           return steps.length > 9000;
@@ -26,6 +35,10 @@ export const chatRouter = (state: ServerState) => {
       });
       return result.toUIMessageStreamResponse({
         originalMessages: messages,
+        generateMessageId: createIdGenerator({
+          prefix: "msg",
+          size: 16,
+        }),
         onFinish: async ({ messages }) => {
           let newTitle = title;
           if (!newTitle) {

@@ -2,8 +2,8 @@ import { type LanguageModel } from "ai";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { Hono } from "hono";
 import { ModelInfoSchema, type MagusProvider, type ModelInfo } from "../../../packages/providers/src/types";
-import { ModelSelectSchema, modelsRouter } from "./models";
-import type { ServerState } from "./types";
+import { modelsRouter } from "./models";
+import { ModelSelectSchema, type ServerState } from "./types";
 
 // Mock LanguageModel implementation
 function createMockLanguageModel(modelId: string, provider: string): LanguageModel & { provider: string } {
@@ -22,50 +22,46 @@ function createMockLanguageModel(modelId: string, provider: string): LanguageMod
   }) as LanguageModel & { provider: string };
 }
 
-// Mock Provider implementation
-class MockProvider implements MagusProvider {
-  constructor(
-    public name: string,
-    private mockModels: ModelInfo[],
-  ) {}
-
-  async models(): Promise<ModelInfo[]> {
-    return this.mockModels;
-  }
-
-  model(id: string): LanguageModel {
-    return createMockLanguageModel(id, this.name);
-  }
+// Since MagusProvider is now a record of provider objects keyed by name, we'll build simple provider objects
+function createMockProvider(name: string, mockModels: ModelInfo[]) {
+  return {
+    model(id: string) {
+      return createMockLanguageModel(id, name);
+    },
+    async models() {
+      return mockModels;
+    },
+  };
 }
 
 // Test setup
 let app: Hono;
-let mockProvider1: MockProvider;
-let mockProvider2: MockProvider;
+let mockProviders: MagusProvider;
 
 beforeEach(() => {
   app = new Hono();
 
-  mockProvider1 = new MockProvider("lmstudio", [
-    {
-      id: "gpt-4o-mini",
-      reasoning: true,
-      context_length: 128000,
-      tool_use: true,
-    },
-  ]);
-
-  mockProvider2 = new MockProvider("ollama", [
-    {
-      id: "mistral-7b",
-      reasoning: false,
-      context_length: 32000,
-      tool_use: false,
-    },
-  ]);
+  mockProviders = {
+    lmstudio: createMockProvider("lmstudio", [
+      {
+        id: "gpt-4o-mini",
+        reasoning: true,
+        context_length: 128000,
+        tool_use: true,
+      },
+    ]),
+    ollama: createMockProvider("ollama", [
+      {
+        id: "mistral-7b",
+        reasoning: false,
+        context_length: 32000,
+        tool_use: false,
+      },
+    ]),
+  } satisfies MagusProvider;
 
   const state: ServerState = {
-    providers: [mockProvider1, mockProvider2],
+    providers: mockProviders,
     model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
     tools: undefined,
     chatStore: undefined!,
@@ -91,10 +87,12 @@ describe("Models Endpoints", () => {
     it("should return empty array when no providers have models", async () => {
       // Create app with providers that have no models
       const emptyApp = new Hono();
-      const emptyProvider = new MockProvider("empty", []);
+      const emptyProviders: MagusProvider = {
+        empty: createMockProvider("empty", []),
+      };
 
       const emptyState: ServerState = {
-        providers: [emptyProvider],
+        providers: emptyProviders,
         model: createMockLanguageModel("test", "empty"),
         tools: undefined,
         chatStore: undefined!,
@@ -176,7 +174,7 @@ describe("Models Endpoints", () => {
       // Create app with string model
       const freshApp = new Hono();
       const freshState: ServerState = {
-        providers: [mockProvider1],
+        providers: { lmstudio: mockProviders.lmstudio },
         model: "string-model", // This will trigger the error case
         tools: undefined,
         chatStore: undefined!,
@@ -194,7 +192,7 @@ describe("Models Endpoints", () => {
       // Create a fresh app and state for this test to avoid interference
       const freshApp = new Hono();
       const freshState: ServerState = {
-        providers: [mockProvider1, mockProvider2],
+        providers: mockProviders,
         model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
         tools: undefined,
         chatStore: undefined!,
@@ -265,7 +263,7 @@ describe("Models Endpoints", () => {
       // Create a fresh app and state for this test
       const freshApp = new Hono();
       const freshState: ServerState = {
-        providers: [mockProvider1],
+        providers: { lmstudio: mockProviders.lmstudio },
         model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
         tools: undefined,
         chatStore: undefined!,

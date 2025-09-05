@@ -1,16 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
-import z from "zod";
-import type { RouterFactory, ServerState } from "./types";
-
-export const ModelSelectSchema = z.object({
-  provider: z.string(),
-  id: z.string(),
-});
-
-export const ModelsResultSchema = z.array(ModelSelectSchema);
-
-export type ModelSelect = z.infer<typeof ModelSelectSchema>;
+import type { RouterFactory } from "./server";
+import { ModelSelectSchema, type ModelSelect, type ServerState } from "./types";
 
 export const modelsRouter = (state: ServerState) => {
   const router = new Hono();
@@ -19,11 +10,11 @@ export const modelsRouter = (state: ServerState) => {
     .get("/models", async (c) => {
       modelsCache ??= (
         await Promise.all(
-          state.providers.map(async (provider) => {
+          Object.entries(state.providers).map(async ([name, provider]) => {
             try {
               const models = await provider.models();
               return models.map((model) => ({
-                provider: provider.name,
+                provider: name,
                 id: model.id,
               }));
             } catch {
@@ -54,27 +45,32 @@ export const modelsRouter = (state: ServerState) => {
     .get("/model/:provider/:id", async (c) => {
       const providerId = c.req.param("provider");
       const modelId = c.req.param("id");
-      const provider = state.providers.find((p) => p.name === providerId);
+      const provider = state.providers[providerId];
       if (!provider) {
         return c.text(`Provider: ${providerId} not found`, 404);
       }
-
-      const models = await provider.models();
-      const model = models.find((m) => m.id === modelId);
-      if (!model) {
-        return c.text(`Model: ${modelId} not found`, 404);
+      try {
+        const models = await provider.models();
+        const model = models.find((m) => m.id === modelId);
+        if (!model) {
+          return c.text(`Model: ${modelId} not found`, 404);
+        }
+        return c.json(model);
+      } catch {
+        return c.text(`Provider: ${providerId} not found`, 404);
       }
-
-      return c.json(model);
     })
     .post("/model", zValidator("json", ModelSelectSchema), async (c) => {
       const selection: ModelSelect = c.req.valid("json");
-      const provider = state.providers.find((p) => p.name === selection.provider);
+      const provider = state.providers[selection.provider];
       if (!provider) {
         return c.text(`Provider: ${selection.provider} not found`, 404);
       }
-
-      state.model = provider.model(selection.id);
+      try {
+        state.model = provider.model(selection.id);
+      } catch {
+        return c.text(`Provider: ${selection.provider} not found`, 404);
+      }
       return c.text("", 200);
     });
 };

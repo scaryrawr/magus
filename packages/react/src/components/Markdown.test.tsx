@@ -3,6 +3,7 @@ import { render } from "ink-testing-library";
 import { Markdown } from "./Markdown";
 
 // Basic ANSI SGR stripper without embedding control characters
+import { Box } from "ink";
 import { parseAnsiToSegments } from "../utils/ansi";
 
 const visibleText = (s: string) =>
@@ -19,7 +20,11 @@ describe("Markdown", () => {
   it("reflows paragraph text to the provided width", async () => {
     const md = `# Title\n\nThis is a long paragraph of text that should reflow based on the width option so that no single line exceeds that width.`;
     const width = 40;
-    const { lastFrame } = render(<Markdown options={{ width }}>{md}</Markdown>);
+    const { lastFrame } = render(
+      <Box width={width}>
+        <Markdown>{md}</Markdown>
+      </Box>,
+    );
     await new Promise((r) => setTimeout(r, 20));
     const out = visibleText(lastFrame() ?? "");
     // Allow some slack for heading underline/etc, but core content should respect width
@@ -33,7 +38,11 @@ describe("Markdown", () => {
 | This is a long cell that should wrap nicely | Another longish bit of content | Short |
 `;
     const width = 30; // very narrow terminal
-    const { lastFrame } = render(<Markdown options={{ width }}>{md}</Markdown>);
+    const { lastFrame } = render(
+      <Box width={width}>
+        <Markdown>{md}</Markdown>
+      </Box>,
+    );
     await new Promise((r) => setTimeout(r, 20));
     const out = visibleText(lastFrame() ?? "");
     // No line should exceed width

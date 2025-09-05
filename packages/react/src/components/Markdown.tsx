@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type { CardinalOptions } from "cardinal";
 import { Box, measureElement, Text, type DOMElement } from "ink";
 import { Marked, type MarkedExtension } from "marked";
 import { markedTerminal, type TerminalRendererOptions } from "marked-terminal";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useStdoutDimensions } from "../hooks";
 
 export type MarkdownProps = {
@@ -12,12 +13,11 @@ export type MarkdownProps = {
 };
 
 export const Markdown = ({ children, options, highlightOptions }: MarkdownProps) => {
-  const [text, setText] = useState(children);
   const { columns } = useStdoutDimensions();
   const displayRef = useRef<DOMElement>(null);
   const [availableWidth, setAvailableWidth] = useState(columns);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!displayRef.current) return;
     const { width } = measureElement(displayRef.current);
     setAvailableWidth(width);
@@ -112,23 +112,17 @@ export const Markdown = ({ children, options, highlightOptions }: MarkdownProps)
     );
   }, [children, availableWidth, highlightOptions, options, computeColWidths, computeMaxTableColumns]);
 
-  useEffect(() => {
-    let disposed = false;
-    markedInstance
-      .parse(children, {
-        async: true,
-      })
-      .then((result) => {
-        if (!disposed) setText(result);
-      });
-    return () => {
-      disposed = true;
-    };
-  }, [children, markedInstance]);
+  const parsed = useMemo(
+    () =>
+      markedInstance.parse(children, {
+        async: false,
+      }) as unknown as string,
+    [children, markedInstance],
+  );
 
   return (
     <Box ref={displayRef} width="100%">
-      <Text>{text}</Text>
+      <Text>{parsed}</Text>
     </Box>
   );
 };

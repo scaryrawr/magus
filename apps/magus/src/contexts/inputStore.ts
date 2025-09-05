@@ -37,7 +37,8 @@ interface InputState {
   submitting: boolean;
   setValue: (v: string) => void;
   pushHandler: (entry: Omit<HandlerEntry, "clearOnSubmit"> & { clearOnSubmit?: boolean }) => void;
-  popHandler: () => void;
+  // Remove a specific handler instance (by function identity)
+  popHandler: (handler: InputSubmitHandler) => void;
   clearAllHandlers: () => void;
   submit: (textOverride?: string) => Promise<boolean>; // returns true if something handled
   placeholder?: string;
@@ -52,16 +53,16 @@ export const useInputStore = create<InputState>((set, get) => ({
   pushHandler: ({ handler, placeholder, intercept, clearOnSubmit }) =>
     set((s) => ({
       handlers: [...s.handlers, { handler, placeholder, intercept, clearOnSubmit: clearOnSubmit ?? true }],
+      // If a placeholder is provided, override; otherwise retain current (top-most wins semantics)
       placeholder: placeholder ?? s.placeholder,
     })),
-  popHandler: () =>
+  popHandler: (handlerToRemove) =>
     set((s) => {
-      const handlers = s.handlers.slice(0, -1);
+      const index = s.handlers.findIndex((h) => h.handler === handlerToRemove);
+      if (index === -1) return s; // nothing to do
+      const handlers = [...s.handlers.slice(0, index), ...s.handlers.slice(index + 1)];
       const top = handlers[handlers.length - 1];
-      return {
-        handlers,
-        placeholder: top?.placeholder,
-      };
+      return { handlers, placeholder: top?.placeholder };
     }),
   clearAllHandlers: () => set({ handlers: [], placeholder: undefined }),
   submit: async (textOverride) => {
@@ -86,9 +87,11 @@ export const useInputStore = create<InputState>((set, get) => ({
       await Promise.resolve(active.handler(text, api));
     } finally {
       if (removed) {
-        // Pop only after successful handler processed
+        // Remove only the specific handler instance that called done()
         set((s) => {
-          const newHandlers = s.handlers.slice(0, -1);
+          const idx = s.handlers.findIndex((h) => h.handler === active.handler);
+          if (idx === -1) return s; // already removed (e.g., unmounted)
+          const newHandlers = [...s.handlers.slice(0, idx), ...s.handlers.slice(idx + 1)];
           const top = newHandlers[newHandlers.length - 1];
           return { handlers: newHandlers, placeholder: top?.placeholder };
         });
@@ -129,6 +132,6 @@ export const useStackedRouteInput = ({
   // naive effect - if onSubmit identity changes often, user should memo it.
   React.useEffect(() => {
     push({ handler: onSubmit, placeholder, clearOnSubmit, intercept });
-    return () => pop();
+    return () => pop(onSubmit);
   }, [onSubmit, placeholder, clearOnSubmit, intercept, push, pop]);
 };

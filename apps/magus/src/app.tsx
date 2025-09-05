@@ -1,11 +1,5 @@
-import {
-  createLmStudioProvider,
-  createOllamaProvider,
-  createOpenRouterProvider,
-  type MagusProvider,
-} from "@magus/providers";
-import { createServer, MagusChatStore, type MagusRoutes } from "@magus/server";
-import { ModelsResultSchema } from "@magus/server/src/models";
+import { createLmStudioProvider, createOllamaProvider, createOpenRouterProvider } from "@magus/providers";
+import { createServer, MagusChatStore, ModelsResultSchema, type MagusRoutes } from "@magus/server";
 import {
   createCreateFileTool,
   createEditorTool,
@@ -32,18 +26,43 @@ import {
 } from "./contexts";
 import { MagusRouterProvider } from "./routes";
 
-const providers: MagusProvider[] = [createOllamaProvider(), createLmStudioProvider()];
-if (process.env.OPENROUTER_API_KEY) {
-  providers.push(createOpenRouterProvider(process.env.OPENROUTER_API_KEY));
-}
+const providers = {
+  ...createOllamaProvider(),
+  ...createLmStudioProvider(),
+  ...(process.env.OPENROUTER_API_KEY ? createOpenRouterProvider(process.env.OPENROUTER_API_KEY) : undefined),
+};
 
 const createMagusServer = () => {
-  const { listen, state } = createServer({
+  const sharedToolset = {
+    ...createGrepTool(),
+    ...createFindTool(),
+    ...createWebFetchTool(),
+    ...createShellTool(),
+  };
+
+  const defaultToolset = {
+    ...createEditorTool(),
+    ...createTodoTool(),
+    ...sharedToolset,
+  };
+
+  const individualToolset = {
+    ...createCreateFileTool(),
+    ...createInsertTool(),
+    ...createStringReplaceTool(),
+    ...createViewTool(),
+    ...createInsertTool(),
+    ...sharedToolset,
+  };
+
+  const { listen } = createServer({
     providers,
-    model: undefined,
-    tools: undefined,
-    systemPrompt: undefined,
     chatStore: new MagusChatStore(join(process.cwd(), ".magus", "chats")),
+    providerTools: {
+      lmstudio: individualToolset,
+      ollama: defaultToolset,
+      openrouter: defaultToolset,
+    },
   });
 
   const server = listen();
@@ -60,92 +79,7 @@ const createMagusServer = () => {
   return {
     client,
     server,
-    state,
   };
-};
-
-const getProviderToolSet = (provider: string): ToolSet => {
-  switch (provider) {
-    // lmstudio doesn't support the union for sub command tools
-    case "lmstudio":
-      return {
-        ...createShellTool(),
-        //...createEditorTool(),  // unsupported in lmstudio, so we use the separated tools
-        ...createCreateFileTool(),
-        ...createInsertTool(),
-        ...createViewTool(),
-        ...createStringReplaceTool(),
-        ...createGrepTool(),
-        ...createFindTool(),
-        ...createWebFetchTool(),
-        //...createTodoTool(),  // unsupported in lmstudio
-      };
-    default:
-      return {
-        ...createShellTool(),
-        ...createEditorTool(),
-        ...createGrepTool(),
-        ...createFindTool(),
-        ...createWebFetchTool(),
-        ...createTodoTool(),
-      };
-  }
-};
-
-const getToolSet = (() => {
-  const cache = new Map<string, ToolSet>();
-  return (model: LanguageModel | undefined) => {
-    if (!model) {
-      return undefined;
-    }
-
-    let cacheKey = "default";
-    if (typeof model !== "string") {
-      cacheKey = model.provider.replace(".chat", "");
-    }
-
-    let value = cache.get(cacheKey);
-    if (value) {
-      return value;
-    }
-
-    value = getProviderToolSet(cacheKey);
-    cache.set(cacheKey, value);
-    return value;
-  };
-})();
-
-const getModelSpecificPrompt = (provider: string | undefined, modelName: string | undefined): string => {
-  if (!provider || !modelName) {
-    return "";
-  }
-
-  switch (provider) {
-    case "lmstudio":
-    case "ollama":
-    default:
-      return "";
-  }
-};
-
-const getToolSpecificPrompt = (tools: ToolSet | undefined): string => {
-  if (!tools) {
-    return "";
-  }
-
-  return "";
-};
-
-// Let's use the .github/copilot-instructions.md if available
-const loadInstructions = async (): Promise<string[]> => {
-  const instructions: string[] = [];
-  try {
-    const instruction = await Bun.file(".github/copilot-instructions.md").text();
-    instructions.push(instruction);
-  } catch {
-    // Ignore missing file
-  }
-  return instructions;
 };
 
 export const App: React.FC = () => {

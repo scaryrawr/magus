@@ -3,25 +3,40 @@ import { ModelSelectSchema } from "@magus/server";
 import { EventSource } from "eventsource";
 import { Box, Text } from "ink";
 import Spinner from "ink-spinner";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useChatContext, useServerContext } from "../contexts";
 
 const useModelInfo = () => {
   const { server, client } = useServerContext();
   const [modelInfo, setModelInfo] = useState<ModelSelect>({ id: "unknown", provider: "unknown" });
+
+  const updateModelInfo = useCallback((data: ModelSelect) => {
+    setModelInfo((previous) => {
+      if (data.id === previous.id && data.provider === previous.provider) {
+        return previous;
+      }
+
+      return data;
+    });
+  }, []);
+
   useEffect(() => {
     let disposed = false;
-    client.v0.model.$get().then(async (res) => {
-      const data = await res.json();
-      if (disposed) return;
-
-      setModelInfo(data);
-    });
+    client.v0.model
+      .$get()
+      .then(async (res) => {
+        const data = await res.json();
+        if (disposed) return;
+        updateModelInfo(data);
+      })
+      .catch(() => {
+        // ignore fetch errors
+      });
 
     return () => {
       disposed = true;
     };
-  }, [client]);
+  }, [client, updateModelInfo]);
 
   useEffect(() => {
     const eventSource = new EventSource(new URL("v0/sse", server.url).href);
@@ -32,7 +47,7 @@ const useModelInfo = () => {
         const parsed: unknown = JSON.parse(event.data);
         const result = ModelSelectSchema.safeParse(parsed);
         if (result.success) {
-          setModelInfo(result.data);
+          updateModelInfo(result.data);
         }
       } catch {
         // swallow parse errors; SSE stream may contain keep-alives in future
@@ -45,7 +60,7 @@ const useModelInfo = () => {
       eventSource.removeEventListener("model-change", handleModelChange);
       eventSource.close();
     };
-  }, [server.url]);
+  }, [server.url, updateModelInfo]);
 
   return modelInfo;
 };

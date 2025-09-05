@@ -1,3 +1,35 @@
-bun format
-bun typecheck
-bun lint
+#!/bin/sh
+
+# Get staged files
+STAGED_FILES=$(git diff --staged --name-only)
+
+if [ -z "$STAGED_FILES" ]; then
+  echo "No staged files found"
+  exit 0
+fi
+
+# Filter files for different tools
+TS_FILES=$(echo "$STAGED_FILES" | grep -E '\.(ts|tsx|js|jsx)$' || true)
+ALL_FILES=$(echo "$STAGED_FILES" | grep -E '\.(ts|tsx|js|jsx|json|md|yml|yaml)$' || true)
+
+# Format staged files
+if [ -n "$ALL_FILES" ]; then
+  echo "Formatting staged files..."
+  echo "$ALL_FILES" | xargs bun prettier --write
+  echo "$ALL_FILES" | xargs git add
+fi
+
+# Typecheck TypeScript files
+if [ -n "$TS_FILES" ]; then
+  echo "Type checking..."
+  bun typecheck
+fi
+
+# Lint staged files
+if [ -n "$TS_FILES" ]; then
+  echo "Linting staged files..."
+  echo "$TS_FILES" | xargs bun eslint --fix
+  echo "$TS_FILES" | xargs git add
+fi
+
+echo "Pre-commit checks passed!"

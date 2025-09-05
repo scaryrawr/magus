@@ -32,7 +32,7 @@ export const Chats = () => {
     const fuzzyRegex = createFuzzyRegex(value);
     return chats
       .map((chat) => {
-        const label = chat.title ? `${chat.title} (${chat.id})` : chat.id;
+        const label = chat.title ? `${chat.title}` : chat.id;
         return {
           label,
           key: chat.id,
@@ -60,7 +60,7 @@ export const Chats = () => {
     },
   });
 
-  return <SelectInput items={items} onSelect={onSelection} />;
+  return <SelectInput items={items} limit={5} onSelect={onSelection} />;
 };
 
 export const createChatsRoute = (client: MagusClient) => {

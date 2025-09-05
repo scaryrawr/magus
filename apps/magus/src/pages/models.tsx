@@ -73,7 +73,7 @@ export const Models = () => {
     },
   });
 
-  return <SelectInput items={items} onSelect={onSelection} />;
+  return <SelectInput items={items} limit={5} onSelect={onSelection} />;
 };
 
 export const createModelRoute = (client: MagusClient) => {

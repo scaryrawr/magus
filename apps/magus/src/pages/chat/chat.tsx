@@ -4,7 +4,7 @@ import { DefaultChatTransport } from "ai";
 import { useInput } from "ink";
 import { useCallback, useEffect } from "react";
 import { useLoaderData, useParams, type RouteObject } from "react-router";
-import { useChatContext, useRouteInput, useServerContext } from "../../contexts";
+import { useChatContext, useServerContext, useStackedRouteInput } from "../../contexts";
 import { useSafeLocation } from "../../hooks";
 import { ChatBox } from "./chatbox";
 
@@ -54,7 +54,7 @@ export const Chat = () => {
     [sendMessage],
   );
 
-  useRouteInput({ onSubmit, placeholder: "Send a message..." });
+  useStackedRouteInput({ onSubmit, placeholder: "Send a message..." });
 
   return (
     <>
@@ -83,7 +83,7 @@ export const createChatRoute = (client: MagusClient) => {
         throw new Error(`Failed to load chat: ${res.status} ${res.statusText}`);
       }
 
-      return await res.json();
+      return (await res.json()) as MagusChat;
     },
   } as const satisfies RouteObject;
 };

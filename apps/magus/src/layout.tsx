@@ -1,10 +1,8 @@
 import { Box } from "ink";
 import { Outlet } from "react-router";
-import { InputBar } from "./components";
-import { StatusBar } from "./components/StatusBar";
-import { InputProvider } from "./contexts";
+import { InputBar, StatusBar } from "./components";
 
-const ChatSection: React.FC = () => {
+const InputSection: React.FC = () => {
   return (
     <Box flexDirection="column">
       <InputBar />
@@ -15,9 +13,9 @@ const ChatSection: React.FC = () => {
 
 export const Layout: React.FC = () => {
   return (
-    <InputProvider>
+    <>
       <Outlet />
-      <ChatSection />
-    </InputProvider>
+      <InputSection />
+    </>
   );
 };

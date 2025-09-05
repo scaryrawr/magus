@@ -12,18 +12,11 @@ import {
   createViewTool,
   createWebFetchTool,
 } from "@magus/tools";
-import type { LanguageModel, ToolSet } from "ai";
 import { hc } from "hono/client";
 import { join } from "node:path";
 import React from "react";
-import {
-  ChatContextProvider,
-  ModelProvider,
-  RoutesProvider,
-  ServerProvider,
-  SystemPromptProvider,
-  ToolSetProvider,
-} from "./contexts";
+import { Banner } from "./components";
+import { ChatContextProvider, RoutesProvider, ServerProvider } from "./contexts";
 import { MagusRouterProvider } from "./routes";
 
 const providers = {
@@ -83,33 +76,14 @@ const createMagusServer = () => {
 };
 
 export const App: React.FC = () => {
-  const [instructions, setInstructions] = React.useState<string[]>([]);
-
-  React.useEffect(() => {
-    loadInstructions().then(setInstructions);
-  }, []);
-
   return (
     <ServerProvider createServer={createMagusServer}>
-      <ModelProvider>
-        <ToolSetProvider getToolSet={getToolSet}>
-          <SystemPromptProvider
-            config={{
-              basePrompt:
-                "You are Magus, an AI assistant that helps users with software engineering tasks. Provide clear and concise answers to their questions. When asked to perform tasks, create a todo list of steps to needed to complete the task. Use the available tools when necessary and always explain your reason for before using the tool. Do not end your turn until your todo list is completely done. Once the todo list is complete you may end your turn.",
-              instructions,
-              getModelSpecificPrompt,
-              getToolSpecificPrompt,
-            }}
-          >
-            <ChatContextProvider>
-              <RoutesProvider>
-                <MagusRouterProvider />
-              </RoutesProvider>
-            </ChatContextProvider>
-          </SystemPromptProvider>
-        </ToolSetProvider>
-      </ModelProvider>
+      <ChatContextProvider>
+        <RoutesProvider>
+          <Banner />
+          <MagusRouterProvider />
+        </RoutesProvider>
+      </ChatContextProvider>
     </ServerProvider>
   );
 };

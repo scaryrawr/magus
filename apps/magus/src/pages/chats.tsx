@@ -2,7 +2,7 @@ import type { MagusClient } from "@magus/server";
 import SelectInput from "ink-select-input";
 import { useCallback, useMemo } from "react";
 import { useLoaderData, useNavigate, type RouteObject } from "react-router";
-import { useInputContext } from "../contexts";
+import { useInputValue, useSetInputValue, useStackedRouteInput } from "../contexts";
 
 type ChatSummary = { id: string; title?: string };
 
@@ -24,7 +24,8 @@ const createFuzzyRegex = (input: string): RegExp => {
 
 export const Chats = () => {
   const chats = useLoaderData<ChatSummary[]>();
-  const { value, setValue } = useInputContext();
+  const value = useInputValue();
+  const setValue = useSetInputValue();
   const navigate = useNavigate();
 
   const items = useMemo(() => {
@@ -48,6 +49,16 @@ export const Chats = () => {
     },
     [navigate, setValue],
   );
+
+  // Allow pressing enter in InputBar to open first filtered chat
+  useStackedRouteInput({
+    intercept: true,
+    clearOnSubmit: false,
+    placeholder: "Filter chats...",
+    onSubmit: () => {
+      // no-op: intercept only so InputBar submit does not fall back to chat creation
+    },
+  });
 
   return <SelectInput items={items} onSelect={onSelection} />;
 };

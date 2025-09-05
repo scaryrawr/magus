@@ -2,15 +2,22 @@ import { Box, Text } from "ink";
 import TextInput from "ink-text-input";
 import React, { useCallback } from "react";
 import { useNavigate } from "react-router";
-import { useInputContext, useRoutes } from "../contexts";
+import { useInputPlaceholder, useInputSubmit, useInputValue, useRoutes, useSetInputValue } from "../contexts";
 
 export const InputBar: React.FC = () => {
-  const { value, setValue, submit, placeholder } = useInputContext();
+  const value = useInputValue();
+  const setValue = useSetInputValue();
+  const submit = useInputSubmit();
+  const placeholder = useInputPlaceholder();
   const { routes } = useRoutes();
   const navigate = useNavigate();
 
   const onSubmit = useCallback(
-    (value: string) => {
+    async (text: string) => {
+      if (!text.trim()) {
+        return;
+      }
+
       const foundRoute = routes.find((route) => route.path.trim() === value.trim());
       if (foundRoute) {
         setValue("");
@@ -18,9 +25,9 @@ export const InputBar: React.FC = () => {
         return;
       }
 
-      submit(value);
+      await submit(value);
     },
-    [navigate, routes, setValue, submit],
+    [navigate, routes, setValue, submit, value],
   );
 
   return (

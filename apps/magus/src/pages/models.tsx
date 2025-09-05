@@ -3,7 +3,7 @@ import { useStderr } from "ink";
 import SelectInput from "ink-select-input";
 import { useCallback, useMemo } from "react";
 import { useLoaderData, useNavigate, type RouteObject } from "react-router";
-import { useInputContext, useServerContext } from "../contexts";
+import { useInputValue, useServerContext, useSetInputValue, useStackedRouteInput } from "../contexts";
 
 // Create a fuzzy regex pattern by escaping special characters and inserting .* between each character
 const createFuzzyRegex = (input: string): RegExp => {
@@ -23,7 +23,8 @@ const createFuzzyRegex = (input: string): RegExp => {
 
 export const Models = () => {
   const models = useLoaderData<ModelSelect[]>();
-  const { value, setValue } = useInputContext();
+  const value = useInputValue();
+  const setValue = useSetInputValue();
   const navigate = useNavigate();
   const { server } = useServerContext();
   const stderr = useStderr();
@@ -62,6 +63,15 @@ export const Models = () => {
     },
     [navigate, server.url, setValue, stderr],
   );
+
+  useStackedRouteInput({
+    intercept: true,
+    clearOnSubmit: false,
+    placeholder: "Filter models...",
+    onSubmit: () => {
+      // no-op intercept to prevent InputBar submit fallback; selection handled via onSelect list UI
+    },
+  });
 
   return <SelectInput items={items} onSelect={onSelection} />;
 };

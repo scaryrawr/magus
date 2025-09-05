@@ -35,20 +35,20 @@ export const Chat = () => {
 
   useEffect(() => {
     if (initialMessage && messages.length === 0) {
-      sendMessage({ text: initialMessage });
+      void sendMessage({ text: initialMessage });
     }
   }, [initialMessage, messages.length, sendMessage]);
 
   useInput((_, key) => {
     if (key.escape) {
-      stop();
+      void stop();
     }
   });
 
   const onSubmit = useCallback(
     (text: string) => {
       if (text.trim()) {
-        sendMessage({ text });
+        void sendMessage({ text });
       }
     },
     [sendMessage],

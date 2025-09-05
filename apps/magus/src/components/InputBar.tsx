@@ -21,7 +21,8 @@ export const InputBar: React.FC = () => {
       const foundRoute = routes.find((route) => route.path.trim() === value.trim());
       if (foundRoute) {
         setValue("");
-        navigate(foundRoute.path);
+        // navigate from react-router returns void | Promise (ignore intentionally)
+        void navigate(foundRoute.path);
         return;
       }
 
@@ -33,7 +34,15 @@ export const InputBar: React.FC = () => {
   return (
     <Box borderStyle="round" minHeight={3} width="100%">
       <Text>Input: </Text>
-      <TextInput value={value} placeholder={placeholder} onChange={setValue} onSubmit={onSubmit} />
+      <TextInput
+        value={value}
+        placeholder={placeholder}
+        onChange={setValue}
+        // Avoid passing a promise-returning callback directly. Wrap to explicitly ignore promise.
+        onSubmit={(text) => {
+          void onSubmit(text);
+        }}
+      />
     </Box>
   );
 };

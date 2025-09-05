@@ -27,7 +27,7 @@ export const modelsRouter = (state: ServerState) => {
 
       return c.json(modelsCache);
     })
-    .get("/model", async (c) => {
+    .get("/model", (c) => {
       if (!state.model) {
         return c.text("No model selected", 404);
       }
@@ -60,7 +60,7 @@ export const modelsRouter = (state: ServerState) => {
         return c.text(`Provider: ${providerId} not found`, 404);
       }
     })
-    .post("/model", zValidator("json", ModelSelectSchema), async (c) => {
+    .post("/model", zValidator("json", ModelSelectSchema), (c) => {
       const selection: ModelSelect = c.req.valid("json");
       const provider = state.providers[selection.provider];
       if (!provider) {

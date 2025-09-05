@@ -56,7 +56,7 @@ export const createTodoTool = () => {
       description: "A tool for managing a todo list. You can add, update, and list todo items.",
       inputSchema: TodoInputSchema,
       outputSchema: TodoOutputSchema,
-      execute: async (input): Promise<TodoOutput> => {
+      execute: (input): TodoOutput => {
         switch (input.command) {
           case "add": {
             const newTodo: TodoItem = {

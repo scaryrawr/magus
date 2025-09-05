@@ -203,7 +203,9 @@ export class ShellSession {
 
       const resetTimer = () => {
         if (timer) clearTimeout(timer);
-        timer = setTimeout(settle, idleMs);
+        timer = setTimeout(() => {
+          void settle();
+        }, idleMs);
         idleMs = 50;
       };
 

@@ -60,11 +60,11 @@ const createMagusServer = () => {
 
   const server = listen();
   const client = hc<MagusRoutes>(server.url.href);
-  client.v0.models.$get().then(async (modelResponse) => {
+  void client.v0.models.$get().then(async (modelResponse) => {
     const models = ModelsResultSchema.parse(await modelResponse.json());
 
     // Just select the first model
-    client.v0.model.$post({
+    void client.v0.model.$post({
       json: models[0],
     });
   });

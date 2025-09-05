@@ -44,7 +44,8 @@ export const Chats = () => {
 
   const onSelection = useCallback(
     ({ value: chat }: { label: string; value: ChatSummary }) => {
-      navigate(`/chat/${chat.id}`);
+      // navigate may return a promise; intentionally ignore
+      void navigate(`/chat/${chat.id}`);
       setValue("");
     },
     [navigate, setValue],

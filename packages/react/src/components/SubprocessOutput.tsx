@@ -90,7 +90,8 @@ export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, arg
 
     // Start reading stream
     const abortController = new AbortController();
-    readOutput(abortController.signal);
+    // fire and forget read loop
+    void readOutput(abortController.signal);
 
     return () => {
       abortController.abort();
@@ -109,7 +110,7 @@ export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, arg
   // When the process exits, flush any buffered text into segments
   React.useEffect(() => {
     let disposed = false;
-    process.exited.then(() => {
+    void process.exited.then(() => {
       if (disposed) return;
       const tail = parserRef.current.flush();
       appendSegments(tail);

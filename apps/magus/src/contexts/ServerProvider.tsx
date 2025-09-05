@@ -19,6 +19,8 @@ export const ServerProvider: React.FC<ServerProviderProps> = ({ createServer, ch
 
   useEffect(() => {
     return () => {
+      // Explicitly ignore any returned promise (if any) from stop
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       serverState.server.stop();
     };
   }, [serverState.server]);

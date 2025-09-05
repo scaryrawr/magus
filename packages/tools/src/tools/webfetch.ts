@@ -34,7 +34,7 @@ export const webfetch = async (
   try {
     const response = await fetch(url, { signal: abortController.signal });
     if (!response.ok) {
-      throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
+      throw new Error(`Failed to fetch ${url.href}: ${response.statusText}`);
     }
 
     const arrayBuffer = await response.arrayBuffer();
@@ -69,10 +69,10 @@ export const createWebFetchTool = () => {
       HTML content will be converted to markdown format for easier reading and processing.`,
       inputSchema: WebFetchInputSchema,
       outputSchema: WebFetchOutputSchema,
-      execute: async (input): Promise<WebFetchOutput> => {
-        return await webfetch(input, {
-          toMarkdown: async (content: string) => {
-            return turndownService.turndown(content);
+      execute: (input): Promise<WebFetchOutput> => {
+        return webfetch(input, {
+          toMarkdown: (content: string) => {
+            return Promise.resolve(turndownService.turndown(content));
           },
         });
       },

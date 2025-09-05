@@ -19,7 +19,7 @@ async function ensureDir(dir: string) {
 async function readJson<T>(filePath: string, schema: ZodSchema<T>): Promise<T | undefined> {
   try {
     const data = await fs.readFile(filePath, "utf8");
-    const parsed = JSON.parse(data);
+    const parsed: unknown = JSON.parse(data);
     return schema.parse(parsed);
   } catch {
     // If file doesn't exist or parse fails, return undefined

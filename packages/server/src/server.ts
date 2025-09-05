@@ -20,13 +20,12 @@ export const createServer = <MProviders extends MagusProvider = MagusProvider>(
   const routes = app
     .route("/v0", chatRouter(state))
     .route("/v0", modelsRouter(state))
-    .get("/v0/sse", async (c) => {
+    .get("/v0/sse", (c) => {
       return streamSSE(c, async (stream) => {
         const modelChangeCallback = (value: LanguageModel | undefined) => {
           const data = langueModelToModelSelect(value);
           if (!data) return;
-
-          stream.writeSSE({
+          void stream.writeSSE({
             data: JSON.stringify(data),
             event: "model-change",
           });

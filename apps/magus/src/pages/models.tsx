@@ -55,10 +55,13 @@ export const Models = () => {
           },
         });
       } catch (e) {
-        stderr.write(`Failed to switch models: ${e}\n`);
+        // Coerce error to string explicitly for eslint @typescript-eslint/restrict-template-expressions
+        const message = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+        stderr.write(`Failed to switch models: ${message}\n`);
       }
 
-      navigate(-1);
+      // ignore promise result if any
+      void navigate(-1);
       setValue("");
     },
     [navigate, server.url, setValue, stderr],
@@ -73,7 +76,15 @@ export const Models = () => {
     },
   });
 
-  return <SelectInput items={items} limit={5} onSelect={onSelection} />;
+  return (
+    <SelectInput
+      items={items}
+      limit={5}
+      onSelect={(item) => {
+        void onSelection(item);
+      }}
+    />
+  );
 };
 
 export const createModelRoute = (client: MagusClient) => {

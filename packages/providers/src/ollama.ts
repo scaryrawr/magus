@@ -96,16 +96,18 @@ export const createOllamaProvider = ({ origin = "http://localhost:11434" }: Olla
               method: "POST",
             });
 
-            const data = await modelResponse.json();
-            const info: OllamaShow = OllamaShowSchema.parse(data);
+            const raw = await modelResponse.json();
+            const info: OllamaShow = OllamaShowSchema.parse(raw);
+            const contextKey = `${info.model_info["general.architecture"]}.context_length` as const;
+            const contextLength =
+              typeof info.model_info[contextKey] === "number" ? info.model_info[contextKey] : DEFAULT_CONTEXT_LENGTH;
 
             return {
-              context_length:
-                info.model_info[`${info.model_info["general.architecture"]}.context_length`] || DEFAULT_CONTEXT_LENGTH,
+              context_length: contextLength,
               id: m.model,
               reasoning: info.capabilities.includes("thinking"),
               tool_use: info.capabilities.includes("tools"),
-            };
+            } satisfies ModelInfo;
           }),
         );
       },

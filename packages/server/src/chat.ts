@@ -27,10 +27,7 @@ export const chatRouter = (state: ServerState) => {
         messages: convertToModelMessages(messages),
         model: state.model,
         tools,
-        stopWhen: async ({ steps }) => {
-          // it's over 9000
-          return steps.length > 9000;
-        },
+        stopWhen: ({ steps }) => steps.length > 9000,
         system: state.systemPrompt,
       });
       return result.toUIMessageStreamResponse({

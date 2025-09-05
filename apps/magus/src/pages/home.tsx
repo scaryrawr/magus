@@ -19,7 +19,7 @@ export const Home = () => {
       }
 
       const { chatId } = await res.json();
-      navigate(`/chat/${chatId}`, {
+      void navigate(`/chat/${chatId}`, {
         state: { text },
       });
     },

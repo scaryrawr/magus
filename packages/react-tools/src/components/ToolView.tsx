@@ -98,7 +98,7 @@ export const ToolView: React.FC<UIToolProps> = ({ part }) => {
         }, "");
         break;
       default:
-        message = String(input);
+        message = "";
         break;
     }
   }

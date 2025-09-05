@@ -10,8 +10,10 @@ export const ModelInfoSchema = z.object({
 
 export type ModelInfo = z.infer<typeof ModelInfoSchema>;
 
-export interface MagusProvider {
-  readonly name: string;
-  model(id: string): LanguageModel;
-  models(): Promise<ModelInfo[]>;
-}
+export type MagusProvider = Record<
+  string,
+  {
+    model(id: string): LanguageModel;
+    models(): Promise<ModelInfo[]>;
+  }
+>;

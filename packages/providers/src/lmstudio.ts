@@ -27,21 +27,22 @@ export const createLmStudioProvider = ({ origin = "http://localhost:1234" }: LmS
   });
 
   return {
-    name: "lmstudio",
-    model: (id: string) => lmstudio(id),
-    models: async () => {
-      const response = await fetch(`${origin}/api/v0/models`);
-      const data: LmStudioModelInfo = LmStudioModelInfoSchema.parse(await response.json());
+    lmstudio: {
+      model: (id: string) => lmstudio(id),
+      models: async () => {
+        const response = await fetch(`${origin}/api/v0/models`);
+        const data: LmStudioModelInfo = LmStudioModelInfoSchema.parse(await response.json());
 
-      const models = data.data;
-      return models
-        .filter((m) => m.type !== "embeddings")
-        .map((m) => ({
-          context_length: m.max_context_length,
-          id: m.id,
-          reasoning: true,
-          tool_use: m.capabilities?.includes("tool_use") ?? false,
-        }));
+        const models = data.data;
+        return models
+          .filter((m) => m.type !== "embeddings")
+          .map((m) => ({
+            context_length: m.max_context_length,
+            id: m.id,
+            reasoning: true,
+            tool_use: m.capabilities?.includes("tool_use") ?? false,
+          }));
+      },
     },
   } as const satisfies MagusProvider;
 };

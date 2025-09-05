@@ -83,31 +83,32 @@ export const createOllamaProvider = ({ origin = "http://localhost:11434" }: Olla
   });
 
   return {
-    name: "ollama",
-    model: (id: string) => ollama(id),
-    models: async (): Promise<ModelInfo[]> => {
-      const response = await fetch(`${origin}/api/tags`);
-      const data: OllamaTags = OllamaTagsSchema.parse(await response.json());
-      return Promise.all(
-        data.models.map<Promise<ModelInfo>>(async (m) => {
-          const modelResponse = await fetch(`${origin}/api/show`, {
-            body: JSON.stringify({ model: m.model }),
-            headers: { "Content-Type": "application/json" },
-            method: "POST",
-          });
+    ollama: {
+      model: (id: string) => ollama(id),
+      models: async (): Promise<ModelInfo[]> => {
+        const response = await fetch(`${origin}/api/tags`);
+        const data: OllamaTags = OllamaTagsSchema.parse(await response.json());
+        return Promise.all(
+          data.models.map<Promise<ModelInfo>>(async (m) => {
+            const modelResponse = await fetch(`${origin}/api/show`, {
+              body: JSON.stringify({ model: m.model }),
+              headers: { "Content-Type": "application/json" },
+              method: "POST",
+            });
 
-          const data = await modelResponse.json();
-          const info: OllamaShow = OllamaShowSchema.parse(data);
+            const data = await modelResponse.json();
+            const info: OllamaShow = OllamaShowSchema.parse(data);
 
-          return {
-            context_length:
-              info.model_info[`${info.model_info["general.architecture"]}.context_length`] || DEFAULT_CONTEXT_LENGTH,
-            id: m.model,
-            reasoning: info.capabilities.includes("thinking"),
-            tool_use: info.capabilities.includes("tools"),
-          };
-        }),
-      );
+            return {
+              context_length:
+                info.model_info[`${info.model_info["general.architecture"]}.context_length`] || DEFAULT_CONTEXT_LENGTH,
+              id: m.model,
+              reasoning: info.capabilities.includes("thinking"),
+              tool_use: info.capabilities.includes("tools"),
+            };
+          }),
+        );
+      },
     },
   } as const satisfies MagusProvider;
 };

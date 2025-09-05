@@ -30,7 +30,11 @@ export const ChatBox: React.FC<UIMessage> = ({ role, parts }) => {
           case "text":
             return <Markdown key={index}>{part.text}</Markdown>;
           case "reasoning":
-            return <Text dimColor>{part.text}</Text>;
+            return (
+              <Text dimColor key={index}>
+                {part.text}
+              </Text>
+            );
           default:
             //stderr.write(`Undisplayed message part type: ${part.type}\n`);
             return null;

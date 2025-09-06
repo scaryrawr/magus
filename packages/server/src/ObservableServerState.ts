@@ -12,6 +12,29 @@ export class ObservableServerState extends EventEmitter<ServerStateEvents> imple
     super();
   }
 
+  get prompt() {
+    let prompt = "";
+    if (this.systemPrompt) {
+      prompt += `${this.systemPrompt}\n\n`;
+    }
+
+    if (this.#instructions) {
+      prompt += `${this.#instructions.join("\n\n")}`;
+    }
+
+    return prompt;
+  }
+
+  #instructions: string[] | undefined;
+  get instructions() {
+    return this.#instructions ? [...this.#instructions] : undefined;
+  }
+
+  set instructions(value: string[] | undefined) {
+    this.#instructions = value;
+    this.emit("change:instructions", this.instructions);
+  }
+
   get chatStore() {
     return this.state.chatStore;
   }

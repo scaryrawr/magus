@@ -1,9 +1,9 @@
+import { ModelInfoSchema, type MagusProvider, type ModelInfo } from "@magus/providers";
 import { type LanguageModel } from "ai";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { Hono } from "hono";
-import { ModelInfoSchema, type MagusProvider, type ModelInfo } from "../../../packages/providers/src/types";
+import { ModelSelectSchema, type ServerState } from "../types";
 import { modelsRouter } from "./models";
-import { ModelSelectSchema, type ServerState } from "./types";
 
 // Mock LanguageModel implementation
 function createMockLanguageModel(modelId: string, provider: string): LanguageModel & { provider: string } {
@@ -65,6 +65,9 @@ beforeEach(() => {
     model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
     tools: undefined,
     chatStore: undefined!,
+    instructions: undefined,
+    prompt: undefined,
+    systemPrompt: undefined,
   };
 
   app.route("/v0", modelsRouter(state));
@@ -96,6 +99,9 @@ describe("Models Endpoints", () => {
         model: createMockLanguageModel("test", "empty"),
         tools: undefined,
         chatStore: undefined!,
+        instructions: undefined,
+        prompt: undefined,
+        systemPrompt: undefined,
       };
 
       emptyApp.route("/v0", modelsRouter(emptyState));
@@ -178,6 +184,9 @@ describe("Models Endpoints", () => {
         model: "string-model", // This will trigger the error case
         tools: undefined,
         chatStore: undefined!,
+        instructions: undefined,
+        prompt: undefined,
+        systemPrompt: undefined,
       };
 
       freshApp.route("/v0", modelsRouter(freshState));
@@ -196,6 +205,9 @@ describe("Models Endpoints", () => {
         model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
         tools: undefined,
         chatStore: undefined!,
+        instructions: undefined,
+        prompt: undefined,
+        systemPrompt: undefined,
       };
 
       freshApp.route("/v0", modelsRouter(freshState));
@@ -267,6 +279,9 @@ describe("Models Endpoints", () => {
         model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
         tools: undefined,
         chatStore: undefined!,
+        instructions: undefined,
+        prompt: undefined,
+        systemPrompt: undefined,
       };
       freshApp.route("/v0", modelsRouter(freshState));
 

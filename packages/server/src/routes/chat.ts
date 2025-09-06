@@ -1,7 +1,7 @@
 import { type UIMessage, convertToModelMessages, createIdGenerator, streamText } from "ai";
 import { Hono } from "hono";
-import type { RouterFactory } from "./server";
-import type { ServerState } from "./types";
+import type { ServerState } from "../types";
+import type { RouterFactory } from "./types";
 
 export const chatRouter = (state: ServerState) => {
   const router = new Hono();

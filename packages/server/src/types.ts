@@ -44,10 +44,12 @@ export type ServerStateConfig<MProvider extends MagusProvider = MagusProvider> =
 
 export type ServerState = {
   providers: MagusProvider;
-  model?: LanguageModel | undefined;
-  systemPrompt?: string | undefined;
+  model: LanguageModel | undefined;
+  readonly prompt: string | undefined;
+  systemPrompt: string | undefined;
+  instructions: string[] | undefined;
   readonly chatStore: ChatStore;
-  tools?: ToolSet | undefined;
+  tools: ToolSet | undefined;
 };
 
 export const ModelSelectSchema = z.object({

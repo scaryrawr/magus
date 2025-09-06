@@ -1,7 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
-import type { RouterFactory } from "./server";
-import { ModelSelectSchema, type ModelSelect, type ServerState } from "./types";
+import { ModelSelectSchema, type ModelSelect, type ServerState } from "../types";
+import type { RouterFactory } from "./types";
 
 export const modelsRouter = (state: ServerState) => {
   const router = new Hono();
@@ -60,7 +60,7 @@ export const modelsRouter = (state: ServerState) => {
         return c.text(`Provider: ${providerId} not found`, 404);
       }
     })
-    .post("/model", zValidator("json", ModelSelectSchema), (c) => {
+    .put("/model", zValidator("json", ModelSelectSchema), (c) => {
       const selection: ModelSelect = c.req.valid("json");
       const provider = state.providers[selection.provider];
       if (!provider) {

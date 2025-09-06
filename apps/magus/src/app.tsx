@@ -19,13 +19,13 @@ import { Banner } from "./components";
 import { ChatContextProvider, RoutesProvider, ServerProvider } from "./contexts";
 import { MagusRouterProvider } from "./routes";
 
-const providers = {
-  ...createOllamaProvider(),
-  ...createLmStudioProvider(),
-  ...(process.env.OPENROUTER_API_KEY ? createOpenRouterProvider(process.env.OPENROUTER_API_KEY) : undefined),
-};
-
 const createMagusServer = () => {
+  const providers = {
+    ...createOllamaProvider(),
+    ...createLmStudioProvider(),
+    ...(process.env.OPENROUTER_API_KEY ? createOpenRouterProvider(process.env.OPENROUTER_API_KEY) : undefined),
+  };
+
   const sharedToolset = {
     ...createGrepTool(),
     ...createFindTool(),
@@ -64,7 +64,7 @@ const createMagusServer = () => {
     const models = ModelsResultSchema.parse(await modelResponse.json());
 
     // Just select the first model
-    void client.v0.model.$post({
+    void client.v0.model.$put({
       json: models[0],
     });
   });

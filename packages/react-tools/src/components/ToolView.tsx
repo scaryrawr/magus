@@ -5,6 +5,7 @@ import type {
   InsertToolSet,
   ShellToolSet,
   StringReplaceToolSet,
+  TodoToolSet,
   ViewToolSet,
 } from "@magus/tools";
 import type { ToolUIPart, UIDataTypes, UIMessagePart, UITools } from "ai";
@@ -16,6 +17,7 @@ import { FileInsertView } from "./file-insert";
 import { GrepView } from "./grep";
 import { ShellView } from "./shell";
 import { StringReplaceView } from "./string-replace";
+import { TodoView } from "./todo";
 import type { UIToolProps } from "./types";
 import { ViewFileView } from "./view-file";
 
@@ -47,6 +49,7 @@ export const ToolView: React.FC<UIToolProps> = ({ part }) => {
         StringReplaceToolSet &
         ShellToolSet &
         InsertToolSet &
+        TodoToolSet &
         ViewToolSet
     >
   >({
@@ -57,6 +60,7 @@ export const ToolView: React.FC<UIToolProps> = ({ part }) => {
     "tool-shell": ShellView,
     "tool-replace": StringReplaceView,
     "tool-view": ViewFileView,
+    "tool-todo": TodoView,
   }).current;
 
   if (!isToolPart(part)) {

@@ -8,16 +8,22 @@ export type Dimensions = {
 
 export const useStdoutDimensions = () => {
   const { stdout } = useStdout();
-  const [dimensions, setDimensions] = useState<Dimensions>({
+  const [dimensions, setDimensions] = useState<Dimensions>(() => ({
     columns: stdout.columns,
     rows: stdout.rows,
-  });
+  }));
 
   useEffect(() => {
     const updateDimensions = () => {
-      setDimensions({
-        columns: stdout.columns,
-        rows: stdout.rows,
+      setDimensions((previous) => {
+        if (previous.columns === stdout.columns && previous.rows === stdout.rows) {
+          return previous;
+        }
+
+        return {
+          columns: stdout.columns,
+          rows: stdout.rows,
+        };
       });
     };
 

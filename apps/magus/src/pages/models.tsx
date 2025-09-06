@@ -26,7 +26,7 @@ export const Models = () => {
   const value = useInputValue();
   const setValue = useSetInputValue();
   const navigate = useNavigate();
-  const { server } = useServerContext();
+  const { client } = useServerContext();
   const stderr = useStderr();
 
   const items = useMemo(() => {
@@ -45,15 +45,8 @@ export const Models = () => {
 
   const onSelection = useCallback(
     async ({ value: model }: { label: string; value: ModelSelect }) => {
-      const modelUrl = new URL("/v0/model", server.url);
       try {
-        await fetch(modelUrl, {
-          body: JSON.stringify(model),
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        await client.v0.model.$put({ json: model });
       } catch (e) {
         // Coerce error to string explicitly for eslint @typescript-eslint/restrict-template-expressions
         const message = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
@@ -64,7 +57,7 @@ export const Models = () => {
       void navigate(-1);
       setValue("");
     },
-    [navigate, server.url, setValue, stderr],
+    [client.v0.model, navigate, setValue, stderr],
   );
 
   useStackedRouteInput({

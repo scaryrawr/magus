@@ -28,7 +28,7 @@ export const chatRouter = (state: ServerState) => {
         model: state.model,
         tools,
         stopWhen: ({ steps }) => steps.length > 9000,
-        system: state.systemPrompt,
+        system: state.prompt,
       });
       return result.toUIMessageStreamResponse({
         originalMessages: messages,

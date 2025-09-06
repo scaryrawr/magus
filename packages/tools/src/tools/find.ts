@@ -183,7 +183,9 @@ export const createFindTool = () => {
       description: `Recursively search for files with a given name pattern.
       This tool is essential for locating files in the codebase by filename or pattern.
       Use this tool when you need to find specific files, such as configuration files, source code files, or test files.
-      It's particularly useful for exploring the project structure and finding files that match specific naming conventions.`,
+      It's particularly useful for exploring the project structure and finding files that match specific naming conventions.
+      
+      Never use 'ls -R' and use the 'find' tool instead.`,
       inputSchema: FindInputSchema,
       outputSchema: FindOutputSchema,
       execute: async (input): Promise<FindOutput> => {

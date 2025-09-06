@@ -15,7 +15,6 @@ export {
 } from "./editor";
 export type {
   CreateFileInput,
-  // ToolSet types
   CreateFileToolSet,
   DiffOutput,
   EditorOutput,

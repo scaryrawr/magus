@@ -1,33 +1,51 @@
 import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 
-const TodoStatusSchema = z.enum(["open", "complete", "cancelled"]).describe("The current status of the todo item");
+// Updated status values to align with codex.md guidance.
+const TodoStatusSchema = z
+  .enum(["pending", "in_progress", "completed", "removed"])
+  .describe("The current status of the todo step");
 
 const TodoItemSchema = z.object({
-  id: z.string().describe("The unique identifier for the todo."),
-  task: z.string().describe("The description of the task to perform to complete this todo item."),
+  id: z.string().describe("Unique identifier for the step."),
+  description: z.string().describe("Short (<=7 words) description of the step."),
   status: TodoStatusSchema,
 });
 
 type TodoItem = z.infer<typeof TodoItemSchema>;
 
+// We keep a command-based interface for backwards compatibility, but
+// adapt semantics to enforce exactly one in_progress item.
 const AddTodoInputSchema = z.object({
-  command: z.literal("add").describe("Add a new todo item."),
-  description: z.string().describe("The description of the task to perform to complete this todo item."),
+  command: z.literal("add"),
+  steps: z.array(
+    z
+      .object({
+        description: z.string().describe("Short description for the new step."),
+        status: TodoStatusSchema.optional().describe("Initial status (defaults to pending).").default("pending"),
+      })
+      .describe("List of steps to add. Each step will be added with status 'pending'."),
+  ),
 });
 
 const UpdateTodoInputSchema = z.object({
-  command: z.literal("update").describe("Update the status of an existing todo item."),
-  id: z.string().describe("The unique identifier of the todo to update."),
-  status: TodoStatusSchema.describe("The new status of the todo item."),
+  command: z.literal("update"),
+  states: z
+    .array(
+      z.object({
+        id: z.string(),
+        status: TodoStatusSchema,
+      }),
+    )
+    .describe("List of step states to update and the status to update them to."),
 });
 
 const ListTodosInputSchema = z.object({
-  command: z.literal("list").describe("List all todo items."),
+  command: z.literal("list"),
 });
 
 const ClearTodosInputSchema = z.object({
-  command: z.literal("clear").describe("Clear all todo items."),
+  command: z.literal("clear"),
 });
 
 export const TodoInputSchema = z.union([
@@ -37,14 +55,12 @@ export const TodoInputSchema = z.union([
   ClearTodosInputSchema,
 ]);
 
-const ListTodosOutputSchema = z.object({
+const InternalTodoOutputSchema = z.object({
   todos: z.array(TodoItemSchema),
-  open_count: z.number().describe("The number of open todo items."),
-  total_count: z.number().describe("The total number of todo items."),
 });
 
-export const TodoOutputSchema = ListTodosOutputSchema;
-type TodoOutput = z.infer<typeof TodoOutputSchema>;
+export const TodoOutputSchema = InternalTodoOutputSchema;
+type TodoOutput = z.infer<typeof InternalTodoOutputSchema>;
 
 export const createTodoTool = () => {
   const todoItems: TodoItem[] = [];
@@ -53,31 +69,37 @@ export const createTodoTool = () => {
 
   return {
     todo: tool({
-      description: "A tool for managing a todo list. You can add, update, and list todo items.",
+      description:
+        "Manage a short execution plan. Supports add/update/set_all/list/clear with statuses pending|in_progress|completed.",
       inputSchema: TodoInputSchema,
       outputSchema: TodoOutputSchema,
       execute: (input): TodoOutput => {
         switch (input.command) {
           case "add": {
-            const newTodo: TodoItem = {
-              id: generateId(),
-              task: input.description,
-              status: "open",
-            };
-            todoItems.push(newTodo);
+            todoItems.push(
+              ...input.steps.map((s) => ({
+                id: generateId(),
+                description: s.description,
+                status: s.status ?? "pending",
+              })),
+            );
             break;
           }
           case "update": {
-            const todo = todoItems.find((t) => t.id === input.id);
-            if (!todo) {
-              throw new Error(`Todo item with id ${input.id} not found.`);
+            for (const state of input.states) {
+              if (todoItems.find((step) => step.id === state.id) === undefined) {
+                throw new Error(`Todo item with id ${state.id} not found.`);
+              }
             }
-            todo.status = input.status;
+
+            for (const state of input.states) {
+              const todo = todoItems.find((t) => t.id === state.id);
+              if (todo) todo.status = state.status;
+            }
             break;
           }
-          case "list": {
+          case "list":
             break;
-          }
           case "clear": {
             todoItems.length = 0;
             break;
@@ -86,10 +108,16 @@ export const createTodoTool = () => {
             throw new Error("Invalid command");
         }
 
+        // If all completed, zero in_progress is acceptable; else enforce exactly one.
+        const allCompleted = todoItems.length > 0 && todoItems.every((t) => t.status === "completed");
+        if (!allCompleted && todoItems.length > 0 && !todoItems.some((t) => t.status === "in_progress")) {
+          // Promote first pending if any.
+          const firstPending = todoItems.find((t) => t.status === "pending");
+          if (firstPending) firstPending.status = "in_progress";
+        }
+
         return {
           todos: todoItems,
-          total_count: todoItems.length,
-          open_count: todoItems.filter((t) => t.status === "open").length,
         };
       },
     }),

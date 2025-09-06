@@ -196,7 +196,7 @@ describe("Models Endpoints", () => {
     });
   });
 
-  describe("POST /v0/model", () => {
+  describe("PUT /v0/model", () => {
     it("should successfully change the current model", async () => {
       // Create a fresh app and state for this test to avoid interference
       const freshApp = new Hono();
@@ -218,7 +218,7 @@ describe("Models Endpoints", () => {
       };
 
       const res = await freshApp.request("/v0/model", {
-        method: "POST",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -240,7 +240,7 @@ describe("Models Endpoints", () => {
 
     it("should return 404 for unknown provider", async () => {
       const res = await app.request("/v0/model", {
-        method: "POST",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -257,7 +257,7 @@ describe("Models Endpoints", () => {
 
     it("should validate request body against schema", async () => {
       const res = await app.request("/v0/model", {
-        method: "POST",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -286,7 +286,7 @@ describe("Models Endpoints", () => {
       freshApp.route("/v0", modelsRouter(freshState));
 
       const res = await freshApp.request("/v0/model", {
-        method: "POST",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },

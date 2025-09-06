@@ -24,7 +24,7 @@ type ToolBoxProps = React.PropsWithChildren;
 const ToolBox: React.FC<ToolBoxProps> = ({ children }) => {
   if (!children) return null;
   return (
-    <Box borderStyle="single" borderDimColor borderColor="yellow" flexDirection="column" width="80%" alignSelf="center">
+    <Box borderColor="blueBright" borderLeft={false} borderRight={false} borderStyle="double" flexDirection="column">
       {children}
     </Box>
   );

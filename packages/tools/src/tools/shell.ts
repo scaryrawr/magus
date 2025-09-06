@@ -206,7 +206,7 @@ export class ShellSession {
         timer = setTimeout(() => {
           void settle();
         }, idleMs);
-        idleMs = 50;
+        idleMs = 500;
       };
 
       const readStdout = async (abortSignal: AbortSignal) => {

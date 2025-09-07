@@ -13,10 +13,10 @@
     "@types/turndown": "^5.0.5"
   },
   "peerDependencies": {
-    "typescript": "catalog:ts"
+    "typescript": "catalog:ts",
+    "zod": "catalog:"
   },
   "dependencies": {
-    "env-paths": "^3.0.0",
-    "zod": "catalog:"
+    "env-paths": "^3.0.0"
   }
 }

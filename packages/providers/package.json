@@ -10,13 +10,13 @@
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^1.0.7",
-    "ai": "catalog:",
-    "zod": "catalog:"
+    "ai": "catalog:"
   },
   "devDependencies": {
     "@types/bun": "catalog:ts"
   },
   "peerDependencies": {
-    "typescript": "catalog:ts"
+    "typescript": "catalog:ts",
+    "zod": "catalog:"
   }
 }

@@ -12,13 +12,13 @@
     "@hono/zod-validator": "^0.7.2",
     "@magus/providers": "workspace:*",
     "ai": "catalog:",
-    "hono": "catalog:",
-    "zod": "catalog:"
+    "hono": "catalog:"
   },
   "devDependencies": {
     "@types/bun": "catalog:ts"
   },
   "peerDependencies": {
-    "typescript": "catalog:ts"
+    "typescript": "catalog:ts",
+    "zod": "catalog:"
   }
 }

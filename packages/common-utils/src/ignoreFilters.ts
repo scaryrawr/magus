@@ -1,9 +1,8 @@
 import ignore from "ignore";
-import { readFileSync } from "node:fs";
 
 export const DEFAULT_IGNORE_PATTERNS = [".git", ".yarn", ".backfill", "node_modules"];
 
-export function gitignoreFilter(rootDir: string) {
+export async function gitignoreFilter(rootDir: string) {
   const ig = ignore({
     ignorecase: true,
     allowRelativePaths: true,
@@ -13,7 +12,7 @@ export function gitignoreFilter(rootDir: string) {
 
   try {
     const gitignorePath = `${rootDir}/.gitignore`;
-    const gitignoreContent = readFileSync(gitignorePath, "utf-8");
+    const gitignoreContent = await Bun.file(gitignorePath).text();
     ig.add(gitignoreContent);
   } catch {
     // May have failed to load .gitignore, which is fine, just use defaults.
@@ -22,4 +21,4 @@ export function gitignoreFilter(rootDir: string) {
   return ig;
 }
 
-export const gitignore = gitignoreFilter(process.cwd());
+export const gitignore = await gitignoreFilter(process.cwd());

@@ -142,7 +142,7 @@ export const findFile = async ({
 
   // Collect stdout asynchronously
   const files = [];
-  const relativeIgnore = path && path !== "." ? gitignoreFilter(path) : { ignores: () => false };
+  const relativeIgnore = path && path !== "." ? await gitignoreFilter(path) : { ignores: () => false };
   const keep = (line: string) => {
     return line.trim() && !gitignore.ignores(line) && !relativeIgnore.ignores(line);
   };

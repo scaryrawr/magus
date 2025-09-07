@@ -175,7 +175,7 @@ export const grepFile = async ({
 
   const matches: string[] = [];
   let buffer = "";
-  const relativeIgnore = path && path !== "." ? gitignoreFilter(path) : { ignores: () => false };
+  const relativeIgnore = path && path !== "." ? await gitignoreFilter(path) : { ignores: () => false };
   const keep = (line: string) => !gitignore.ignores(line) && !relativeIgnore.ignores(line);
 
   for await (const chunk of proc.stdout) {

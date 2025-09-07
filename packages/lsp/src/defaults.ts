@@ -1,5 +1,6 @@
 import path from "node:path";
 import type { LspConfig } from "./lspManager";
+import { LspManager } from "./lspManager";
 
 export interface BuildDefaultsOptions {
   /** root directory for project (default: process.cwd()) */
@@ -168,9 +169,8 @@ export function buildDefaultConfigs(opts: BuildDefaultsOptions = {}): LspConfig[
   });
 }
 
-export async function createDefaultLspManager(options: BuildDefaultsOptions = {}) {
+export function createDefaultLspManager(options: BuildDefaultsOptions = {}) {
   const configs = buildDefaultConfigs(options);
-  const { LspManager } = await import("./lspManager");
   return new LspManager(configs, options.rootDir);
 }
 

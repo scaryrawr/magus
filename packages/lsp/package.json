@@ -1,0 +1,19 @@
+{
+  "name": "@magus/lsp",
+  "module": "src/index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@magus/common-utils": "workspace:*",
+    "chokidar": "^4.0.3",
+    "ignore": "^7.0.5",
+    "vscode-jsonrpc": "^8.2.1",
+    "vscode-languageserver-protocol": "^3.17.5",
+    "vscode-uri": "^3.1.0"
+  }
+}

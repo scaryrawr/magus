@@ -12,7 +12,7 @@
 
 import { tool, type ToolSet } from "ai";
 import { z } from "zod";
-const { spawnSync, spawn } = Bun;
+const { spawn } = Bun;
 
 /**
  * Determines the appropriate shell to use based on the operating system.
@@ -26,31 +26,13 @@ const { spawnSync, spawn } = Bun;
  */
 const calculateShell = () => {
   if (process.platform === "win32") {
-    try {
-      spawnSync(["pwsh", "--version"]);
-      return "pwsh";
-    } catch {
-      // ignore and fall back to powershell
-    }
-
+    if (Bun.which("pwsh")) return "pwsh";
     return "powershell";
   }
 
   // POSIX preference: zsh -> bash -> sh
-  try {
-    spawnSync(["zsh", "--version"]);
-    return "zsh";
-  } catch {
-    // zsh not available
-  }
-
-  try {
-    spawnSync(["bash", "--version"]);
-    return "bash";
-  } catch {
-    // bash not available
-  }
-
+  if (Bun.which("zsh")) return "zsh";
+  if (Bun.which("bash")) return "bash";
   return "sh";
 };
 

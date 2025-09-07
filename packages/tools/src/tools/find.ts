@@ -1,56 +1,28 @@
 import { gitignore, gitignoreFilter } from "@magus/common-utils";
 import { tool, type ToolSet } from "ai";
 import { z } from "zod";
-const { spawn, spawnSync } = Bun;
+const { spawn } = Bun;
 
 const hasFd = () => {
-  try {
-    spawnSync(["fd", "--version"]);
-    return true;
-  } catch {
-    return false;
-  }
+  return !!Bun.which("fd");
 };
 
 const hasRipgrep = () => {
-  try {
-    spawnSync(["rg", "--version"]);
-    return true;
-  } catch {
-    return false;
-  }
+  return !!Bun.which("rg");
 };
 
 const hasFind = () => {
   // Don't fall for the find on windows.
   if (process.platform === "win32") return false;
-
-  try {
-    // This actually errors 🤣, cause find does not support --version.,
-    // but... it doesn't throw because find gets ran.
-    spawnSync(["find", "--version"]);
-    return true;
-  } catch {
-    return false;
-  }
+  return !!Bun.which("find");
 };
 
 const hasPwsh = () => {
-  try {
-    spawnSync(["pwsh", "--version"]);
-    return true;
-  } catch {
-    return false;
-  }
+  return !!Bun.which("pwsh");
 };
 
 const hasPowerShell = () => {
-  try {
-    spawnSync(["powershell", "--version"]);
-    return true;
-  } catch {
-    return false;
-  }
+  return !!Bun.which("powershell");
 };
 
 // Determine which find tool to use

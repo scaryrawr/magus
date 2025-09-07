@@ -8,24 +8,12 @@ const supported = ["pwsh", "powershell", "zsh", "bash", "sh"] as const;
 type Supported = (typeof supported)[number];
 
 const isInstalled = (shell: Supported) => {
-  try {
-    // pwsh works locally fine, but not in CI.
-    if ((shell === "pwsh" || shell === "powershell") && process.platform !== "win32") {
-      return false;
-    }
-
-    // --version is a safe probe for most shells; if the command exists,
-    // Bun.spawnSync will not throw even if the exit code is non-zero.
-    if (shell === "sh") {
-      // sh doesn't support --version, use a different approach
-      Bun.spawnSync([shell, "-c", "echo test"]);
-    } else {
-      Bun.spawnSync([shell, "--version"]);
-    }
-    return true;
-  } catch {
+  // pwsh works locally fine, but not in CI.
+  if ((shell === "pwsh" || shell === "powershell") && process.platform !== "win32") {
     return false;
   }
+
+  return !!Bun.which(shell);
 };
 
 const installedShells: Supported[] = supported.filter(isInstalled);

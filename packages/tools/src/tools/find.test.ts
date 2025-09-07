@@ -8,14 +8,7 @@ const supported = ["fd", "rg", "find", "pwsh", "powershell"] as const;
 type Supported = (typeof supported)[number];
 
 const isInstalled = (tool: Supported) => {
-  try {
-    // --version is a safe probe for all candidates; if the command exists,
-    // Bun.spawnSync will not throw even if the exit code is non-zero.
-    Bun.spawnSync([tool, "--version"]);
-    return true;
-  } catch {
-    return false;
-  }
+  return !!Bun.which(tool);
 };
 
 const installedTools: Supported[] = supported

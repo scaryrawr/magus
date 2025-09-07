@@ -9,14 +9,8 @@ const supported = ["rg", "grep", "findstr"] as const;
 type Supported = (typeof supported)[number];
 
 const isInstalled = (tool: Supported) => {
-  try {
-    // findstr doesn't support --version; use /? as a probe
-    const probe = tool === "findstr" ? "/?" : "--version";
-    Bun.spawnSync([tool, probe]);
-    return true;
-  } catch {
-    return false;
-  }
+  // findstr doesn't support --version; use /? as a probe
+  return !!Bun.which(tool);
 };
 
 const installedTools: Supported[] = supported.filter(isInstalled);

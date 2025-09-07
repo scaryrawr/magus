@@ -11,21 +11,13 @@ type DiffViewerProps = {
 };
 
 const getDeltaCmd = () => {
-  try {
-    Bun.spawnSync(["delta", "--version"]);
-    return "delta";
-  } catch {
-    return null;
-  }
+  if (Bun.which("delta")) return "delta";
+  return null;
 };
 
 const getBatCmd = () => {
-  try {
-    Bun.spawnSync(["bat", "--version"]);
-    return "bat";
-  } catch {
-    return null;
-  }
+  if (Bun.which("bat")) return "bat";
+  return null;
 };
 
 const getDiffViewerCmd = (() => {

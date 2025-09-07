@@ -2,35 +2,20 @@ import { DEFAULT_IGNORE_PATTERNS, gitignore, gitignoreFilter } from "@magus/comm
 import { tool, type ToolSet } from "ai";
 import { statSync } from "node:fs";
 import { z } from "zod";
-const { spawn, spawnSync } = Bun;
+const { spawn } = Bun;
 
 // Check if ripgrep is available
 const hasRipgrep = () => {
-  try {
-    spawnSync(["rg", "--version"]);
-    return true;
-  } catch {
-    return false;
-  }
+  return !!Bun.which("rg");
 };
 
 // Check if grep is available as fallback
 const hasGrep = () => {
-  try {
-    spawnSync(["grep", "--version"]);
-    return true;
-  } catch {
-    return false;
-  }
+  return !!Bun.which("grep");
 };
 
 const hasFindStr = () => {
-  try {
-    spawnSync(["findstr", "/?"]);
-    return true;
-  } catch {
-    return false;
-  }
+  return !!Bun.which("findstr");
 };
 
 // Determine which grep tool to use

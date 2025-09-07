@@ -34,6 +34,7 @@ export type {
   CreateFileToolSet,
   DiffOutput,
   EditorOutput,
+  EditorOutputPlugin,
   EditorToolSet,
   FindToolSet,
   GrepToolSet,

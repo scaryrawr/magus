@@ -2,9 +2,18 @@ import { tool, type ToolSet } from "ai";
 import { createTwoFilesPatch } from "diff";
 import { mkdir, stat } from "node:fs/promises";
 import { dirname } from "node:path";
-import { DiffOutputSchema, InsertFileSchema, type DiffOutput, type InsertFileInput } from "./types";
+import {
+  DiffOutputSchema,
+  InsertFileSchema,
+  type DiffOutput,
+  type EditorOutputPlugin,
+  type InsertFileInput,
+} from "./types";
 
-export const insert = async ({ path, line, new_str }: InsertFileInput): Promise<DiffOutput> => {
+export const insert = async (
+  { path, line, new_str }: InsertFileInput,
+  plugins?: EditorOutputPlugin,
+): Promise<DiffOutput> => {
   let content = "";
 
   try {
@@ -42,13 +51,24 @@ export const insert = async ({ path, line, new_str }: InsertFileInput): Promise<
   const updatedContent = lines.join("\n");
   await Bun.write(path, updatedContent);
 
+  const pluginResults = (
+    await Promise.all(
+      Object.entries(plugins || {}).map(async ([name, fn]) => {
+        return {
+          [name]: await fn(path),
+        };
+      }),
+    )
+  ).reduce((acc, val) => ({ ...acc, ...val }), {});
+
   const diff = createTwoFilesPatch(path, path, content, updatedContent);
   return {
+    ...pluginResults,
     diff,
   };
 };
 
-export const createInsertTool = () =>
+export const createInsertTool = (plugins?: EditorOutputPlugin) =>
   ({
     file_insert: tool({
       description: `Insert text at a specific location in a file.
@@ -58,7 +78,7 @@ Content will be added after the specified line number, with 0 to insert at the b
       inputSchema: InsertFileSchema,
       outputSchema: DiffOutputSchema,
       execute: async (input): Promise<DiffOutput> => {
-        return await insert(input);
+        return await insert(input, plugins);
       },
     }),
   }) satisfies ToolSet;

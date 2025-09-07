@@ -18,6 +18,7 @@ export type {
   CreateFileToolSet,
   DiffOutput,
   EditorOutput,
+  EditorOutputPlugin,
   EditorToolSet,
   InsertFileInput,
   InsertToolSet,

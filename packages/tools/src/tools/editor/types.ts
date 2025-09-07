@@ -56,3 +56,5 @@ export type ViewOutput = z.infer<typeof ViewOutputSchema>;
 export type CreateFileInput = Omit<z.infer<typeof CreateFileSchema>, "command">;
 export type InsertFileInput = Omit<z.infer<typeof InsertFileSchema>, "command">;
 export type StringReplaceInput = Omit<z.infer<typeof StringReplaceSchema>, "command">;
+
+export type EditorOutputPlugin = Record<string, (path: string) => string | Promise<string>>;

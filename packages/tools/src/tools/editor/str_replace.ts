@@ -1,14 +1,18 @@
 import { tool, type ToolSet } from "ai";
 import { createTwoFilesPatch } from "diff";
 import { stat } from "node:fs/promises";
-import { DiffOutputSchema, StringReplaceSchema, type DiffOutput, type StringReplaceInput } from "./types";
+import {
+  DiffOutputSchema,
+  StringReplaceSchema,
+  type DiffOutput,
+  type EditorOutputPlugin,
+  type StringReplaceInput,
+} from "./types";
 
-export const stringReplace = async ({
-  path,
-  old_str,
-  new_str,
-  replace_all,
-}: StringReplaceInput): Promise<DiffOutput> => {
+export const stringReplace = async (
+  { path, old_str, new_str, replace_all }: StringReplaceInput,
+  plugins?: EditorOutputPlugin,
+): Promise<DiffOutput> => {
   if (old_str === new_str) {
     throw new Error("No changes made: old_str and new_str are identical.");
   }
@@ -26,13 +30,25 @@ export const stringReplace = async ({
 
   const updatedContent = replace_all ? content.replaceAll(old_str, new_str) : content.replace(old_str, new_str);
   await Bun.write(path, updatedContent);
+
+  const pluginResults = (
+    await Promise.all(
+      Object.entries(plugins || {}).map(async ([name, fn]) => {
+        return {
+          [name]: await fn(path),
+        };
+      }),
+    )
+  ).reduce((acc, val) => ({ ...acc, ...val }), {});
+
   const diff = createTwoFilesPatch(path, path, content, updatedContent);
   return {
+    ...pluginResults,
     diff,
   };
 };
 
-export const createStringReplaceTool = () =>
+export const createStringReplaceTool = (plugins?: EditorOutputPlugin) =>
   ({
     replace: tool({
       description: `Replace a specific string in a file with a new string.
@@ -41,7 +57,7 @@ export const createStringReplaceTool = () =>
       inputSchema: StringReplaceSchema,
       outputSchema: DiffOutputSchema,
       execute: async (input): Promise<DiffOutput> => {
-        return await stringReplace(input);
+        return await stringReplace(input, plugins);
       },
     }),
   }) satisfies ToolSet;

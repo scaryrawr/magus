@@ -20,6 +20,7 @@ export type {
   CreateFileInput,
   DiffOutput,
   EditorOutput,
+  EditorOutputPlugin,
   InsertFileInput,
   StringReplaceInput,
   ViewInput,

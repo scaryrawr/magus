@@ -2,9 +2,18 @@ import { tool, type ToolSet } from "ai";
 import { createTwoFilesPatch } from "diff";
 import { mkdir, stat } from "node:fs/promises";
 import { dirname } from "node:path";
-import { CreateFileSchema, DiffOutputSchema, type CreateFileInput, type DiffOutput } from "./types";
+import {
+  CreateFileSchema,
+  DiffOutputSchema,
+  type CreateFileInput,
+  type DiffOutput,
+  type EditorOutputPlugin,
+} from "./types";
 
-export const createFile = async ({ path, content }: CreateFileInput): Promise<DiffOutput> => {
+export const createFile = async (
+  { path, content }: CreateFileInput,
+  plugins?: EditorOutputPlugin,
+): Promise<DiffOutput> => {
   // Ensure parent directory exists (create intermediate dirs as needed)
   const dir = dirname(path);
   try {
@@ -45,20 +54,31 @@ export const createFile = async ({ path, content }: CreateFileInput): Promise<Di
   }
 
   await Bun.write(path, content);
+  const pluginResults = (
+    await Promise.all(
+      Object.entries(plugins || {}).map(async ([name, fn]) => {
+        return {
+          [name]: await fn(path),
+        };
+      }),
+    )
+  ).reduce((acc, val) => ({ ...acc, ...val }), {});
+
   const diff = createTwoFilesPatch(path, path, previousContent, content);
   return {
+    ...pluginResults,
     diff,
   };
 };
 
-export const createCreateFileTool = () =>
+export const createCreateFileTool = (plugins?: EditorOutputPlugin) =>
   ({
     create_file: tool({
       description: `Create a new file or replace an existing file with specified content. Will create directories in file path.`,
       inputSchema: CreateFileSchema,
       outputSchema: DiffOutputSchema,
       execute: async (input): Promise<DiffOutput> => {
-        return await createFile(input);
+        return await createFile(input, plugins);
       },
     }),
   }) satisfies ToolSet;

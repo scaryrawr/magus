@@ -5,10 +5,9 @@ import type { RouterFactory } from "./types";
 
 export const modelsRouter = (state: ServerState) => {
   const router = new Hono();
-  let modelsCache: ModelSelect[] | undefined = undefined;
   return router
     .get("/models", async (c) => {
-      modelsCache ??= (
+      const models = (
         await Promise.all(
           Object.entries(state.providers).map(async ([name, provider]) => {
             try {
@@ -25,7 +24,7 @@ export const modelsRouter = (state: ServerState) => {
         )
       ).flat();
 
-      return c.json(modelsCache);
+      return c.json(models);
     })
     .get("/model", (c) => {
       if (!state.model) {

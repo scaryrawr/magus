@@ -1,6 +1,6 @@
 import { tool, type ToolSet } from "ai";
 import { createTwoFilesPatch } from "diff";
-import fs from "node:fs/promises";
+import { mkdir, stat } from "node:fs/promises";
 import { dirname } from "node:path";
 import { CreateFileSchema, DiffOutputSchema, type CreateFileInput, type DiffOutput } from "./types";
 
@@ -8,15 +8,15 @@ export const createFile = async ({ path, content }: CreateFileInput): Promise<Di
   // Ensure parent directory exists (create intermediate dirs as needed)
   const dir = dirname(path);
   try {
-    await fs.mkdir(dir, { recursive: true });
+    await mkdir(dir, { recursive: true });
   } catch {
     // Ignore errors; we'll catch them when we try to write the file
   }
 
   // Check if file already exists; fs.stat throws ENOENT if not present.
-  let stat: { isFile: () => boolean; isDirectory: () => boolean } | undefined;
+  let stats: { isFile: () => boolean; isDirectory: () => boolean } | undefined;
   try {
-    stat = await fs.stat(path);
+    stats = await stat(path);
   } catch (err) {
     if (!err || typeof err !== "object") {
       throw err;
@@ -28,8 +28,8 @@ export const createFile = async ({ path, content }: CreateFileInput): Promise<Di
     }
   }
 
-  if (stat) {
-    if (stat.isDirectory()) {
+  if (stats) {
+    if (stats.isDirectory()) {
       throw new Error("A directory exists at the specified path");
     }
   }
@@ -39,12 +39,12 @@ export const createFile = async ({ path, content }: CreateFileInput): Promise<Di
     // It's common for the model to try using create when modifying a file.
     // they either didn't know it was there, or are just replacing the whole thing.
     // either way, they'll get a valid diff and figure it out.
-    previousContent = await fs.readFile(path, "utf-8");
+    previousContent = await Bun.file(path).text();
   } catch {
     // Ignore errors; we'll treat this as a new file
   }
 
-  await fs.writeFile(path, content, "utf-8");
+  await Bun.write(path, content);
   const diff = createTwoFilesPatch(path, path, previousContent, content);
   return {
     diff,

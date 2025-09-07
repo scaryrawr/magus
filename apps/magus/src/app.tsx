@@ -13,7 +13,6 @@ import {
   createWebFetchTool,
 } from "@magus/tools";
 import { hc } from "hono/client";
-import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import React from "react";
 import SYSTEM_PROMPT from "./codex.txt";
@@ -72,10 +71,14 @@ const createMagusServer = () => {
   });
 
   void client.v0.systemPrompt.$put({ json: { systemPrompt: SYSTEM_PROMPT } });
-  void readFile(join(process.cwd(), ".github", "copilot-instructions.md")).then((content) => {
-    const instruction = new TextDecoder().decode(content);
-    void client.v0.instructions.$patch({ json: { instruction } });
-  });
+  Bun.file(join(process.cwd(), ".github", "copilot-instructions.md"))
+    .text()
+    .then((content) => {
+      void client.v0.instructions.$patch({ json: { instruction: content } });
+    })
+    .catch(() => {
+      // It's fine if there's no instructions file.
+    });
 
   return {
     client,

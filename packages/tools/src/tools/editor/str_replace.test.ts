@@ -1,30 +1,8 @@
 import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
 
-// Mock the filesystem BEFORE importing the module under test
-const statMock = mock(() => {});
-const readFileMock = mock(() => {});
-const writeFileMock = mock(() => {});
-
-mock.module("node:fs/promises", () => ({
-  // Provide both default (for default import) and named exports
-  default: {
-    stat: statMock,
-    readFile: readFileMock,
-    writeFile: writeFileMock,
-  },
-  stat: statMock,
-  readFile: readFileMock,
-  writeFile: writeFileMock,
-}));
-
-// Import after mocking so the implementation receives the mocked module
-type FsSubset = {
-  stat: (...args: unknown[]) => Promise<{ isFile: () => boolean }>;
-  readFile: (...args: unknown[]) => Promise<string>;
-  writeFile: (...args: unknown[]) => Promise<void>;
-};
-
-const fs = (await import("node:fs/promises")).default as unknown as FsSubset;
+// Use real module & spy on functions
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const fsmod: any = await import("node:fs/promises");
 const { stringReplace } = await import("./str_replace");
 
 const { clearAllMocks } = mock;
@@ -42,10 +20,14 @@ describe("stringReplace", () => {
 
     const mockStat: { isFile: () => boolean } = { isFile: () => true };
 
-    spyOn(fs, "stat").mockResolvedValue(mockStat);
-    spyOn(fs, "readFile").mockResolvedValue(mockFileContent);
-
-    spyOn(fs, "writeFile").mockResolvedValue(undefined);
+    spyOn(fsmod, "stat").mockResolvedValue(mockStat);
+    spyOn(Bun, "file").mockImplementation(
+      () =>
+        ({
+          text: async () => mockFileContent,
+        }) as unknown as ReturnType<typeof Bun.file>,
+    );
+    spyOn(Bun, "write").mockResolvedValue(0);
 
     const result = await stringReplace({
       path: "/test/file.ts",
@@ -65,8 +47,13 @@ describe("stringReplace", () => {
 
     const mockStat: { isFile: () => boolean } = { isFile: () => true };
 
-    spyOn(fs, "stat").mockResolvedValue(mockStat);
-    spyOn(fs, "readFile").mockResolvedValue(mockFileContent);
+    spyOn(fsmod, "stat").mockResolvedValue(mockStat);
+    spyOn(Bun, "file").mockImplementation(
+      () =>
+        ({
+          text: async () => mockFileContent,
+        }) as unknown as ReturnType<typeof Bun.file>,
+    );
 
     await expect(
       stringReplace({
@@ -80,7 +67,7 @@ describe("stringReplace", () => {
   it("should throw an error when the path is not a file", async () => {
     const mockStat: { isFile: () => boolean } = { isFile: () => false };
 
-    spyOn(fs, "stat").mockResolvedValue(mockStat);
+    spyOn(fsmod, "stat").mockResolvedValue(mockStat);
 
     await expect(
       stringReplace({
@@ -99,8 +86,13 @@ describe("stringReplace", () => {
 
     const mockStat: { isFile: () => boolean } = { isFile: () => true };
 
-    spyOn(fs, "stat").mockResolvedValue(mockStat);
-    spyOn(fs, "readFile").mockResolvedValue(mockFileContent);
+    spyOn(fsmod, "stat").mockResolvedValue(mockStat);
+    spyOn(Bun, "file").mockImplementation(
+      () =>
+        ({
+          text: async () => mockFileContent,
+        }) as unknown as ReturnType<typeof Bun.file>,
+    );
 
     await expect(
       stringReplace({
@@ -120,12 +112,15 @@ describe("stringReplace", () => {
 
     const mockStat: { isFile: () => boolean } = { isFile: () => true };
 
-    spyOn(fs, "stat").mockResolvedValue(mockStat);
-    spyOn(fs, "readFile").mockResolvedValue(mockFileContent);
-
-    spyOn(fs, "stat").mockResolvedValue(mockStat);
-    spyOn(fs, "readFile").mockResolvedValue(mockFileContent);
-    spyOn(fs, "writeFile").mockResolvedValue(undefined);
+    spyOn(fsmod, "stat").mockResolvedValue(mockStat);
+    spyOn(Bun, "file").mockImplementation(
+      () =>
+        ({
+          text: async () => mockFileContent,
+        }) as unknown as ReturnType<typeof Bun.file>,
+    );
+    // write operation
+    spyOn(Bun, "write").mockResolvedValue(0);
 
     const result = await stringReplace({
       path: "/test/file.ts",

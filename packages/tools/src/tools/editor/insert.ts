@@ -1,6 +1,6 @@
 import { tool, type ToolSet } from "ai";
 import { createTwoFilesPatch } from "diff";
-import fs from "node:fs/promises";
+import { mkdir, stat } from "node:fs/promises";
 import { dirname } from "node:path";
 import { DiffOutputSchema, InsertFileSchema, type DiffOutput, type InsertFileInput } from "./types";
 
@@ -8,11 +8,11 @@ export const insert = async ({ path, line, new_str }: InsertFileInput): Promise<
   let content = "";
 
   try {
-    const stat = await fs.stat(path);
-    if (!stat.isFile()) {
+    const stats = await stat(path);
+    if (!stats.isFile()) {
       throw new Error("Path is not a file.");
     }
-    content = await fs.readFile(path, "utf-8");
+    content = await Bun.file(path).text();
   } catch (err) {
     if (!err || typeof err !== "object") {
       throw err;
@@ -26,7 +26,7 @@ export const insert = async ({ path, line, new_str }: InsertFileInput): Promise<
     if (line === 0) {
       // Create parent directory if needed, then treat as inserting into an empty file
       try {
-        await fs.mkdir(dirname(path), { recursive: true });
+        await mkdir(dirname(path), { recursive: true });
       } catch {
         // ignore; writeFile will surface any real errors
       }
@@ -40,7 +40,7 @@ export const insert = async ({ path, line, new_str }: InsertFileInput): Promise<
   const lines = content.split("\n");
   lines.splice(line, 0, new_str);
   const updatedContent = lines.join("\n");
-  await fs.writeFile(path, updatedContent, "utf-8");
+  await Bun.write(path, updatedContent);
 
   const diff = createTwoFilesPatch(path, path, content, updatedContent);
   return {

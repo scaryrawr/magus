@@ -1,5 +1,5 @@
 import envPaths from "env-paths";
-import { promises as fs } from "fs";
+import { mkdir } from "node:fs/promises";
 import path from "path";
 import { type ZodSchema } from "zod";
 import { MagusCacheSchema, type MagusCache } from "./cacheSchema";
@@ -9,7 +9,7 @@ import { MagusDataSchema, type MagusData } from "./dataSchema";
 // Helper to ensure a directory exists
 async function ensureDir(dir: string) {
   try {
-    await fs.mkdir(dir, { recursive: true });
+    await mkdir(dir, { recursive: true });
   } catch {
     // ignore if exists
   }
@@ -18,7 +18,7 @@ async function ensureDir(dir: string) {
 // Generic read/write with validation
 async function readJson<T>(filePath: string, schema: ZodSchema<T>): Promise<T | undefined> {
   try {
-    const data = await fs.readFile(filePath, "utf8");
+    const data = await Bun.file(filePath).text();
     const parsed: unknown = JSON.parse(data);
     return schema.parse(parsed);
   } catch {
@@ -30,7 +30,7 @@ async function readJson<T>(filePath: string, schema: ZodSchema<T>): Promise<T | 
 async function writeJson<T>(filePath: string, data: T) {
   const dir = path.dirname(filePath);
   await ensureDir(dir);
-  await fs.writeFile(filePath, JSON.stringify(data, null, 2), "utf8");
+  await Bun.write(filePath, JSON.stringify(data, null, 2));
 }
 
 // Paths based on env-paths

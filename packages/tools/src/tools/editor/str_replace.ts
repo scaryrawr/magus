@@ -1,6 +1,6 @@
 import { tool, type ToolSet } from "ai";
 import { createTwoFilesPatch } from "diff";
-import fs from "node:fs/promises";
+import { stat } from "node:fs/promises";
 import { DiffOutputSchema, StringReplaceSchema, type DiffOutput, type StringReplaceInput } from "./types";
 
 export const stringReplace = async ({
@@ -13,19 +13,19 @@ export const stringReplace = async ({
     throw new Error("No changes made: old_str and new_str are identical.");
   }
 
-  const stat = await fs.stat(path);
-  if (!stat.isFile()) {
+  const file_stat = await stat(path);
+  if (!file_stat.isFile()) {
     throw new Error("Path is not a file.");
   }
 
-  const content = await fs.readFile(path, "utf-8");
+  const content = await Bun.file(path).text();
   const firstOccurrence = content.indexOf(old_str);
   if (firstOccurrence === -1) {
     throw new Error("No changes made: old_str was not found in the file.");
   }
 
   const updatedContent = replace_all ? content.replaceAll(old_str, new_str) : content.replace(old_str, new_str);
-  await fs.writeFile(path, updatedContent, "utf-8");
+  await Bun.write(path, updatedContent);
   const diff = createTwoFilesPatch(path, path, content, updatedContent);
   return {
     diff,

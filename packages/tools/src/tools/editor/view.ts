@@ -1,14 +1,14 @@
 import { tool, type ToolSet } from "ai";
-import fs from "node:fs/promises";
+import { readdir, stat } from "node:fs/promises";
 import { ViewOutputSchema, ViewSchema, type ViewInput, type ViewOutput } from "./types";
 
 export const viewFile = async ({ path, view_range }: ViewInput): Promise<ViewOutput> => {
-  const stat = await fs.stat(path);
-  if (stat.isDirectory()) {
-    const files = await fs.readdir(path);
+  const stats = await stat(path);
+  if (stats.isDirectory()) {
+    const files = await readdir(path);
     return files.join("\n");
-  } else if (stat.isFile()) {
-    const content = await fs.readFile(path, "utf-8");
+  } else if (stats.isFile()) {
+    const content = await Bun.file(path).text();
     if (view_range) {
       const lines = content.split("\n");
       const start = Math.max(0, view_range[0] - 1);

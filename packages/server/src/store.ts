@@ -1,5 +1,5 @@
 import { mkdirSync } from "node:fs";
-import { readdir, readFile, stat } from "node:fs/promises";
+import { readdir, stat } from "node:fs/promises";
 import { MagusChatSchema, type ChatEntry, type ChatStore, type MagusChat } from "./types";
 
 export class MagusChatStore implements ChatStore {
@@ -43,7 +43,8 @@ export class MagusChatStore implements ChatStore {
 
   async loadChat(chatId: string): Promise<MagusChat> {
     const chatPath = `${this.storagePath}/${chatId}.json`;
-    const data = await readFile(chatPath, "utf-8");
+    const file = Bun.file(chatPath);
+    const data = await file.text();
     return MagusChatSchema.parse(JSON.parse(data));
   }
 

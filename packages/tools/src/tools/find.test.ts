@@ -110,5 +110,37 @@ for (const override of toolsToTest) {
         expect(existsSync(candidate)).toBeTrue();
       }
     });
+
+    it("respects .gitignore patterns in an arbitrary directory", async () => {
+      // Create an isolated temp workspace with its own .gitignore
+      const { mkdtempSync, writeFileSync, mkdirSync, rmSync } = await import("node:fs");
+      const { tmpdir } = await import("node:os");
+      const { join } = await import("node:path");
+
+      const tmpRoot = mkdtempSync(join(tmpdir(), "magus-find-"));
+      try {
+        // .gitignore ignores a directory and a file pattern
+        writeFileSync(join(tmpRoot, ".gitignore"), ["ignored-dir", "*.log"].join("\n"), "utf8");
+        mkdirSync(join(tmpRoot, "ignored-dir"));
+        writeFileSync(join(tmpRoot, "keep.txt"), "hello", "utf8");
+        writeFileSync(join(tmpRoot, "debug.log"), "log should be ignored", "utf8");
+        writeFileSync(join(tmpRoot, "ignored-dir", "secret.txt"), "top secret", "utf8");
+        mkdirSync(join(tmpRoot, "sub"));
+        writeFileSync(join(tmpRoot, "sub", "inner.txt"), "inner", "utf8");
+
+        // Search for .txt files; should NOT surface secret.txt inside ignored-dir
+        const resTxt = await findFile({ pattern: ".txt", path: tmpRoot, findToolOverride: override });
+        const joined = resTxt.files.join("\n");
+        expect(joined.includes("secret.txt")).toBeFalse();
+        // Should include at least one of the kept txt files
+        expect(resTxt.files.some((f) => f.endsWith("keep.txt") || f.endsWith("inner.txt"))).toBeTrue();
+
+        // Search for .log files; debug.log should be filtered out entirely
+        const resLog = await findFile({ pattern: ".log", path: tmpRoot, findToolOverride: override });
+        expect(resLog.total_matches).toBe(0);
+      } finally {
+        rmSync(tmpRoot, { recursive: true, force: true });
+      }
+    });
   });
 }

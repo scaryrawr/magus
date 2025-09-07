@@ -1,3 +1,4 @@
+import { DEFAULT_IGNORE_PATTERNS, gitignore, gitignoreFilter } from "@magus/common-utils";
 import { tool, type ToolSet } from "ai";
 import { statSync } from "node:fs";
 import { z } from "zod";
@@ -87,8 +88,6 @@ export const grepFile = async ({
     throw new Error("A compatible grep tool (rg, grep, or findstr) is not installed or not found in PATH.");
   }
 
-  const ignorePatterns = [".git", ".yarn", ".backfill", "node_modules"];
-
   const command: string[] = [grepTool];
   switch (grepTool) {
     case "rg":
@@ -101,7 +100,7 @@ export const grepFile = async ({
         // skip binary files
         "-I",
         // exclude well known directories not to search
-        ...ignorePatterns.map((dir) => `--exclude-dir=${dir}`),
+        ...DEFAULT_IGNORE_PATTERNS.map((dir) => `--exclude-dir=${dir}`),
       );
       break;
     case "findstr":
@@ -176,18 +175,8 @@ export const grepFile = async ({
 
   const matches: string[] = [];
   let buffer = "";
-  const keep = (line: string) => {
-    return (
-      line.trim() &&
-      !ignorePatterns.some(
-        (pattern) =>
-          line.includes(`/${pattern}/`) ||
-          line.startsWith(`${pattern}/`) ||
-          line.includes(`\\${pattern}\\`) ||
-          line.startsWith(`${pattern}\\`),
-      )
-    );
-  };
+  const relativeIgnore = path && path !== "." ? gitignoreFilter(path) : { ignores: () => false };
+  const keep = (line: string) => !gitignore.ignores(line) && !relativeIgnore.ignores(line);
 
   for await (const chunk of proc.stdout) {
     buffer += new TextDecoder().decode(chunk);

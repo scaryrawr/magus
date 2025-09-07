@@ -158,5 +158,37 @@ for (const override of toolsToTest) {
         expect(line.toLowerCase().includes("world")).toBeTrue();
       }
     });
+
+    it("respects .gitignore patterns (directories + file globs)", async () => {
+      const { mkdtempSync, writeFileSync, mkdirSync, rmSync } = await import("node:fs");
+      const { tmpdir } = await import("node:os");
+      const { join, basename: bname } = await import("node:path");
+
+      const gitTmp = mkdtempSync(join(tmpdir(), "magus-grep-ign-"));
+      try {
+        // Create a .gitignore that ignores a directory and *.log files
+        writeFileSync(join(gitTmp, ".gitignore"), ["ignored-dir", "*.log"].join("\n"), "utf8");
+        mkdirSync(join(gitTmp, "ignored-dir"));
+        writeFileSync(join(gitTmp, "ignored-dir", "inside.txt"), "world hidden", "utf8");
+        writeFileSync(join(gitTmp, "show.txt"), "visible world", "utf8");
+        writeFileSync(join(gitTmp, "debug.log"), "world should be ignored", "utf8");
+
+        const res = await grepFile({
+          pattern: "world",
+          path: gitTmp,
+          file_names_only: true,
+          ignore_case: false,
+          grepToolOverride: override,
+        });
+
+        // Only show.txt should appear; neither inside.txt (ignored directory) nor debug.log (*.log) should.
+        const names = new Set(res.matches.map((m) => bname(m.trim())));
+        expect(names.has("show.txt")).toBeTrue();
+        expect(names.has("inside.txt")).toBeFalse();
+        expect(names.has("debug.log")).toBeFalse();
+      } finally {
+        rmSync(gitTmp, { recursive: true, force: true });
+      }
+    });
   });
 }

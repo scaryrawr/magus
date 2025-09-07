@@ -1,3 +1,4 @@
+import { gitignore, gitignoreFilter } from "@magus/common-utils";
 import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 const { spawn, spawnSync } = Bun;
@@ -138,21 +139,12 @@ export const findFile = async ({
 
   // Execute the find command asynchronously
   const proc = spawn(command);
-  const ignorePatterns = [".git", ".yarn", ".backfill", "node_modules"];
 
   // Collect stdout asynchronously
   const files = [];
+  const relativeIgnore = path && path !== "." ? gitignoreFilter(path) : { ignores: () => false };
   const keep = (line: string) => {
-    return (
-      line.trim() &&
-      !ignorePatterns.some(
-        (pattern) =>
-          line.includes(`/${pattern}/`) ||
-          line.startsWith(`${pattern}/`) ||
-          line.includes(`\\${pattern}\\`) ||
-          line.startsWith(`${pattern}\\`),
-      )
-    );
+    return line.trim() && !gitignore.ignores(line) && !relativeIgnore.ignores(line);
   };
 
   let stdout = "";
@@ -185,7 +177,7 @@ export const createFindTool = () => {
       Use this tool when you need to find specific files, such as configuration files, source code files, or test files.
       It's particularly useful for exploring the project structure and finding files that match specific naming conventions.
       
-      Never use 'ls -R' and use the 'find' tool instead.`,
+      Never use 'ls -R' in the shell tool and use this 'find' tool instead.`,
       inputSchema: FindInputSchema,
       outputSchema: FindOutputSchema,
       execute: async (input): Promise<FindOutput> => {

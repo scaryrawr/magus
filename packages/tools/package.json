@@ -16,8 +16,10 @@
     "typescript": "catalog:ts"
   },
   "dependencies": {
+    "@magus/common-utils": "workspace:*",
     "ai": "catalog:",
     "diff": "^8.0.2",
+    "ignore": "^7.0.5",
     "turndown": "^7.2.1",
     "zod": "catalog:"
   }

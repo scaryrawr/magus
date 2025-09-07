@@ -1,19 +1,12 @@
 import { gitignore } from "@magus/common-utils";
 import chokidar from "chokidar";
 import type { Ignore } from "ignore";
-import { spawn } from "node:child_process";
 import path from "node:path";
-import {
-  createMessageConnection,
-  StreamMessageReader,
-  StreamMessageWriter,
-  type MessageConnection,
-} from "vscode-jsonrpc/node";
 import {
   DidChangeTextDocumentNotification,
   DidCloseTextDocumentNotification,
   DidOpenTextDocumentNotification,
-  type DocumentFilter,
+  DidSaveTextDocumentNotification,
   type DocumentSelector,
   type PublishDiagnosticsParams,
 } from "vscode-languageserver-protocol";
@@ -21,6 +14,8 @@ import { URI } from "vscode-uri";
 import { DiagnosticsStore, type FileDiagnostics } from "./diagnostics";
 import { detectLanguage } from "./languages";
 import { detectProjectLanguages as detectProjectLanguagesFn } from "./projectLanguages";
+import { spawnRpcClient, type SpawnedRpcClient } from "./rpcClient";
+import { matchesSelector } from "./selector";
 
 export interface LspConfig {
   id: string;
@@ -30,12 +25,7 @@ export interface LspConfig {
   selector: DocumentSelector;
 }
 
-interface RpcClient {
-  sendNotification(method: string, params: unknown): void;
-  onNotification(method: string, handler: (params: unknown) => void): void;
-  shutdown(): Promise<void>;
-  dispose(): void;
-}
+type RpcClient = SpawnedRpcClient;
 
 type ClientEntry = {
   id: string;
@@ -58,7 +48,7 @@ export class LspManager {
   private versionMap = new Map<string, number>();
   private ignoreMatcher: Ignore;
   private diagnostics = new DiagnosticsStore();
-  private openSent = new Set<string>(); // key: clientId|uri
+  // Removed unused openSent tracking; if reintroduced, ensure de-duplication logic for didOpen.
   private commandExistsFn: (cmd: string) => boolean;
   private projectLanguagesFn: (rootDir: string) => Set<string>;
 
@@ -81,108 +71,29 @@ export class LspManager {
     if (entry.starting && entry.startPromise) return entry.startPromise;
     const { id, config } = entry;
     const { cmd, args = [] } = config;
-
     entry.starting = true;
-
-    const startPromise: Promise<RpcClient> = new Promise((resolve, reject) => {
-      const child = spawn(cmd, args, { stdio: ["pipe", "pipe", "pipe"] });
-
-      child.on("error", (err) => {
+    const startPromise = spawnRpcClient({
+      id,
+      cmd,
+      args,
+      rootDir: this.rootDir,
+      onDiagnostics: (params) => {
+        if (params && typeof params === "object" && (params as PublishDiagnosticsParams).uri) {
+          this.handleDiagnostics(id, params as PublishDiagnosticsParams);
+        }
+      },
+    })
+      .then((client) => {
+        entry.client = client;
+        entry.started = true;
         entry.starting = false;
-        console.error(`Failed to spawn LSP server ${id}:`, err);
-        reject(err);
+        return client;
+      })
+      .catch((err) => {
+        entry.starting = false;
+        console.error(`Failed to initialize LSP client ${id}:`, err);
+        throw err;
       });
-
-      if (!child.stdout || !child.stdin) {
-        const err = new Error("Child process stdio not available");
-        entry.starting = false;
-        return reject(err);
-      }
-
-      const reader = new StreamMessageReader(child.stdout);
-      const writer = new StreamMessageWriter(child.stdin);
-      const connection: MessageConnection = createMessageConnection(reader, writer);
-
-      const rpcClient: RpcClient = {
-        sendNotification: (method, params) => {
-          try {
-            // fire-and-forget
-            void connection.sendNotification(method, params as never);
-          } catch (err) {
-            console.error(`sendNotification failed (${id} ${method})`, err);
-          }
-        },
-        onNotification: (method, handler) => connection.onNotification(method, handler),
-        shutdown: async () => {
-          try {
-            await connection.sendRequest("shutdown");
-            rpcClient.sendNotification("exit", undefined);
-          } catch {
-            // ignore shutdown errors
-          }
-        },
-        dispose: () => {
-          try {
-            connection.dispose();
-          } catch {
-            // ignore dispose error
-          }
-          try {
-            child.kill();
-          } catch {
-            // ignore kill error
-          }
-        },
-      };
-
-      entry.client = rpcClient;
-
-      // Start listening before initialize
-      connection.listen();
-
-      const rootUri = URI.file(this.rootDir).toString();
-      const initializeParams = {
-        processId: process.pid,
-        rootUri,
-        capabilities: {},
-        workspaceFolders: [{ uri: rootUri, name: path.basename(this.rootDir) }],
-      };
-
-      connection
-        .sendRequest("initialize", initializeParams)
-        .then(() => {
-          void connection.sendNotification("initialized", {});
-          // subscribe diagnostics
-          rpcClient.onNotification("textDocument/publishDiagnostics", (params: unknown) => {
-            if (params && typeof params === "object" && (params as PublishDiagnosticsParams).uri) {
-              this.handleDiagnostics(id, params as PublishDiagnosticsParams);
-            }
-          });
-          entry.started = true;
-          entry.starting = false;
-
-          child.on("exit", () => {
-            entry.started = false;
-          });
-          resolve(rpcClient);
-        })
-        .catch((err) => {
-          entry.starting = false;
-          console.error(`Failed to initialize LSP client ${id}:`, err);
-          try {
-            connection.dispose();
-          } catch {
-            // ignore
-          }
-          try {
-            child.kill();
-          } catch {
-            // ignore
-          }
-          reject(err instanceof Error ? err : new Error(String(err)));
-        });
-    });
-
     entry.startPromise = startPromise;
     return startPromise;
   }
@@ -211,7 +122,7 @@ export class LspManager {
         const uri = URI.file(file).toString();
         this.versionMap.set(uri, 1);
         this.routeToClients(file, (client) => {
-          void client.sendNotification(DidOpenTextDocumentNotification.method, {
+          client.sendNotification(DidOpenTextDocumentNotification.method, {
             textDocument: {
               uri,
               languageId: detectLanguage(file),
@@ -234,9 +145,13 @@ export class LspManager {
         const version = (this.versionMap.get(uri) || 1) + 1;
         this.versionMap.set(uri, version);
         this.routeToClients(file, (client) => {
-          void client.sendNotification(DidChangeTextDocumentNotification.method, {
+          client.sendNotification(DidChangeTextDocumentNotification.method, {
             textDocument: { uri, version },
             contentChanges: [{ text }],
+          });
+          // Also emit didSave to support servers configured for on-save diagnostics only.
+          client.sendNotification(DidSaveTextDocumentNotification.method, {
+            textDocument: { uri, version },
           });
         });
       })
@@ -249,7 +164,7 @@ export class LspManager {
     const uri = URI.file(file).toString();
     this.versionMap.delete(uri);
     this.routeToClients(file, (client) => {
-      void client.sendNotification(DidCloseTextDocumentNotification.method, {
+      client.sendNotification(DidCloseTextDocumentNotification.method, {
         textDocument: { uri },
       });
     });
@@ -258,37 +173,18 @@ export class LspManager {
   private routeToClients(file: string, fn: (client: RpcClient) => void) {
     for (const entry of this.clients) {
       if (this.matchesSelector(file, entry.selector)) {
-        void this.startClient(entry).then((client) => fn(client));
+        this.startClient(entry)
+          .then((client) => fn(client))
+          .catch((err) => {
+            console.error(`Failed to start LSP client ${entry.id} for file ${file}:`, err);
+          });
       }
     }
   }
 
+  // Selector matching moved to selector.ts for testability and separation of concerns.
   private matchesSelector(file: string, selector: DocumentSelector): boolean {
-    const languageId = detectLanguage(file);
-
-    const globToRegex = (pattern: string): RegExp => {
-      // Escape regex chars except * and ? then replace * => .* and ? => .
-      const escaped = pattern.replace(/[-/\\^$+?.()|[\]{}]/g, "\\$&").replace(/\\\*\*/g, ".*");
-      const regexStr = escaped.replace(/\*\*/g, ".*").replace(/\*/g, "[^/]*").replace(/\?/g, ".");
-      return new RegExp(`^${regexStr}$`);
-    };
-
-    return selector.some((filter: string | DocumentFilter) => {
-      if (typeof filter === "string") {
-        return filter === languageId;
-      }
-      if (filter.language && filter.language !== languageId) return false;
-      type PatFilter = { pattern?: string; scheme?: string };
-      const pf = filter as PatFilter;
-      if (pf.scheme && pf.scheme !== "file") return false;
-      const pattern = pf.pattern;
-      if (pattern) {
-        const rel = path.relative(this.rootDir, file) || file;
-        const rx = globToRegex(pattern);
-        if (!rx.test(rel)) return false;
-      }
-      return true;
-    });
+    return matchesSelector(file, this.rootDir, selector);
   }
 
   private defaultCommandExists = (cmd: string): boolean => {
@@ -326,7 +222,7 @@ export class LspManager {
       const clientLangs = this.gatherClientLanguages(entry);
       const intersects = Array.from(clientLangs).some((l) => projectLangs.has(l));
       if (!intersects) continue;
-      // ensure command exists to avoid noisy failures
+      // ensure command exists to anoisy failures
       if (!this.commandExistsFn(entry.config.cmd)) continue;
       toStart.push(entry);
     }
@@ -370,7 +266,7 @@ export class LspManager {
         shuttingDown.push(
           entry.client
             .shutdown()
-            .catch(() => void 0)
+            .catch(() => 0)
             .then(() => {
               entry.client?.dispose();
               entry.started = false;

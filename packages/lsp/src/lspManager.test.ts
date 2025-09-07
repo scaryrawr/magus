@@ -114,7 +114,6 @@ function getCapture(captures: Record<string, Capture>, id: string): Capture {
 
 describe("LspManager", () => {
   let root: string;
-
   beforeEach(() => {
     root = makeProject();
   });
@@ -184,6 +183,33 @@ describe("LspManager", () => {
     expect(close).toBeDefined();
   });
 
+  it("emits didSave after didChange for changed file", async () => {
+    const { mgr, captures } = createManager(root, new Set(["typescript"]));
+    const file = path.join(root, "src", "saveTest.ts");
+    mkdirp(path.dirname(file));
+    writeFileSync(file, "export const a = 1;\n");
+    // open
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (mgr as any).handleOpen(file);
+    await waitFor(() => Boolean(captures.ts?.notifications.some((n) => n.method === "textDocument/didOpen")));
+    // change triggers change + save
+    writeFileSync(file, "export const a = 2;\n");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (mgr as any).handleChange(file);
+    await waitFor(() =>
+      Boolean(
+        captures.ts?.notifications.some((n) => n.method === "textDocument/didChange") &&
+          captures.ts?.notifications.some((n) => n.method === "textDocument/didSave"),
+      ),
+    );
+    const methods = captures.ts?.notifications.map((n) => n.method) || [];
+    const changeIdx = methods.indexOf("textDocument/didChange");
+    const saveIdx = methods.indexOf("textDocument/didSave");
+    expect(changeIdx).toBeGreaterThan(-1);
+    expect(saveIdx).toBeGreaterThan(-1);
+    expect(saveIdx).toBeGreaterThan(changeIdx); // save happens after change
+  });
+
   it("supports alternative pattern language match (README -> markdown server)", async () => {
     const { mgr, captures } = createManager(root, new Set(["markdown"]));
     const readme = path.join(root, "README.md");
@@ -234,6 +260,120 @@ describe("LspManager", () => {
     // Ensure version has incremented (change notification processed)
     expect(diags.version).toBe(2); // last change version
     expect(diags.all.length).toBe(1);
+  });
+
+  it("matches leading ./ pattern with glob wildcards", async () => {
+    // Custom manager with a pattern including leading ./
+    const configs: LspConfig[] = [
+      {
+        id: "tsglob",
+        name: "TS Glob",
+        cmd: "typescript-language-server",
+        selector: [
+          {
+            language: "typescript",
+            pattern: "./src/**/*.ts",
+            scheme: "file",
+          },
+        ],
+      },
+    ];
+    const captures: Record<string, Capture> = {};
+    const mgr = new LspManager(configs, root, {
+      commandExists: () => true,
+      projectLanguagesFn: () => new Set(["typescript"]),
+    });
+    // Stub startClient
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (mgr as any).startClient = (entry: { id: string; started: boolean; starting: boolean; client?: unknown }) => {
+      const id = entry.id;
+      if (!captures[id]) {
+        captures[id] = { notifications: [], handlers: {}, starts: 0 } as Capture;
+      }
+      const cap = captures[id];
+      if (entry.started && entry.client) return Promise.resolve(entry.client);
+      cap.starts++;
+      const client = {
+        sendNotification(method: string, params: unknown) {
+          cap.notifications.push({ method, params });
+        },
+        onNotification(method: string, handler: (params: unknown) => void) {
+          cap.handlers[method] = handler;
+        },
+        shutdown: async () => {},
+        dispose: () => {},
+      };
+      entry.client = client;
+      entry.started = true;
+      entry.starting = false;
+      return Promise.resolve(client);
+    };
+
+    const tsFile = path.join(root, "src", "nested", "file.ts");
+    mkdirp(path.dirname(tsFile));
+    writeFileSync(tsFile, "export const x = 1;\n");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (mgr as any).handleOpen(tsFile);
+    await waitFor(() => Boolean(captures.tsglob?.notifications.some((n) => n.method === "textDocument/didOpen")));
+    expect(captures.tsglob?.notifications.some((n) => n.method === "textDocument/didOpen")).toBeTrue();
+  });
+
+  it("matches pattern without leading ./ for standard ts files", async () => {
+    const configs: LspConfig[] = [
+      {
+        id: "tsglob2",
+        name: "TS Glob 2",
+        cmd: "typescript-language-server",
+        selector: [{ language: "typescript", pattern: "src/**/*.ts", scheme: "file" }],
+      },
+    ];
+    const captures: Record<string, Capture> = {};
+    const mgr = new LspManager(configs, root, {
+      commandExists: () => true,
+      projectLanguagesFn: () => new Set(["typescript"]),
+    });
+    // stub startClient
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (mgr as any).startClient = (entry: { id: string; started: boolean; starting: boolean; client?: unknown }) => {
+      const id = entry.id;
+      if (!captures[id]) captures[id] = { notifications: [], handlers: {}, starts: 0 } as Capture;
+      const cap = captures[id];
+      if (entry.started && entry.client) return Promise.resolve(entry.client);
+      cap.starts++;
+      const client = {
+        sendNotification(method: string, params: unknown) {
+          cap.notifications.push({ method, params });
+        },
+        onNotification(method: string, handler: (params: unknown) => void) {
+          cap.handlers[method] = handler;
+        },
+        shutdown: async () => {},
+        dispose: () => {},
+      };
+      entry.client = client;
+      entry.started = true;
+      entry.starting = false;
+      return Promise.resolve(client);
+    };
+    const tsFile1 = path.join(root, "src", "deep", "a.ts");
+    const tsFile2 = path.join(root, "src", "deep", "btest.ts");
+    const tsFile3 = path.join(root, "src", "other", "another.ts");
+    mkdirp(path.dirname(tsFile1));
+    mkdirp(path.dirname(tsFile3));
+    writeFileSync(tsFile1, "export const a=1;\n");
+    writeFileSync(tsFile2, "export const b=2;\n");
+    writeFileSync(tsFile3, "export const c=3;\n");
+    // Access private handlers for deterministic test control
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (mgr as any).handleOpen(tsFile1);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (mgr as any).handleOpen(tsFile2);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (mgr as any).handleOpen(tsFile3);
+    await waitFor(() =>
+      Boolean(captures.tsglob2?.notifications.filter((n) => n.method === "textDocument/didOpen").length === 3),
+    );
+    expect(captures.tsglob2?.notifications.filter((n) => n.method === "textDocument/didOpen").length).toBe(3);
   });
 });
 

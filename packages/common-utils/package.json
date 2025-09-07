@@ -1,0 +1,15 @@
+{
+  "name": "@magus/common-utils",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "catalog:ts"
+  },
+  "peerDependencies": {
+    "typescript": "catalog:ts"
+  },
+  "dependencies": {
+    "ignore": "^7.0.5"
+  }
+}

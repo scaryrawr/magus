@@ -1,3 +1,4 @@
+import { createDefaultLspManager } from "@magus/lsp";
 import { createLmStudioProvider, createOllamaProvider, createOpenRouterProvider } from "@magus/providers";
 import { createServer, MagusChatStore, ModelsResultSchema, type MagusRoutes } from "@magus/server";
 import {
@@ -11,6 +12,7 @@ import {
   createTodoTool,
   createViewTool,
   createWebFetchTool,
+  type EditorOutputPlugin,
 } from "@magus/tools";
 import { hc } from "hono/client";
 import { join } from "node:path";
@@ -27,6 +29,28 @@ const createMagusServer = () => {
     ...(process.env.OPENROUTER_API_KEY ? createOpenRouterProvider(process.env.OPENROUTER_API_KEY) : undefined),
   };
 
+  const lsp = createDefaultLspManager();
+  const plugins: EditorOutputPlugin = {
+    diagnostics: (uri) => {
+      const diagnostics = lsp.getDiagnostics(uri);
+      if (!diagnostics) return "";
+      const errors = diagnostics.all
+        .map((d) => {
+          const severityMap = {
+            1: "ERROR",
+            2: "WARN",
+            3: "INFO",
+            4: "HINT",
+          };
+          return `${severityMap[d.severity ?? 1]} [${uri}:${d.range.start.line + 1}:${d.range.start.character + 1}] ${d.message}`;
+        })
+        .join("\n")
+        .trim();
+      if (!errors) return "No issues found.";
+      return `<diagnostic_errors>${errors}</diagnostic_errors>`;
+    },
+  };
+
   const sharedToolset = {
     ...createGrepTool(),
     ...createFindTool(),
@@ -35,17 +59,16 @@ const createMagusServer = () => {
   };
 
   const defaultToolset = {
-    ...createEditorTool(),
+    ...createEditorTool(plugins),
     ...createTodoTool(),
     ...sharedToolset,
   };
 
   const individualToolset = {
-    ...createCreateFileTool(),
-    ...createInsertTool(),
-    ...createStringReplaceTool(),
+    ...createCreateFileTool(plugins),
+    ...createInsertTool(plugins),
+    ...createStringReplaceTool(plugins),
     ...createViewTool(),
-    ...createInsertTool(),
     ...sharedToolset,
   };
 

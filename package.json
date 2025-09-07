@@ -24,8 +24,7 @@
       },
       "ts": {
         "typescript": "^5.9.2",
-        "@types/bun": "latest",
-        "@types/figlet": "^1.5.8"
+        "@types/bun": "latest"
       },
       "test": {
         "ink-testing-library": "^4.0.0"

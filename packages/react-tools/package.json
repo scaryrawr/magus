@@ -8,7 +8,6 @@
     "test": "bun test"
   },
   "devDependencies": {
-    "@types/figlet": "catalog:ts",
     "@types/bun": "catalog:ts",
     "ink-testing-library": "catalog:test"
   },

@@ -10,7 +10,7 @@
   "devDependencies": {
     "@types/bun": "catalog:ts",
     "@types/cardinal": "^2.1.1",
-    "@types/figlet": "catalog:ts",
+    "@types/figlet": "^1.5.8",
     "@types/marked-terminal": "^6.1.1",
     "ink-testing-library": "catalog:test"
   },

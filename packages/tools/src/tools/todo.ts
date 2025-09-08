@@ -62,11 +62,68 @@ const InternalTodoOutputSchema = z.object({
 export const TodoOutputSchema = InternalTodoOutputSchema;
 type TodoOutput = z.infer<typeof InternalTodoOutputSchema>;
 
-export const createTodoTool = () => {
+// Internal shared manager so we can expose both a single (uber) tool and split command tools.
+interface InternalTodoManager {
+  add: (steps: { description: string; status?: TodoItem["status"] }[]) => TodoItem[];
+  update: (states: { id: string; status: TodoItem["status"] }[]) => TodoItem[];
+  list: () => TodoItem[];
+  clear: () => TodoItem[];
+  state: () => TodoItem[];
+}
+
+const createInternalManager = (): InternalTodoManager => {
   const todoItems: TodoItem[] = [];
   let nextId = 1;
   const generateId = () => (nextId++).toString();
 
+  const enforceInProgress = () => {
+    const allCompleted = todoItems.length > 0 && todoItems.every((t) => t.status === "completed");
+    if (!allCompleted && todoItems.length > 0 && !todoItems.some((t) => t.status === "in_progress")) {
+      const firstPending = todoItems.find((t) => t.status === "pending");
+      if (firstPending) firstPending.status = "in_progress";
+    }
+  };
+
+  return {
+    add: (steps) => {
+      todoItems.push(
+        ...steps.map((s) => ({
+          id: generateId(),
+          description: s.description,
+          status: s.status ?? "pending",
+        })),
+      );
+      enforceInProgress();
+      return todoItems;
+    },
+    update: (states) => {
+      for (const state of states) {
+        if (todoItems.find((step) => step.id === state.id) === undefined) {
+          throw new Error(`Todo item with id ${state.id} not found.`);
+        }
+      }
+      for (const state of states) {
+        const todo = todoItems.find((t) => t.id === state.id);
+        if (todo) todo.status = state.status;
+      }
+      enforceInProgress();
+      return todoItems;
+    },
+    list: () => {
+      enforceInProgress();
+      return todoItems;
+    },
+    clear: () => {
+      todoItems.length = 0;
+      return todoItems;
+    },
+    state: () => todoItems,
+  };
+};
+
+// Existing uber tool (command union)
+export const createTodoTool = () => {
+  const manager = createInternalManager();
   return {
     todo: tool({
       description:
@@ -75,53 +132,68 @@ export const createTodoTool = () => {
       outputSchema: TodoOutputSchema,
       execute: (input): TodoOutput => {
         switch (input.command) {
-          case "add": {
-            todoItems.push(
-              ...input.steps.map((s) => ({
-                id: generateId(),
-                description: s.description,
-                status: s.status ?? "pending",
-              })),
-            );
+          case "add":
+            manager.add(input.steps);
             break;
-          }
-          case "update": {
-            for (const state of input.states) {
-              if (todoItems.find((step) => step.id === state.id) === undefined) {
-                throw new Error(`Todo item with id ${state.id} not found.`);
-              }
-            }
-
-            for (const state of input.states) {
-              const todo = todoItems.find((t) => t.id === state.id);
-              if (todo) todo.status = state.status;
-            }
+          case "update":
+            manager.update(input.states);
             break;
-          }
           case "list":
+            manager.list();
             break;
-          case "clear": {
-            todoItems.length = 0;
+          case "clear":
+            manager.clear();
             break;
-          }
           default:
             throw new Error("Invalid command");
         }
-
-        // If all completed, zero in_progress is acceptable; else enforce exactly one.
-        const allCompleted = todoItems.length > 0 && todoItems.every((t) => t.status === "completed");
-        if (!allCompleted && todoItems.length > 0 && !todoItems.some((t) => t.status === "in_progress")) {
-          // Promote first pending if any.
-          const firstPending = todoItems.find((t) => t.status === "pending");
-          if (firstPending) firstPending.status = "in_progress";
-        }
-
-        return {
-          todos: todoItems,
-        };
+        return { todos: manager.state() };
       },
     }),
   } as const satisfies ToolSet;
 };
 
+// Split tool input schemas (non-union) for environments that don't support unions.
+export const TodoAddInputSchema = AddTodoInputSchema.omit({ command: true }).extend({
+  steps: AddTodoInputSchema.shape.steps,
+});
+export const TodoUpdateInputSchema = UpdateTodoInputSchema.omit({ command: true }).extend({
+  states: UpdateTodoInputSchema.shape.states,
+});
+export const TodoListInputSchema = z.object({ list: z.boolean().optional().describe("No-op input object (optional)") });
+export const TodoClearInputSchema = z.object({
+  clear: z.boolean().optional().describe("No-op input object (optional)"),
+});
+
+export const createSplitTodoTools = () => {
+  const manager = createInternalManager();
+  return {
+    todo_add: tool({
+      description: "Add new todo steps (split variant of the todo tool).",
+      inputSchema: TodoAddInputSchema,
+      outputSchema: TodoOutputSchema,
+      execute: (input): TodoOutput => ({ todos: manager.add(input.steps) }),
+    }),
+    todo_update: tool({
+      description: "Update existing todo step statuses (split variant).",
+      inputSchema: TodoUpdateInputSchema,
+      outputSchema: TodoOutputSchema,
+      execute: (input): TodoOutput => ({ todos: manager.update(input.states) }),
+    }),
+    todo_list: tool({
+      description: "List todo steps (split variant).",
+      inputSchema: TodoListInputSchema,
+      outputSchema: TodoOutputSchema,
+      execute: (): TodoOutput => ({ todos: manager.list() }),
+    }),
+    todo_clear: tool({
+      description: "Clear all todo steps (split variant).",
+      inputSchema: TodoClearInputSchema,
+      outputSchema: TodoOutputSchema,
+      execute: (): TodoOutput => ({ todos: manager.clear() }),
+    }),
+  } as const satisfies ToolSet;
+};
+
 export type TodoToolSet = ReturnType<typeof createTodoTool>;
+export type SplitTodoToolSet = ReturnType<typeof createSplitTodoTools>;

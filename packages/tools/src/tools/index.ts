@@ -34,7 +34,16 @@ export { GrepInputSchema, GrepOutputSchema, createGrepTool, createSearchTool } f
 export type { GrepInput, GrepOutput, GrepToolSet } from "./grep";
 export { ShellInputSchema, ShellOutputSchema, createShellTool } from "./shell";
 export type { ShellInput, ShellOutput, ShellToolSet } from "./shell";
-export { TodoInputSchema, TodoOutputSchema, createTodoTool } from "./todo";
-export type { TodoToolSet } from "./todo";
+export {
+  TodoAddInputSchema,
+  TodoClearInputSchema,
+  TodoInputSchema,
+  TodoListInputSchema,
+  TodoOutputSchema,
+  TodoUpdateInputSchema,
+  createSplitTodoTools,
+  createTodoTool,
+} from "./todo";
+export type { SplitTodoToolSet, TodoToolSet } from "./todo";
 export { WebFetchInputSchema, WebFetchOutputSchema, createWebFetchTool } from "./webfetch";
 export type { WebFetchInput, WebFetchOutput } from "./webfetch";

@@ -1,3 +1,4 @@
+export { AnsiText } from "./AnsiText";
 export { Bat } from "./Bat";
 export { Delta } from "./Delta";
 export { DiffViewer } from "./DiffViewer";

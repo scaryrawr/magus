@@ -23,6 +23,7 @@ export {
   createFindTool,
   createGrepTool,
   createInsertTool,
+  createSearchTool,
   createShellTool,
   createStringReplaceTool,
   createTodoTool,

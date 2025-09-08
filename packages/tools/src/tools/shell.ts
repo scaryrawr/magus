@@ -277,13 +277,17 @@ export const createShellTool = (options: ShellOptions = {}) => {
 
   return {
     shell: tool({
-      description: `Executes a given command in a persistent ${getShellInfo().shell} session on ${process.platform}. 
-This tool is essential for system operations, running scripts, checking file systems, and executing commands.
-Use this tool when you need to run commands/binaries, check directory structures, or perform system operations.
-The shell session is persistent to improve performance and maintain context between command executions.`,
+      description: `Use this tool to execute a given command in a persistent ${getShellInfo().shell} session on ${process.platform}. 
+Use this tool when you need to run commands/binaries, or perform system operations.
+The shell session is persistent, so things like directory changes will persist across calls. Restarting the session will reset any state.`,
       inputSchema: ShellInputSchema,
       outputSchema: ShellOutputSchema,
       execute: async ({ command, restart }): Promise<ShellOutput> => {
+        if (command === "ls -R" || command === "dir /s") {
+          // Prevent potentially dangerous recursive listings
+          throw new Error("Please use the find or search tool for recursive searches.");
+        }
+
         if (restart) await session.restart();
         return session.exec(command);
       },

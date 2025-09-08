@@ -30,7 +30,7 @@ export type {
 } from "./editor";
 export { FindInputSchema, FindOutputSchema, createFindTool } from "./find";
 export type { FindInput, FindOutput, FindToolSet } from "./find";
-export { GrepInputSchema, GrepOutputSchema, createGrepTool } from "./grep";
+export { GrepInputSchema, GrepOutputSchema, createGrepTool, createSearchTool } from "./grep";
 export type { GrepInput, GrepOutput, GrepToolSet } from "./grep";
 export { ShellInputSchema, ShellOutputSchema, createShellTool } from "./shell";
 export type { ShellInput, ShellOutput, ShellToolSet } from "./shell";

@@ -34,16 +34,24 @@ export const DiffOutputSchema = z.object({
   diff: z.string().describe("A diff showing the changes made to the file"),
 });
 
-export const ViewOutputSchema = z
-  .string()
-  .describe("The content of the file or directory listing when using the view command");
+export const ViewOutputSchema = z.object({
+  content: z.string().describe("The content of the file or directory listing when using the view command"),
+});
 
 // Union schemas
 export const EditorInputSchema = z.discriminatedUnion("command", [
-  ViewSchema.extend({ command: z.literal("view") }),
-  CreateFileSchema.extend({ command: z.literal("create") }),
-  InsertFileSchema.extend({ command: z.literal("insert") }),
-  StringReplaceSchema.extend({ command: z.literal("replace") }),
+  ViewSchema.extend({
+    command: z.literal("view").describe("The view command enables you to look into files and directories."),
+  }),
+  CreateFileSchema.extend({
+    command: z.literal("create").describe("The create command enables you to create new files."),
+  }),
+  InsertFileSchema.extend({
+    command: z.literal("insert").describe("The insert command enables you to insert content into existing files."),
+  }),
+  StringReplaceSchema.extend({
+    command: z.literal("replace").describe("The replace command enables you to replace text in existing files."),
+  }),
 ]);
 
 export const EditorOutputSchema = z.union([ViewOutputSchema, DiffOutputSchema]);

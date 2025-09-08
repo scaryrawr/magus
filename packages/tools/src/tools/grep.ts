@@ -185,21 +185,25 @@ export const grepFile = async ({
   return { matches, total_matches: matches.length };
 };
 
-export const createGrepTool = () => {
-  const grepTool = tool({
-    description: `Search for patterns in files using ${getGrepTool()}.
-This tool is essential for searching code, configuration files, or any text content.
-Use this tool when you need to find specific text patterns, code snippets, or configuration values within files.`,
-    inputSchema: GrepInputSchema,
-    outputSchema: GrepOutputSchema,
-    execute: async (input): Promise<GrepOutput> => {
-      return await grepFile(input);
-    },
-  });
+const grepTool = tool({
+  description: `Use this tool when you need to find specific text patterns, code snippets, or configuration values within files.`,
+  inputSchema: GrepInputSchema,
+  outputSchema: GrepOutputSchema,
+  execute: async (input): Promise<GrepOutput> => {
+    return await grepFile(input);
+  },
+});
 
+export const createGrepTool = () => {
   return {
     grep: grepTool,
   } satisfies ToolSet;
 };
 
-export type GrepToolSet = ReturnType<typeof createGrepTool>;
+export const createSearchTool = () => {
+  return {
+    search: grepTool,
+  } satisfies ToolSet;
+};
+
+export type GrepToolSet = ReturnType<typeof createGrepTool> & ReturnType<typeof createSearchTool>;

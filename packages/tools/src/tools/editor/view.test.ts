@@ -17,7 +17,7 @@ describe("viewFile", () => {
     spyOn(fsmod, "readdir").mockResolvedValue(["a.txt", "b.txt"]);
 
     const result = await viewFile({ path: "/tmp" });
-    expect(result).toBe("a.txt\nb.txt");
+    expect(result.content).toBe("a.txt\nb.txt");
   });
 
   it("returns full file contents when no range", async () => {
@@ -30,7 +30,7 @@ describe("viewFile", () => {
     );
 
     const result = await viewFile({ path: "/tmp/file.txt" });
-    expect(result).toBe("x\ny\nz");
+    expect(result.content).toBe("x\ny\nz");
   });
 
   it("returns a subset when range provided", async () => {
@@ -43,6 +43,6 @@ describe("viewFile", () => {
     );
 
     const result = await viewFile({ path: "/tmp/file.txt", view_range: [2, 3] });
-    expect(result).toBe("2\n3");
+    expect(result.content).toBe("2\n3");
   });
 });

@@ -63,9 +63,8 @@ export const createWebFetchTool = () => {
 
   return {
     webfetch: tool({
-      description: `Fetch the content of a web page given its URL.
-      Use this tool when you need to retrieve information from the web, such as reading articles, accessing documentation, or gathering data from online sources.
-      Ensure that the URL is valid and points to a reachable web page. This tool supports both HTTP and HTTPS protocols.
+      description: `Use this tool when you need to retrieve information from the web, such as reading articles, accessing documentation, or gathering data from online sources.
+      If the user shares a URL, you MUST use this tool to fetch the contents of the shared URL.
       HTML content will be converted to markdown format for easier reading and processing.`,
       inputSchema: WebFetchInputSchema,
       outputSchema: WebFetchOutputSchema,

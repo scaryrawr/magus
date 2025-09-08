@@ -70,7 +70,7 @@ export const createTodoTool = () => {
   return {
     todo: tool({
       description:
-        "Manage a short execution plan. Supports add/update/set_all/list/clear with statuses pending|in_progress|completed.",
+        "Use this tool to track, manage, and think through steps needed to complete tasks. This tool enables you to create and track the status of steps needed to accomplish a larger task. You MUST use this tool when figuring out an ask from the user.",
       inputSchema: TodoInputSchema,
       outputSchema: TodoOutputSchema,
       execute: (input): TodoOutput => {

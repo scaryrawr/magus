@@ -1,28 +1,44 @@
 import { tool, type ToolSet } from "ai";
 import { readdir, stat } from "node:fs/promises";
-import { ViewOutputSchema, ViewSchema, type ViewInput, type ViewOutput } from "./types";
+import { ViewOutputSchema, ViewSchema, type EditorOutputPlugin, type ViewInput, type ViewOutput } from "./types";
 
-export const viewFile = async ({ path, view_range }: ViewInput): Promise<ViewOutput> => {
+export const viewFile = async ({ path, view_range }: ViewInput, plugins?: EditorOutputPlugin): Promise<ViewOutput> => {
   const stats = await stat(path);
   if (stats.isDirectory()) {
     const files = await readdir(path);
-    return files.join("\n");
+    return {
+      content: files.join("\n"),
+    };
   } else if (stats.isFile()) {
-    const content = await Bun.file(path).text();
+    let content = await Bun.file(path).text();
+    await Bun.write(path, content);
+    const pluginResults = (
+      await Promise.all(
+        Object.entries(plugins || {}).map(async ([name, fn]) => {
+          return {
+            [name]: await fn(path),
+          };
+        }),
+      )
+    ).reduce((acc, val) => ({ ...acc, ...val }), {});
+
     if (view_range) {
       const lines = content.split("\n");
       const start = Math.max(0, view_range[0] - 1);
       const end = view_range[1] === -1 ? lines.length : Math.min(lines.length, view_range[1]);
-      return lines.slice(start, end).join("\n");
+      content = lines.slice(start, end).join("\n");
     }
 
-    return content;
+    return {
+      content,
+      ...pluginResults,
+    };
   } else {
     throw new Error("Path is neither a file nor a directory.");
   }
 };
 
-export const createViewTool = () =>
+export const createViewTool = (plugins?: EditorOutputPlugin) =>
   ({
     view: tool({
       description: `Examine the contents of a file or directory.
@@ -33,7 +49,7 @@ export const createViewTool = () =>
       inputSchema: ViewSchema,
       outputSchema: ViewOutputSchema,
       execute: async (input): Promise<ViewOutput> => {
-        return await viewFile(input);
+        return await viewFile(input, plugins);
       },
     }),
   }) satisfies ToolSet;

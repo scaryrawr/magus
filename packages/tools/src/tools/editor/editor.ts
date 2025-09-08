@@ -35,22 +35,23 @@ export const createEditorTool = (plugins?: EditorOutputPlugin) => {
   } satisfies EditorInput);
 
   return {
-    file_interaction_tool: tool({
-      description: `The file interaction tool supports several commands for viewing and modifying files.
-      This is a powerful multi-purpose editor that can create files, view existing files and folders, insert content at specific positions, and replace text in files.
-      Use this tool when you need to make detailed file modifications, create new code files, or edit existing files with precision.
+    editor: tool({
+      description: `Use this tool to interact with files and folders. This is a powerful multi-purpose editor that enables you to create files, view existing files and folders, insert content at specific positions, and replace text in files.
+      Use this tool when you need to learn project/folder structure, make detailed file modifications, create new code files, or edit existing files.
       The tool supports four main operations:
       
       - view - ${viewExample}
       - create - ${createExample}
       - insert - ${insertExample}
-      - replace - ${replaceExample}`,
+      - replace - ${replaceExample}
+      
+      When using this tool, you MUST specify the command you want to execute (view, create, insert, or replace) along with the appropriate parameters for that command.`,
       inputSchema: EditorInputSchema,
       outputSchema: EditorOutputSchema,
       execute: async (input): Promise<EditorOutput> => {
         switch (input.command) {
           case "view": {
-            return viewFile(input);
+            return viewFile(input, plugins);
           }
           case "create": {
             return createFile(input, plugins);

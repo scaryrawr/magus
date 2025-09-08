@@ -32,12 +32,15 @@ export const createServer = <MProviders extends MagusProvider = MagusProvider>(
         };
 
         state.on("change:model", modelChangeCallback);
-        try {
-          while (true) {
-            await stream.sleep(1000);
-          }
-        } finally {
+
+        // Clean up listener when client disconnects
+        stream.onAbort(() => {
           state.off("change:model", modelChangeCallback);
+        });
+
+        // Keep the connection alive
+        while (true) {
+          await stream.sleep(1000);
         }
       });
     });

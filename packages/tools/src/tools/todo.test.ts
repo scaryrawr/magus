@@ -1,8 +1,15 @@
 import { describe, expect, it } from "bun:test";
 import { z } from "zod";
-import * as tt from "./tools";
+import {
+  createSplitTodoTool,
+  createTodoTool,
+  TodoAddInputSchema,
+  TodoInputSchema,
+  TodoOutputSchema,
+  TodoUpdateInputSchema,
+} from "./todo";
 
-type TodoOutput = z.infer<typeof tt.TodoOutputSchema>;
+type TodoOutput = z.infer<typeof TodoOutputSchema>;
 type TodoItem = TodoOutput["todos"][number];
 
 async function unwrap<T extends TodoOutput | AsyncIterable<T>>(val: T | AsyncIterable<T>): Promise<TodoOutput> {
@@ -16,11 +23,11 @@ async function unwrap<T extends TodoOutput | AsyncIterable<T>>(val: T | AsyncIte
 }
 
 describe("todo uber tool", () => {
-  const { todo } = tt.createTodoTool();
+  const { todo } = createTodoTool();
 
   it("adds steps and auto-promotes first to in_progress", async () => {
     const input = { command: "add", steps: [{ description: "step one" }, { description: "step two" }] } as const;
-    const parsed = tt.TodoInputSchema.parse(input);
+    const parsed = TodoInputSchema.parse(input);
     const executed = await todo.execute?.(parsed, { messages: [], toolCallId: "1" });
     const out = await unwrap(executed!);
     expect(out.todos).toHaveLength(2);
@@ -30,7 +37,7 @@ describe("todo uber tool", () => {
 
   it("promotes next pending when current completed", async () => {
     const update = { command: "update", states: [{ id: "1", status: "completed" }] } as const;
-    const executed = await todo.execute?.(tt.TodoInputSchema.parse(update), { messages: [], toolCallId: "2" });
+    const executed = await todo.execute?.(TodoInputSchema.parse(update), { messages: [], toolCallId: "2" });
     const out = await unwrap(executed!);
     const t1 = out.todos.find((t: TodoItem) => t.id === "1");
     const t2 = out.todos.find((t: TodoItem) => t.id === "2");
@@ -39,7 +46,7 @@ describe("todo uber tool", () => {
   });
 
   it("clears steps", async () => {
-    const executed = await todo.execute?.(tt.TodoInputSchema.parse({ command: "clear" }), {
+    const executed = await todo.execute?.(TodoInputSchema.parse({ command: "clear" }), {
       messages: [],
       toolCallId: "3",
     });
@@ -49,11 +56,11 @@ describe("todo uber tool", () => {
 });
 
 describe("todo split tools", () => {
-  const split = tt.createSplitTodoTools();
+  const split = createSplitTodoTool();
   const { todo_add, todo_update, todo_list, todo_clear } = split;
 
   it("adds and auto-promotes", async () => {
-    const addInput = tt.TodoAddInputSchema.parse({ steps: [{ description: "a" }, { description: "b" }] });
+    const addInput = TodoAddInputSchema.parse({ steps: [{ description: "a" }, { description: "b" }] });
     const executed = await todo_add.execute?.(addInput, { messages: [], toolCallId: "4" });
     const out = await unwrap(executed!);
     expect(out.todos).toHaveLength(2);
@@ -66,7 +73,7 @@ describe("todo split tools", () => {
     const listBefore = await unwrap(listExec!);
     const first = listBefore.todos[0];
     const second = listBefore.todos[1];
-    const updInput = tt.TodoUpdateInputSchema.parse({ states: [{ id: first.id, status: "completed" }] });
+    const updInput = TodoUpdateInputSchema.parse({ states: [{ id: first.id, status: "completed" }] });
     const updExec = await todo_update.execute?.(updInput, { messages: [], toolCallId: "6" });
     const out = await unwrap(updExec!);
     const t1 = out.todos.find((t: TodoItem) => t.id === first.id)!;
@@ -80,13 +87,13 @@ describe("todo split tools", () => {
     const list = await unwrap(listExec2!);
     const remaining = list.todos.filter((t) => t.status !== "completed");
     if (remaining.length) {
-      const updInput = tt.TodoUpdateInputSchema.parse({
+      const updInput = TodoUpdateInputSchema.parse({
         states: remaining.map((r) => ({ id: r.id, status: "completed" })),
       });
       const updAllExec = await todo_update.execute?.(updInput, { messages: [], toolCallId: "8" });
       await unwrap(updAllExec!);
     }
-    const addInput = tt.TodoAddInputSchema.parse({ steps: [{ description: "new" }] });
+    const addInput = TodoAddInputSchema.parse({ steps: [{ description: "new" }] });
     const execAdd = await todo_add.execute?.(addInput, { messages: [], toolCallId: "9" });
     const out = await unwrap(execAdd!);
     const newly = out.todos.find((t: TodoItem) => t.description === "new");

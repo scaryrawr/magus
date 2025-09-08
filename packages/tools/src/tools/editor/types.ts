@@ -2,6 +2,7 @@ import z from "zod";
 
 // Input schemas (discriminated by `command`)
 export const ViewSchema = z.object({
+  command: z.optional(z.literal("view")).describe("The view command enables you to look into files and directories."),
   path: z.string().describe("The path of the file or directory to view."),
   view_range: z
     .tuple([z.number().describe("start line"), z.number().describe("end line")])
@@ -12,17 +13,24 @@ export const ViewSchema = z.object({
 });
 
 export const CreateFileSchema = z.object({
+  command: z.optional(z.literal("create")).describe("The create command enables you to create new files."),
   path: z.string().describe("The path to where the new file should be created."),
   content: z.string().describe("The content to write to the new file."),
 });
 
 export const InsertFileSchema = z.object({
+  command: z
+    .optional(z.literal("insert"))
+    .describe("The insert command enables you to insert content into existing files."),
   path: z.string().describe("The path to the file to modify."),
   line: z.number().describe("The line number to insert the content at (0 to insert at the beginning of the file)."),
   new_str: z.string().describe("The text to insert."),
 });
 
 export const StringReplaceSchema = z.object({
+  command: z
+    .optional(z.literal("replace"))
+    .describe("The replace command enables you to replace text in existing files."),
   path: z.string().describe("The path to the file to modify."),
   old_str: z.string().describe("The text to replace (must match exactly, including whitespace and indentation)."),
   new_str: z.string().describe("The new text to insert in place of the old text."),
@@ -39,19 +47,11 @@ export const ViewOutputSchema = z.object({
 });
 
 // Union schemas
-export const EditorInputSchema = z.discriminatedUnion("command", [
-  ViewSchema.extend({
-    command: z.literal("view").describe("The view command enables you to look into files and directories."),
-  }),
-  CreateFileSchema.extend({
-    command: z.literal("create").describe("The create command enables you to create new files."),
-  }),
-  InsertFileSchema.extend({
-    command: z.literal("insert").describe("The insert command enables you to insert content into existing files."),
-  }),
-  StringReplaceSchema.extend({
-    command: z.literal("replace").describe("The replace command enables you to replace text in existing files."),
-  }),
+export const EditorInputSchema = z.union([
+  ViewSchema.required({ command: true }),
+  CreateFileSchema.required({ command: true }),
+  InsertFileSchema.required({ command: true }),
+  StringReplaceSchema.required({ command: true }),
 ]);
 
 export const EditorOutputSchema = z.union([ViewOutputSchema, DiffOutputSchema]);

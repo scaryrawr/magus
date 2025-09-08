@@ -2,17 +2,14 @@ import { createDefaultLspManager } from "@magus/lsp";
 import { createLmStudioProvider, createOllamaProvider, createOpenRouterProvider } from "@magus/providers";
 import { createServer, MagusChatStore, ModelsResultSchema, type MagusRoutes } from "@magus/server";
 import {
-  createCreateFileTool,
   createFindTool,
-  createInsertTool,
   createSearchTool,
   createShellTool,
-  createSplitTodoTools,
-  createStringReplaceTool,
-  createViewTool,
+  createSplitTodoTool,
   createWebFetchTool,
   type EditorOutputPlugin,
 } from "@magus/tools";
+import { createSplitEditorTool } from "@magus/tools/src/tools/editor";
 import { hc } from "hono/client";
 import { join } from "node:path";
 import React from "react";
@@ -52,15 +49,12 @@ const createMagusServer = () => {
   };
 
   const tools = {
-    ...createSplitTodoTools(),
-    ...createViewTool(plugins),
+    ...createSplitEditorTool(plugins),
+    ...createSplitTodoTool(),
     ...createSearchTool(),
     ...createFindTool(),
     ...createWebFetchTool(),
     ...createShellTool(),
-    ...createCreateFileTool(plugins),
-    ...createInsertTool(plugins),
-    ...createStringReplaceTool(plugins),
   };
 
   const { listen } = createServer({

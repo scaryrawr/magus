@@ -41,7 +41,7 @@ export {
   TodoListInputSchema,
   TodoOutputSchema,
   TodoUpdateInputSchema,
-  createSplitTodoTools,
+  createSplitTodoTool,
   createTodoTool,
 } from "./todo";
 export type { SplitTodoToolSet, TodoToolSet } from "./todo";

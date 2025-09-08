@@ -29,7 +29,7 @@ export {
   createInsertTool,
   createSearchTool,
   createShellTool,
-  createSplitTodoTools,
+  createSplitTodoTool,
   createStringReplaceTool,
   createTodoTool,
   createViewTool,

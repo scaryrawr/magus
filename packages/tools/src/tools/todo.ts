@@ -165,7 +165,7 @@ export const TodoClearInputSchema = z.object({
   clear: z.boolean().optional().describe("No-op input object (optional)"),
 });
 
-export const createSplitTodoTools = () => {
+export const createSplitTodoTool = () => {
   const manager = createInternalManager();
   return {
     todo_add: tool({
@@ -195,5 +195,6 @@ export const createSplitTodoTools = () => {
   } as const satisfies ToolSet;
 };
 
-export type TodoToolSet = ReturnType<typeof createTodoTool>;
-export type SplitTodoToolSet = ReturnType<typeof createSplitTodoTools>;
+export type SplitTodoToolSet = ReturnType<typeof createSplitTodoTool>;
+export type UberTodoToolSet = ReturnType<typeof createTodoTool>;
+export type TodoToolSet = SplitTodoToolSet & UberTodoToolSet;

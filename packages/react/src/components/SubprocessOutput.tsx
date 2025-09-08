@@ -1,7 +1,7 @@
-import { Text } from "ink";
-import React, { useEffect } from "react";
-import stripAnsi from "strip-ansi";
-import { createAnsiStreamParser, type AnsiSegment } from "../utils/ansi";
+// No direct Text import; using AnsiText component
+import React from "react";
+import { AnsiText } from "./AnsiText";
+
 type SubprocessOutputProps = {
   command: string;
   args?: string[];
@@ -9,37 +9,7 @@ type SubprocessOutputProps = {
 };
 
 export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, args, children: stdin }) => {
-  const [segments, setSegments] = React.useState<AnsiSegment[]>([]);
-  const parserRef = React.useRef(createAnsiStreamParser());
-
-  const appendSegments = React.useCallback((incoming: AnsiSegment[]) => {
-    if (incoming.length === 0) return;
-    setSegments((prev) => {
-      if (prev.length === 0) return incoming;
-
-      const merged = [...prev];
-      let last = merged[merged.length - 1];
-      for (const seg of incoming) {
-        const sameStyle =
-          last.color === seg.color &&
-          last.backgroundColor === seg.backgroundColor &&
-          last.bold === seg.bold &&
-          last.underline === seg.underline &&
-          last.italic === seg.italic &&
-          last.strikethrough === seg.strikethrough &&
-          last.dimColor === seg.dimColor &&
-          last.inverse === seg.inverse;
-        if (sameStyle) {
-          last = { ...last, text: stripAnsi((last.text ?? "") + seg.text) };
-          merged[merged.length - 1] = last;
-        } else {
-          merged.push(seg);
-          last = seg;
-        }
-      }
-      return merged;
-    });
-  }, []);
+  const [output, setOutput] = React.useState<string>("");
 
   const process = React.useMemo(() => {
     const stdinBuffer = stdin ? new TextEncoder().encode(stdin) : undefined;
@@ -49,7 +19,7 @@ export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, arg
     });
   }, [args, command, stdin]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     return () => {
       try {
         process.kill();
@@ -75,8 +45,7 @@ export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, arg
           if (signal.aborted || done) break;
           if (value) {
             const chunk = Buffer.from(value).toString();
-            const segs = parserRef.current.push(chunk);
-            appendSegments(segs);
+            setOutput((prev) => prev + chunk);
           }
         }
       } finally {
@@ -88,9 +57,7 @@ export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, arg
       }
     };
 
-    // Start reading stream
     const abortController = new AbortController();
-    // fire and forget read loop
     void readOutput(abortController.signal);
 
     return () => {
@@ -99,44 +66,12 @@ export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, arg
         // ignore errors on cancel
       });
     };
-  }, [process, appendSegments]);
-
-  // Reset segments and parser whenever the process object changes (i.e., new command/args/stdin)
-  React.useEffect(() => {
-    setSegments([]);
-    parserRef.current.reset();
   }, [process]);
 
-  // When the process exits, flush any buffered text into segments
+  // Reset output when the process changes (new command/args/stdin)
   React.useEffect(() => {
-    let disposed = false;
-    void process.exited.then(() => {
-      if (disposed) return;
-      const tail = parserRef.current.flush();
-      appendSegments(tail);
-    });
-    return () => {
-      disposed = true;
-    };
-  }, [process, appendSegments]);
+    setOutput("");
+  }, [process]);
 
-  return (
-    <Text>
-      {segments.map((seg, i) => (
-        <Text
-          key={i}
-          color={seg.color}
-          backgroundColor={seg.backgroundColor}
-          bold={seg.bold}
-          underline={seg.underline}
-          italic={seg.italic}
-          strikethrough={seg.strikethrough}
-          dimColor={seg.dimColor}
-          inverse={seg.inverse}
-        >
-          {seg.text}
-        </Text>
-      ))}
-    </Text>
-  );
+  return <AnsiText>{output}</AnsiText>;
 };

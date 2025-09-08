@@ -16,6 +16,7 @@ export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, arg
 
     return Bun.spawn(args ? [command, ...args] : [command], {
       stdin: stdinBuffer,
+      stderr: "pipe",
     });
   }, [args, command, stdin]);
 

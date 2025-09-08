@@ -3,13 +3,12 @@ import { createLmStudioProvider, createOllamaProvider, createOpenRouterProvider 
 import { createServer, MagusChatStore, ModelsResultSchema, type MagusRoutes } from "@magus/server";
 import {
   createCreateFileTool,
-  createEditorTool,
   createFindTool,
   createInsertTool,
   createSearchTool,
   createShellTool,
+  createSplitTodoTools,
   createStringReplaceTool,
-  createTodoTool,
   createViewTool,
   createWebFetchTool,
   type EditorOutputPlugin,
@@ -24,8 +23,8 @@ import { MagusRouterProvider } from "./routes";
 
 const createMagusServer = () => {
   const providers = {
-    ...createOllamaProvider(),
     ...createLmStudioProvider(),
+    ...createOllamaProvider(),
     ...(process.env.OPENROUTER_API_KEY ? createOpenRouterProvider(process.env.OPENROUTER_API_KEY) : undefined),
   };
 
@@ -52,35 +51,22 @@ const createMagusServer = () => {
     },
   };
 
-  const sharedToolset = {
+  const tools = {
+    ...createSplitTodoTools(),
+    ...createViewTool(plugins),
     ...createSearchTool(),
     ...createFindTool(),
     ...createWebFetchTool(),
     ...createShellTool(),
-  };
-
-  const defaultToolset = {
-    ...createEditorTool(plugins),
-    ...createTodoTool(),
-    ...sharedToolset,
-  };
-
-  const individualToolset = {
     ...createCreateFileTool(plugins),
     ...createInsertTool(plugins),
     ...createStringReplaceTool(plugins),
-    ...createViewTool(plugins),
-    ...sharedToolset,
   };
 
   const { listen } = createServer({
     providers,
     chatStore: new MagusChatStore(join(process.cwd(), ".magus", "chats")),
-    providerTools: {
-      lmstudio: individualToolset,
-      ollama: defaultToolset,
-      openrouter: defaultToolset,
-    },
+    tools,
   });
 
   const server = listen();

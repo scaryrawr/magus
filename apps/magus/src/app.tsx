@@ -5,8 +5,8 @@ import {
   createCreateFileTool,
   createEditorTool,
   createFindTool,
-  createGrepTool,
   createInsertTool,
+  createSearchTool,
   createShellTool,
   createStringReplaceTool,
   createTodoTool,
@@ -30,6 +30,7 @@ const createMagusServer = () => {
   };
 
   const lsp = createDefaultLspManager();
+  lsp.startWatcher();
   const plugins: EditorOutputPlugin = {
     diagnostics: (uri) => {
       const diagnostics = lsp.getDiagnostics(uri);
@@ -52,7 +53,7 @@ const createMagusServer = () => {
   };
 
   const sharedToolset = {
-    ...createGrepTool(),
+    ...createSearchTool(),
     ...createFindTool(),
     ...createWebFetchTool(),
     ...createShellTool(),
@@ -68,7 +69,7 @@ const createMagusServer = () => {
     ...createCreateFileTool(plugins),
     ...createInsertTool(plugins),
     ...createStringReplaceTool(plugins),
-    ...createViewTool(),
+    ...createViewTool(plugins),
     ...sharedToolset,
   };
 

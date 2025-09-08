@@ -5,7 +5,7 @@ import type { MessagePart, ToolSetToUITools, UIToolProps } from "./types";
 
 const isTodoPart = (part: MessagePart): part is ToolUIPart<ToolSetToUITools<TodoToolSet>> => {
   const partCheck = part as ToolUIPart<ToolSetToUITools<TodoToolSet>>;
-  return partCheck.type === "tool-todo";
+  return partCheck.type.startsWith("tool-todo");
 };
 
 export const TodoView: React.FC<UIToolProps> = ({ part }) => {

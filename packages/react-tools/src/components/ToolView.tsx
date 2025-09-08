@@ -69,6 +69,10 @@ export const ToolView: React.FC<UIToolProps> = ({ part }) => {
     "tool-replace": StringReplaceView,
     "tool-view": ViewFileView,
     "tool-todo": TodoView,
+    "tool-todo_add": TodoView,
+    "tool-todo_clear": TodoView,
+    "tool-todo_list": TodoView,
+    "tool-todo_update": TodoView,
   }).current;
 
   if (!isToolPart(part)) {

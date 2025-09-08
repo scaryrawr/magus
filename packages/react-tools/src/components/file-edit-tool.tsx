@@ -6,7 +6,7 @@ import type { MessagePart, ToolSetToUITools, UIToolProps } from "./types";
 
 const isEditorPart = (part: MessagePart): part is ToolUIPart<ToolSetToUITools<EditorToolSet>> => {
   const partCheck = part as ToolUIPart<ToolSetToUITools<EditorToolSet>>;
-  return partCheck.type === "tool-file_interaction_tool";
+  return partCheck.type === "tool-editor";
 };
 
 export const FileEditToolView: React.FC<UIToolProps> = ({ part }) => {
@@ -14,7 +14,7 @@ export const FileEditToolView: React.FC<UIToolProps> = ({ part }) => {
 
   const { toolCallId } = part;
   const output = part.output ? EditorOutputSchema.parse(part.output) : undefined;
-  const { diff } = typeof output === "object" ? output : { diff: "" };
+  const { diff } = typeof output === "object" && "diff" in output ? output : { diff: "" };
   switch (part.state) {
     case "output-available": {
       const input = EditorInputSchema.parse(part.input);

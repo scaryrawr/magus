@@ -9,7 +9,7 @@ import type {
   ViewToolSet,
 } from "@magus/tools";
 import type { ToolUIPart, UIDataTypes, UIMessagePart, UITools } from "ai";
-import { Box, Text } from "ink";
+import { Box, Text, type BoxProps } from "ink";
 import React, { useRef } from "react";
 import { CreateFileView } from "./create-file";
 import { FileEditToolView } from "./file-edit-tool";
@@ -21,12 +21,19 @@ import { TodoView } from "./todo";
 import type { UIToolProps } from "./types";
 import { ViewFileView } from "./view-file";
 
-type ToolBoxProps = React.PropsWithChildren;
+type ToolBoxProps = Omit<BoxProps, "borderLeft" | "borderRight" | "flexDirection"> & React.PropsWithChildren;
 
-const ToolBox: React.FC<ToolBoxProps> = ({ children }) => {
+const ToolBox: React.FC<ToolBoxProps> = ({ children, ...props }) => {
   if (!children) return null;
   return (
-    <Box borderColor="blueBright" borderLeft={false} borderRight={false} borderStyle="double" flexDirection="column">
+    <Box
+      borderColor="blueBright"
+      borderLeft={false}
+      borderRight={false}
+      borderStyle="double"
+      flexDirection="column"
+      {...props}
+    >
       {children}
     </Box>
   );
@@ -54,9 +61,10 @@ export const ToolView: React.FC<UIToolProps> = ({ part }) => {
     >
   >({
     "tool-create_file": CreateFileView,
-    "tool-file_interaction_tool": FileEditToolView,
+    "tool-editor": FileEditToolView,
     "tool-file_insert": FileInsertView,
     "tool-grep": GrepView,
+    "tool-search": GrepView,
     "tool-shell": ShellView,
     "tool-replace": StringReplaceView,
     "tool-view": ViewFileView,
@@ -65,6 +73,17 @@ export const ToolView: React.FC<UIToolProps> = ({ part }) => {
 
   if (!isToolPart(part)) {
     return null;
+  }
+
+  const toolName = part.type.replace("tool-", "");
+
+  if (part.state === "output-error") {
+    return (
+      <ToolBox alignItems="center">
+        <Text color="red">❗⚒️❗ Tool Error: {toolName} ❗⚒️❗</Text>
+        <Text color="red">{part.errorText}</Text>
+      </ToolBox>
+    );
   }
 
   if (part.type in toolViews) {
@@ -110,7 +129,7 @@ export const ToolView: React.FC<UIToolProps> = ({ part }) => {
   return (
     <ToolBox>
       <Text>
-        ⚒️ {part.type.replace("tool-", "")} {message}
+        ⚒️ {toolName} {message}
       </Text>
     </ToolBox>
   );

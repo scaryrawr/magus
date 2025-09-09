@@ -3,13 +3,14 @@ import { createLmStudioProvider, createOllamaProvider, createOpenRouterProvider 
 import { createServer, MagusChatStore, ModelsResultSchema, type MagusRoutes } from "@magus/server";
 import {
   createFindTool,
+  createLspDiagnosticsTool,
   createSearchTool,
   createShellTool,
-  createSplitTodoTool,
+  createTodoTool,
   createWebFetchTool,
   type EditorOutputPlugin,
 } from "@magus/tools";
-import { createSplitEditorTool } from "@magus/tools/src/tools/editor";
+import { createEditorTool } from "@magus/tools/src/tools/editor";
 import { hc } from "hono/client";
 import { join } from "node:path";
 import React from "react";
@@ -20,8 +21,8 @@ import { MagusRouterProvider } from "./routes";
 
 const createMagusServer = () => {
   const providers = {
-    ...createLmStudioProvider(),
     ...createOllamaProvider(),
+    ...createLmStudioProvider(),
     ...(process.env.OPENROUTER_API_KEY ? createOpenRouterProvider(process.env.OPENROUTER_API_KEY) : undefined),
   };
 
@@ -49,12 +50,13 @@ const createMagusServer = () => {
   };
 
   const tools = {
-    ...createSplitEditorTool(plugins),
-    ...createSplitTodoTool(),
+    ...createEditorTool(plugins),
+    ...createTodoTool(),
     ...createSearchTool(),
     ...createFindTool(),
     ...createWebFetchTool(),
     ...createShellTool(),
+    ...createLspDiagnosticsTool(lsp),
   };
 
   const { listen } = createServer({
@@ -75,14 +77,21 @@ const createMagusServer = () => {
   });
 
   void client.v0.systemPrompt.$put({ json: { systemPrompt: SYSTEM_PROMPT } });
-  Bun.file(join(process.cwd(), ".github", "copilot-instructions.md"))
+  Bun.file(join(process.cwd(), "AGENTS.md"))
     .text()
     .then((content) => {
       void client.v0.instructions.$patch({ json: { instruction: content } });
     })
-    .catch(() => {
-      // It's fine if there's no instructions file.
-    });
+    .catch(() =>
+      Bun.file(join(process.cwd(), ".github", "copilot-instructions.md"))
+        .text()
+        .then((content) => {
+          void client.v0.instructions.$patch({ json: { instruction: content } });
+        })
+        .catch(() => {
+          // It's fine if there's no instructions file.
+        }),
+    );
 
   return {
     client,

@@ -1,97 +1,87 @@
-# Magus Monorepo
+# Magus Monorepo – Agent Operations Guide
 
-## Architecture Overview
+Concise facts an AI agent needs to work productively in this repo. Prefer specificity over generic advice.
 
-Magus is a Bun monorepo for composable agentic tools with these core components:
+## 1. Architecture & Flow
 
-- **Terminal UI Chat Client** (`apps/magus`): Ink + React app with embedded HTTP server
-- **Modular Server** (`packages/server`): Hono + `ai` package for streaming LLM responses
-- **Provider System** (`packages/providers`): Unified interface for LM Studio, Ollama, OpenRouter
-- **Tool System** (`packages/tools`, `packages/react-tools`): File operations, shell, editor tools
-- **UI Components** (`packages/react`): Reusable Ink components like `ScrollArea`
+Terminal Ink app (`apps/magus`) launches an embedded Hono server (`packages/server`). Data path:
+UI → `/v0/chat` (Hono) → selected provider (`packages/providers`) → streaming SSE → UI render.
+`ObservableServerState` (events: `change:model`, `change:systemPrompt`, `change:instructions`) mediates provider/model/tool selection. System prompt (from `codex.txt`) + instructions (this file) are PATCHed at startup (`app.tsx`).
 
-Key data flow: UI → embedded server (`/v0/chat`) → provider → streaming response
+## 2. Key Packages
 
-## Essential Workflows
+- `packages/providers`: LM Studio (`/api/v0/models`), Ollama (`/api/tags` + `/api/show`), OpenRouter (REST). Each returns `{ id, context_length, reasoning, tool_use }` with capability detection (`thinking`, `tools`, etc.). Filter out embeddings in LM Studio.
+- `packages/server`: `createServer` wires routers under `/v0` (chat, models, prompt) and an SSE endpoint `/v0/sse` that pushes `model-change` events (JSON of current model select).
+- `packages/tools`: Tool sets built with `ai.tool()`. Editor tool implements subcommands: view/create/insert/replace. Grep/search tool auto-selects fastest available binary (rg > grep > findstr) and falls back gracefully.
+- `packages/react`: Reusable Ink components (e.g. scrolling, banners) with React Router memory routing (`routes.tsx`).
+- `packages/lsp`: LSP manager feeding diagnostics via an editor plugin that wraps diagnostics in `<diagnostic_errors>` tags for model consumption.
+
+## 3. Runtime & Environment Assumptions
+
+- Bun runtime only; port is ephemeral (`port: 0`). Always detect actual server URL via returned `server.url`.
+- Optional binaries accelerate tools: `rg`, `fd`, `delta`, `bat`. Absence is fine (fallback JS path in tools/diffs).
+- Providers default origins: LM Studio `:1234`, Ollama `:11434`; OpenRouter only enabled if `OPENROUTER_API_KEY` is set.
+
+## 4. Development Workflows
 
 ```bash
-# Development
-bun install                     # Install all workspace dependencies
-bun apps/magus/src/main.ts     # Run app from repo root
-cd apps/magus && bun src/main.ts # Alternative from app directory
-
-# Testing & Quality
-bun test                       # All tests (individual: bun test file.test.ts)
-bun test:coverage             # Coverage with lcov output
-bun run --filter @magus/providers test  # Package-specific tests
-bun typecheck                 # TypeScript checking
-bun lint                      # ESLint (fix with bun lint:fix)
-bun format                    # Prettier formatting
-
-# Building
-bun run build                 # All packages
-bun run bundle               # Cross-platform executables (see bundle.ts)
+bun install                    # deps
+bun apps/magus/src/main.ts     # run CLI (from repo root)
+bun test                       # all tests
+bun test:coverage              # coverage → coverage/lcov.info
+bun typecheck                  # TS project-wide
+bun lint && bun format         # quality gates
+bun run build                  # build all packages
+bun run bundle                 # cross-platform executables (see apps/magus/bundle.ts)
 ```
 
-## Code Patterns & Conventions
+Package-scoped tests: `bun run --filter @magus/providers test` etc.
 
-**Provider Interface** (`packages/providers/src/types.ts`):
+## 5. Core Patterns
 
-```typescript
-interface MagusProvider {
-  name: string;
-  model(id: string): LanguageModel;
-  models(): Promise<ModelInfo[]>; // { id, reasoning, context_length, tool_use }
-}
-```
+- Provider interface (`packages/providers/src/types.ts`): `model(id)` returns an `ai` LanguageModel; `models()` returns pre-filtered capabilities. Cache remote lists where possible (see OpenRouter lazy cache with retry reset on rejection).
+- Tools pattern: Factory returning object literal of tool name → `tool({...})`. Keep schemas in same file; output always Zod-validated.
+- Editor tool examples (expected JSON command envelope) are embedded inside its description; reuse those when constructing tool calls.
+- Streaming: SSE `/v0/sse` loop keeps connection alive with `stream.sleep(1000)`; remember to remove listeners on abort.
+- Routing: Routes built dynamically; route metadata (descriptions) in `routes.tsx` for help/summary UIs.
 
-**Server Composition**:
+## 6. Adding Functionality
 
-```typescript
-// RouterFactory pattern - preferred for new endpoints
-const myRouter: RouterFactory = (state) => new Hono().get("/my-route", handler);
-createServer({ providers, model, routers: [myRouter] });
-```
+- New provider: Implement factory returning `{ providerName: { model, models } }`, add capability detection, ensure Zod schema for remote shape, exclude non-chat models (e.g. embeddings). Export by spreading into providers object in `app.tsx`.
+- New tool: Create file in `packages/tools/src/tools/`, export factory, add to `app.tsx` tools object. Provide concrete input/output examples in description; keep operations idempotent; rely on existing ignore filters (`@magus/common-utils`).
+- New route: Add router factory to `packages/server/src/routes/` and compose via `app.route("/v0", myRouter(state))` inside `createServer` or extend pattern similarly.
+- Extend editor output: Supply additional plugin functions in `EditorOutputPlugin` (see diagnostics injection pattern in `app.tsx`). Wrap structured sections in XML-ish tags for model clarity.
 
-**Observable State**: Server uses `ObservableServerState` with events (`change:model`, `change:tools`) for reactive updates.
+## 7. Testing & Validation Nuances
 
-**Tool Sets**: Provider-specific tool configuration in `getProviderToolSet()` - LM Studio gets file tools, others get editor tools.
+- Use provider schemas (e.g. `LmStudioModelInfoSchema`, `OllamaTagsSchema`) to guard fixtures. Mock `fetch` responses shaped exactly like provider Zod expects.
+- Coverage artifacts consumed from `coverage/lcov.info` (maintain path stability if generating tooling around it).
+- Ink component tests: Avoid relying on actual terminal measuring; prefer shallow logic tests or schema tests for outputs.
 
-## Critical Dependencies & Integration
+## 8. Common Pitfalls (Avoid)
 
-- **Workspace resolution**: Uses `workspace:*` for internal packages, catalog references for shared deps
-- **ESLint config**: Flat config with React hooks, unused imports, 120-char Prettier
-- **Provider discovery**: Filters out embeddings models; LM Studio uses `/api/v0/models`, Ollama uses `/api/tags` + `/api/show`
-- **UI Router**: React Router with memory history, routes defined in `apps/magus/src/routes.tsx`
-- **Server lifecycle**: Random port (`port: 0`), auto-selects first available model on startup
+- Assuming stable port number (always capture dynamic server URL).
+- Sending tool commands without required `command` discriminator to editor tool.
+- Forgetting to PATCH instructions/systemPrompt early → model context misses guidance.
+- Treating grep tool as always `rg`; description dynamically reflects chosen backend.
 
-## Testing Approach
+## 9. Safe Modification Checklist
 
-- **Provider mocking**: Implement `MagusProvider` interface for tests
-- **Zod validation**: All API responses validated with schemas (see `LmStudioModelInfoSchema`)
-- **Ink limitations**: Component tests constrained by `measureElement()` in test environment
-- **Coverage**: Use `bun test:coverage` → generates `coverage/lcov.info`
+1. Add/adjust code.
+2. Add or update focused unit tests (provider schema, tool behavior, route handling).
+3. Run: test → typecheck → lint → format.
+4. Keep public signatures stable unless feature requires change—then update dependent imports across packages.
 
-## Common Gotchas
+## 10. Quick File Landmarks
 
-- **Runtime deps**: Requires LM Studio (`:1234`) or Ollama (`:11434`) running locally
-- **Model selection**: App auto-selects first model from `/v0/models` response
-- **ScrollArea behavior**: Auto-pins to bottom unless user manually scrolls up
-- **Bundle targets**: Cross-platform builds via `bundle.ts` for multiple architectures
-- **System prompts**: Loaded from `.github/copilot-instructions.md` if available (see `app.tsx`)
+- System prompt: `apps/magus/src/codex.txt`
+- Instructions loader: `apps/magus/src/app.tsx`
+- SSE model events: `packages/server/src/server.ts`
+- State events & prompt assembly: `packages/server/src/ObservableServerState.ts`
+- Editor tool + examples: `packages/tools/src/tools/editor/editor.ts`
+- Grep/search implementation: `packages/tools/src/tools/grep.ts`
+- Provider capability logic: each file in `packages/providers/src/` (`lmstudio.ts`, `ollama.ts`, `openrouter.ts`)
 
-## Extending the System
+---
 
-**New provider**: Implement `MagusProvider` in `packages/providers/src/`, add Zod schemas for API validation
-**New tools**: Add to `packages/tools/src/tools/`, update tool set mapping in `app.tsx`
-**New routes**: Create `RouterFactory` function, add to `createServer({ routers })` array
-**UI components**: Add to `packages/react/src/components/`, follow Ink patterns with `useInput` for navigation
-
-## Making Changes
-
-When making changes to the Magus monorepo, you must follow these steps to ensure consistency and maintainability:
-
-1. Add unit tests.
-2. Ensure all tests pass by running `bun test`.
-3. Run `bun lint` and `bun format` to maintain code quality.
-4. Fix all linter errors.
+If any section is unclear or you need deeper detail on a specific pattern, request an expansion citing the heading.

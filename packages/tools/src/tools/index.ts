@@ -32,6 +32,8 @@ export { FindInputSchema, FindOutputSchema, createFindTool } from "./find";
 export type { FindInput, FindOutput, FindToolSet } from "./find";
 export { GrepInputSchema, GrepOutputSchema, createGrepTool, createSearchTool } from "./grep";
 export type { GrepInput, GrepOutput, GrepToolSet } from "./grep";
+export { LspDiagnosticsInputSchema, LspDiagnosticsOutputSchema, createLspDiagnosticsTool } from "./lsp";
+export type { LspDiagnosticsInput, LspDiagnosticsOutput, LspDiagnosticsToolSet } from "./lsp";
 export { ShellInputSchema, ShellOutputSchema, createShellTool } from "./shell";
 export type { ShellInput, ShellOutput, ShellToolSet } from "./shell";
 export {

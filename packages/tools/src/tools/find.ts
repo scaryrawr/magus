@@ -116,7 +116,8 @@ export const findFile = async ({
   const files = [];
   const relativeIgnore = path && path !== "." ? await gitignoreFilter(path) : { ignores: () => false };
   const keep = (line: string) => {
-    return line.trim() && !gitignore.ignores(line) && !relativeIgnore.ignores(line);
+    const normalized = line.replaceAll("\\", "/");
+    return normalized.trim() && !gitignore.ignores(normalized) && !relativeIgnore.ignores(normalized);
   };
 
   let stdout = "";

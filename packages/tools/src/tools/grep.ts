@@ -166,20 +166,17 @@ export const grepFile = async ({
   for await (const chunk of proc.stdout) {
     buffer += new TextDecoder().decode(chunk);
     if (buffer.includes("\n")) {
-      const split = buffer.split("\n");
-      buffer = split.pop() ?? "";
-      for (const line of split) {
-        if (keep(line)) matches.push(line.trim());
-      }
+      // Windows has `\r` in its newlines which messes up the ignore filter
+      const lines = buffer.split("\n").map((line) => line.trim());
+      buffer = lines.pop() ?? "";
+      matches.push(...lines.filter(keep).map((line) => line.replace(process.cwd(), ".")));
     }
   }
 
   // Flush trailing buffer
   if (buffer.trim() !== "") {
-    const split = buffer.split("\n");
-    for (const line of split) {
-      if (keep(line)) matches.push(line.trim());
-    }
+    const lines = buffer.split("\n").map((line) => line.trim());
+    matches.push(...lines.filter(keep).map((line) => line.replace(process.cwd(), ".")));
   }
 
   return { matches, total_matches: matches.length };

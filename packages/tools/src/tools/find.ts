@@ -115,25 +115,23 @@ export const findFile = async ({
   // Collect stdout asynchronously
   const files = [];
   const relativeIgnore = path && path !== "." ? await gitignoreFilter(path) : { ignores: () => false };
-  const keep = (line: string) => {
-    const normalized = line.replaceAll("\\", "/");
-    return normalized.trim() && !gitignore.ignores(normalized) && !relativeIgnore.ignores(normalized);
-  };
+  const keep = (line: string) => !gitignore.ignores(line) && !relativeIgnore.ignores(line);
 
   let stdout = "";
   for await (const chunk of proc.stdout) {
     stdout += new TextDecoder().decode(chunk);
     if (stdout.includes("\n")) {
-      const newFiles = stdout.split("\n");
+      // Windows has `\r` in its newlines which messes up the ignore filter
+      const newFiles = stdout.split("\n").map((line) => line.trim());
       stdout = newFiles.pop() ?? "";
-      files.push(...newFiles.filter(keep).map((line) => line.replace(process.cwd(), ".").trim()));
+      files.push(...newFiles.filter(keep).map((line) => line.replace(process.cwd(), ".")));
     }
   }
 
   // Trailing contents
   if (stdout) {
-    const newFiles = stdout.split("\n");
-    files.push(...newFiles.filter(keep).map((line) => line.replace(process.cwd(), ".").trim()));
+    const newFiles = stdout.split("\n").map((line) => line.trim());
+    files.push(...newFiles.filter(keep).map((line) => line.replace(process.cwd(), ".")));
   }
 
   return {

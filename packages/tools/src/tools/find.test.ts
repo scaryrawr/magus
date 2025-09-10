@@ -33,8 +33,7 @@ for (const override of toolsToTest) {
       });
       expect(res.total_matches).toBeGreaterThan(0);
       // Confirm at least one is the actual repo root README
-      const files = override === "rg" ? res.files.filter((f) => /(^|[/])README\.md$/.test(f)) : res.files;
-      const hasRootReadme = files.some((f) => f === "./README.md" || f === "README.md" || f === ".\\README.md");
+      const hasRootReadme = res.files.some((f) => f === "./README.md" || f === "README.md" || f === ".\\README.md");
       expect(hasRootReadme).toBeTrue();
     });
 

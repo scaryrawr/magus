@@ -57,9 +57,12 @@ export const createFile = async (
   const pluginResults = (
     await Promise.all(
       Object.entries(plugins || {}).map(async ([name, fn]) => {
-        return {
-          [name]: await fn(path),
-        };
+        const result = await fn(path);
+        return result
+          ? {
+              [name]: result,
+            }
+          : {};
       }),
     )
   ).reduce((acc, val) => ({ ...acc, ...val }), {});

@@ -78,7 +78,7 @@ export const createLspDiagnosticsTool = (manager: LspManager, rootDir: string = 
   return {
     lsp_diagnostics: tool({
       description:
-        "Retrieve language server diagnostics for one or more files. Use this to understand compile / lint issues, errors, and warnings produced by configured LSP servers.",
+        "Use this tool to validate changes to files meet compiler and linting requirements. It retrieves language server diagnostics for one or more files.",
       inputSchema: LspDiagnosticsInputSchema,
       outputSchema: LspDiagnosticsOutputSchema,
       execute: (input): LspDiagnosticsOutput => collectDiagnostics(manager, rootDir, input),

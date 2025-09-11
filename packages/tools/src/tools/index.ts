@@ -10,6 +10,7 @@ export {
   createCreateFileTool,
   createEditorTool,
   createInsertTool,
+  createSplitEditorTool,
   createStringReplaceTool,
   createViewTool,
 } from "./editor";
@@ -22,6 +23,7 @@ export type {
   EditorToolSet,
   InsertFileInput,
   InsertToolSet,
+  SplitEditorToolSet,
   StringReplaceInput,
   StringReplaceToolSet,
   ViewInput,

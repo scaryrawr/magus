@@ -16,7 +16,8 @@ export const TodoView: React.FC<UIToolProps> = ({ part }) => {
     case "output-available": {
       const { todos } = TodoOutputSchema.parse(part.output);
       return (
-        <Box key={toolCallId} flexDirection="row">
+        <Box key={toolCallId} flexDirection="column">
+          <Text>📋 To Do List:</Text>
           {todos.map((todo) => (
             <Text key={todo.id}>
               {todo.status === "pending"

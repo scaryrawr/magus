@@ -4,7 +4,8 @@ import { EventSource } from "eventsource";
 import { Box, Text } from "ink";
 import Spinner from "ink-spinner";
 import { useCallback, useEffect, useState } from "react";
-import { useChatContext, useServerContext } from "../contexts";
+import { useServerContext } from "../contexts";
+import { useChatStatus } from "../contexts/chatStore";
 
 const useModelInfo = () => {
   const { server, client } = useServerContext();
@@ -66,7 +67,7 @@ const useModelInfo = () => {
 };
 
 export const StatusBar: React.FC = () => {
-  const { chatStatus } = useChatContext();
+  const chatStatus = useChatStatus();
   const { server } = useServerContext();
   const modelInfo = useModelInfo();
   const url = server.url.href;

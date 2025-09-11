@@ -18,7 +18,7 @@ import { join } from "node:path";
 import React from "react";
 import SYSTEM_PROMPT from "./codex.txt";
 import { Banner } from "./components";
-import { ChatContextProvider, RoutesProvider, ServerProvider } from "./contexts";
+import { RoutesProvider, ServerProvider } from "./contexts";
 import { MagusRouterProvider } from "./routes";
 
 const createMagusServer = () => {
@@ -118,12 +118,10 @@ const createMagusServer = () => {
 export const App: React.FC = () => {
   return (
     <ServerProvider createServer={createMagusServer}>
-      <ChatContextProvider>
-        <RoutesProvider>
-          <Banner />
-          <MagusRouterProvider />
-        </RoutesProvider>
-      </ChatContextProvider>
+      <RoutesProvider>
+        <Banner />
+        <MagusRouterProvider />
+      </RoutesProvider>
     </ServerProvider>
   );
 };

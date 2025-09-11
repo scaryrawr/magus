@@ -1,5 +1,4 @@
-export { ChatContextProvider, useChatContext } from "./ChatProvider";
-// Input (zustand-powered)
+export { useChatStatus, useChatStore, useSetChatStatus } from "./chatStore";
 export {
   useInputPlaceholder,
   useInputSubmit,

@@ -4,7 +4,7 @@ import { DefaultChatTransport } from "ai";
 import { useInput } from "ink";
 import { useCallback, useEffect } from "react";
 import { useLoaderData, useParams, type RouteObject } from "react-router";
-import { useChatContext, useServerContext, useStackedRouteInput } from "../../contexts";
+import { useChatStore, useServerContext, useStackedRouteInput } from "../../contexts";
 import { useSafeLocation } from "../../hooks";
 import { ChatBox } from "./chatbox";
 
@@ -17,7 +17,7 @@ export const Chat = () => {
   const chatId = useParams().chatId;
   const { text: initialMessage } = useSafeLocation<ChatState>().state ?? {};
   const { messages: initialMessages } = useLoaderData<MagusChat>();
-  const { setChatStatus } = useChatContext();
+  const { setChatStatus } = useChatStore();
   const { sendMessage, messages, stop, status } = useChat({
     id: chatId,
     messages: initialMessages,

@@ -74,7 +74,7 @@ export const StatusBar: React.FC = () => {
   return (
     <Box height={1} flexDirection="row" justifyContent="space-between">
       <Text dimColor>
-        {modelInfo.provider}/{modelInfo.id}
+        {modelInfo.provider}:{modelInfo.id}
       </Text>
       <Text dimColor>Server: {url}</Text>
       <Text dimColor>

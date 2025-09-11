@@ -17,19 +17,21 @@ export const TodoView: React.FC<UIToolProps> = ({ part }) => {
       const { todos } = TodoOutputSchema.parse(part.output);
       return (
         <Box key={toolCallId} flexDirection="column">
-          <Text>📋 To Do List:</Text>
-          {todos.map((todo) => (
-            <Text key={todo.id}>
-              {todo.status === "pending"
-                ? "🧊"
-                : todo.status === "in_progress"
-                  ? "🚀"
-                  : todo.status === "removed"
-                    ? "❌"
-                    : "✅"}{" "}
-              - {todo.description}
-            </Text>
-          ))}
+          <Text bold>📝 To Do List:</Text>
+          <Box paddingLeft={2} paddingTop={1} flexDirection="column">
+            {todos.map((todo) => (
+              <Text key={todo.id}>
+                {todo.status === "pending"
+                  ? "🧊"
+                  : todo.status === "in_progress"
+                    ? "⏳"
+                    : todo.status === "removed"
+                      ? "❌"
+                      : "✅"}{" "}
+                - {todo.description}
+              </Text>
+            ))}
+          </Box>
         </Box>
       );
     }

@@ -77,11 +77,10 @@ const createInternalManager = (): InternalTodoManager => {
   const generateId = () => (nextId++).toString();
 
   const enforceInProgress = () => {
-    const allCompleted = todoItems.length > 0 && todoItems.every((t) => t.status === "completed");
-    if (!allCompleted && todoItems.length > 0 && !todoItems.some((t) => t.status === "in_progress")) {
-      const firstPending = todoItems.find((t) => t.status === "pending");
-      if (firstPending) firstPending.status = "in_progress";
-    }
+    if (todoItems.some((t) => t.status === "in_progress")) return;
+
+    const firstPending = todoItems.find((t) => t.status === "pending");
+    if (firstPending) firstPending.status = "in_progress";
   };
 
   return {

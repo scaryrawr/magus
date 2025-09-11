@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { existsSync } from "node:fs";
-import { findFile, type FindFileOptions } from "./find";
+import { globFile, type GlobFileOptions } from "./glob";
 
 // Detect which underlying tools are actually available on this system so we can
 // run the suite against each supported backend using the override.
@@ -17,16 +17,16 @@ const installedTools: Supported[] = supported
 
 // If none are detected for some reason, fall back to a single auto-detect run so
 // the suite still exercises the happy path.
-const toolsToTest: FindFileOptions["findToolOverride"][] =
-  installedTools.length > 0 ? (installedTools as FindFileOptions["findToolOverride"][]) : [undefined];
+const toolsToTest: GlobFileOptions["findToolOverride"][] =
+  installedTools.length > 0 ? (installedTools as GlobFileOptions["findToolOverride"][]) : [undefined];
 
 for (const override of toolsToTest) {
   const label = override ? `(${override} override)` : "(auto-detect)";
-  describe(`find tool ${label}`, () => {
+  describe(`glob tool ${label}`, () => {
     it("can find known files by glob-like name matching regardless of tool backend", async () => {
       // Readme at repo root should exist. On some backends (rg), our implementation lists files
       // without shell quoting, so pattern handling differs. For rg, list all files and filter here.
-      const res = await findFile({
+      const res = await globFile({
         pattern: "README.md",
         path: ".",
         findToolOverride: override,
@@ -39,12 +39,12 @@ for (const override of toolsToTest) {
 
     it("finds TypeScript or JSON files under packages without relying on exact counts", async () => {
       // For rg, list all and filter in test due to --iglob quoting differences under spawn.
-      const tsResults = await findFile({
+      const tsResults = await globFile({
         pattern: ".ts",
         path: "packages",
         findToolOverride: override,
       });
-      const jsonResults = await findFile({
+      const jsonResults = await globFile({
         pattern: ".json",
         path: "packages",
         findToolOverride: override,
@@ -64,14 +64,14 @@ for (const override of toolsToTest) {
     });
 
     it("ignores typical vendor directories like node_modules and .git", async () => {
-      const res = await findFile({ pattern: "package.json", path: ".", findToolOverride: override });
+      const res = await globFile({ pattern: "package.json", path: ".", findToolOverride: override });
       // Should not include entries under node_modules or .git
       const bad = res.files.filter((f) => /(\/|\\)(node_modules|\.git)(\/|\\)/.test(f));
       expect(bad.length).toBe(0);
     });
 
     it("treats '*' as match-all and includes README.md", async () => {
-      const res = await findFile({ pattern: "*", path: ".", findToolOverride: override });
+      const res = await globFile({ pattern: "*", path: ".", findToolOverride: override });
       expect(res.total_matches).toBeGreaterThan(0);
       // Should include the repo README
       const hasReadme = res.files.some(
@@ -89,7 +89,7 @@ for (const override of toolsToTest) {
     });
 
     it("handles '.' as a broad pattern and includes README.md", async () => {
-      const res = await findFile({ pattern: ".", path: ".", findToolOverride: override });
+      const res = await globFile({ pattern: ".", path: ".", findToolOverride: override });
       expect(res.total_matches).toBeGreaterThan(0);
       const hasReadme = res.files.some(
         (f) => f === "./README.md" || f === "README.md" || /(^|[/\\])README\.md$/.test(f),
@@ -121,14 +121,14 @@ for (const override of toolsToTest) {
         writeFileSync(join(tmpRoot, "sub", "inner.txt"), "inner", "utf8");
 
         // Search for .txt files; should NOT surface secret.txt inside ignored-dir
-        const resTxt = await findFile({ pattern: ".txt", path: tmpRoot, findToolOverride: override });
+        const resTxt = await globFile({ pattern: ".txt", path: tmpRoot, findToolOverride: override });
         const joined = resTxt.files.join("\n");
         expect(joined.includes("secret.txt")).toBeFalse();
         // Should include at least one of the kept txt files
         expect(resTxt.files.some((f) => f.endsWith("keep.txt") || f.endsWith("inner.txt"))).toBeTrue();
 
         // Search for .log files; debug.log should be filtered out entirely
-        const resLog = await findFile({ pattern: ".log", path: tmpRoot, findToolOverride: override });
+        const resLog = await globFile({ pattern: ".log", path: tmpRoot, findToolOverride: override });
         expect(resLog.total_matches).toBe(0);
       } finally {
         rmSync(tmpRoot, { recursive: true, force: true });

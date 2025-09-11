@@ -30,8 +30,8 @@ export type {
   ViewOutput,
   ViewToolSet,
 } from "./editor";
-export { FindInputSchema, FindOutputSchema, createFindTool } from "./find";
-export type { FindInput, FindOutput, FindToolSet } from "./find";
+export { GlobInputSchema, GlobOutputSchema, createGlobTool } from "./glob";
+export type { GlobInput, GlobOutput, GlobToolSet } from "./glob";
 export { GrepInputSchema, GrepOutputSchema, createGrepTool, createSearchTool } from "./grep";
 export type { GrepInput, GrepOutput, GrepToolSet } from "./grep";
 export { LspDiagnosticsInputSchema, LspDiagnosticsOutputSchema, createLspDiagnosticsTool } from "./lsp";

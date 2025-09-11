@@ -25,7 +25,7 @@ const hasPowerShell = () => {
   return !!Bun.which("powershell");
 };
 
-// Determine which find tool to use
+// Determine which glob tool to use
 const getFindTool = (() => {
   const getFindInternal = () => {
     if (hasFd()) return "fd";
@@ -43,7 +43,7 @@ const getFindTool = (() => {
   };
 })();
 
-export const FindInputSchema = z.object({
+export const GlobInputSchema = z.object({
   pattern: z
     .optional(z.string())
     .describe(
@@ -52,24 +52,24 @@ export const FindInputSchema = z.object({
   path: z.optional(z.string()).describe("The directory to search in. Defaults to current directory.").default("."),
 });
 
-export type FindInput = z.infer<typeof FindInputSchema>;
+export type GlobInput = z.infer<typeof GlobInputSchema>;
 
-export const FindOutputSchema = z.object({
+export const GlobOutputSchema = z.object({
   files: z.array(z.string()).describe("List of file paths matching the glob pattern"),
   total_matches: z.number().describe("Total number of files found"),
 });
 
-export type FindOutput = z.infer<typeof FindOutputSchema>;
+export type GlobOutput = z.infer<typeof GlobOutputSchema>;
 
-export type FindFileOptions = FindInput & {
+export type GlobFileOptions = GlobInput & {
   findToolOverride?: ReturnType<typeof getFindTool>;
 };
 
-export const findFile = async ({
+export const globFile = async ({
   pattern,
   path: originalPath,
   findToolOverride,
-}: FindFileOptions): Promise<FindOutput> => {
+}: GlobFileOptions): Promise<GlobOutput> => {
   const findTool = findToolOverride ?? getFindTool();
 
   // In the case where we get empty string from the LLM vs undefined, treat it as PWD.
@@ -140,18 +140,18 @@ export const findFile = async ({
   };
 };
 
-export const createFindTool = () => {
+export const createGlobTool = () => {
   return {
-    find: tool({
+    glob: tool({
       description: `Use this tool when you need to find specific files, such as configuration files, source code files, or test files.
       It's particularly useful for exploring the project structure and finding files that match specific naming conventions.`,
-      inputSchema: FindInputSchema,
-      outputSchema: FindOutputSchema,
-      execute: async (input): Promise<FindOutput> => {
-        return await findFile(input);
+      inputSchema: GlobInputSchema,
+      outputSchema: GlobOutputSchema,
+      execute: async (input): Promise<GlobOutput> => {
+        return await globFile(input);
       },
     }),
   } satisfies ToolSet;
 };
 
-export type FindToolSet = ReturnType<typeof createFindTool>;
+export type GlobToolSet = ReturnType<typeof createGlobTool>;

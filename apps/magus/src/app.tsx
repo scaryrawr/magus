@@ -3,7 +3,7 @@ import { createLmStudioProvider, createOllamaProvider, createOpenRouterProvider 
 import { createServer, MagusChatStore, ModelsResultSchema, type MagusRoutes } from "@magus/server";
 import {
   createEditorTool,
-  createFindTool,
+  createGlobTool,
   createLspDiagnosticsTool,
   createSearchTool,
   createShellTool,
@@ -53,7 +53,7 @@ const createMagusServer = () => {
 
   const baseTools = {
     ...createSearchTool(),
-    ...createFindTool(),
+    ...createGlobTool(),
     ...createWebFetchTool(),
     ...createShellTool(),
     ...createLspDiagnosticsTool(lsp),

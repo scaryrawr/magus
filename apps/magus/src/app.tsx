@@ -2,14 +2,12 @@ import { createDefaultLspManager } from "@magus/lsp";
 import { createLmStudioProvider, createOllamaProvider, createOpenRouterProvider } from "@magus/providers";
 import { createServer, MagusChatStore, ModelsResultSchema, type MagusRoutes } from "@magus/server";
 import {
-  createEditorTool,
   createGlobTool,
   createLspDiagnosticsTool,
   createSearchTool,
   createShellTool,
   createSplitEditorTool,
   createSplitTodoTool,
-  createTodoTool,
   createWebFetchTool,
   type EditorOutputPlugin,
 } from "@magus/tools";
@@ -51,7 +49,9 @@ const createMagusServer = () => {
     },
   };
 
-  const baseTools = {
+  const tools = {
+    ...createSplitTodoTool(),
+    ...createSplitEditorTool(plugins),
     ...createSearchTool(),
     ...createGlobTool(),
     ...createWebFetchTool(),
@@ -59,26 +59,10 @@ const createMagusServer = () => {
     ...createLspDiagnosticsTool(lsp),
   };
 
-  const splitTools = {
-    ...baseTools,
-    ...createSplitEditorTool(),
-    ...createSplitTodoTool(),
-  };
-
-  const unifiedTools = {
-    ...baseTools,
-    ...createEditorTool(plugins),
-    ...createTodoTool(),
-  };
-
   const { listen } = createServer({
     providers,
     chatStore: new MagusChatStore(join(process.cwd(), ".magus", "chats")),
-    providerTools: {
-      lmstudio: splitTools,
-      ollama: unifiedTools,
-      openrouter: unifiedTools,
-    },
+    tools,
   });
 
   const server = listen();

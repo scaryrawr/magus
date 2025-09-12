@@ -76,7 +76,7 @@ export const createFile = async (
 
 export const createCreateFileTool = (plugins?: EditorOutputPlugin) =>
   ({
-    create_file: tool({
+    create: tool({
       description: `Create a new file or replace an existing file with specified content. Will create directories in file path.`,
       inputSchema: CreateFileSchema,
       outputSchema: DiffOutputSchema,

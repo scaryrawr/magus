@@ -21,8 +21,8 @@ import { MagusRouterProvider } from "./routes";
 
 const createMagusServer = () => {
   const providers = {
-    ...createOllamaProvider(),
     ...createLmStudioProvider(),
+    ...createOllamaProvider(),
     ...(process.env.OPENROUTER_API_KEY ? createOpenRouterProvider(process.env.OPENROUTER_API_KEY) : undefined),
   };
 

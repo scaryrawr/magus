@@ -73,11 +73,8 @@ export const insert = async (
 
 export const createInsertTool = (plugins?: EditorOutputPlugin) =>
   ({
-    file_insert: tool({
-      description: `Insert text at a specific location in a file.
-Use this tool when you need to add new code, comments, or configuration at specific locations within files.
-It's particularly useful for inserting new functions, adding imports to existing files, or adding configuration values at specific line numbers.
-Content will be added after the specified line number, with 0 to insert at the beginning of the file.`,
+    insert: tool({
+      description: `Use this tool to insert text at a specific location in a file.`,
       inputSchema: InsertFileSchema,
       outputSchema: DiffOutputSchema,
       execute: async (input): Promise<DiffOutput> => {

@@ -6,7 +6,7 @@ import type { MessagePart, ToolSetToUITools, UIToolProps } from "./types";
 
 const isCreateFilePart = (part: MessagePart): part is ToolUIPart<ToolSetToUITools<CreateFileToolSet>> => {
   const partCheck = part as ToolUIPart<ToolSetToUITools<CreateFileToolSet>>;
-  return partCheck.type === "tool-create_file";
+  return partCheck.type === "tool-create";
 };
 
 export const CreateFileView: React.FC<UIToolProps> = ({ part }) => {

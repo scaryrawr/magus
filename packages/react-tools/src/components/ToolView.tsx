@@ -60,9 +60,9 @@ export const ToolView: React.FC<UIToolProps> = ({ part }) => {
         ViewToolSet
     >
   >({
-    "tool-create_file": CreateFileView,
+    "tool-create": CreateFileView,
     "tool-editor": FileEditToolView,
-    "tool-file_insert": FileInsertView,
+    "tool-insert": FileInsertView,
     "tool-grep": GrepView,
     "tool-search": GrepView,
     "tool-shell": ShellView,

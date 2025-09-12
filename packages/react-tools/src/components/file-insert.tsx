@@ -6,7 +6,7 @@ import type { MessagePart, ToolSetToUITools, UIToolProps } from "./types";
 
 const isInsertPart = (part: MessagePart): part is ToolUIPart<ToolSetToUITools<InsertToolSet>> => {
   const partCheck = part as ToolUIPart<ToolSetToUITools<InsertToolSet>>;
-  return partCheck.type === "tool-file_insert";
+  return partCheck.type === "tool-insert";
 };
 
 export const FileInsertView: React.FC<UIToolProps> = ({ part }) => {

@@ -1,6 +1,7 @@
 import { createDefaultLspManager } from "@magus/lsp";
 import {
   createAzureProvider,
+  createGitHubProvider,
   createLmStudioProvider,
   createOllamaProvider,
   createOpenRouterProvider,
@@ -31,6 +32,12 @@ const createMagusServer = () => {
     ...(process.env.OPENROUTER_API_KEY ? createOpenRouterProvider(process.env.OPENROUTER_API_KEY) : undefined),
     ...(process.env.AZURE_RESOURCE_GROUP && process.env.AZURE_RESOURCE_NAME
       ? createAzureProvider({ resourceGroup: process.env.AZURE_RESOURCE_GROUP, name: process.env.AZURE_RESOURCE_NAME })
+      : undefined),
+    ...(process.env.GITHUB_TOKEN && process.env.GITHUB_COPILOT_TOKEN
+      ? createGitHubProvider({
+          oauthToken: process.env.GITHUB_TOKEN,
+          copilotToken: process.env.GITHUB_COPILOT_TOKEN,
+        })
       : undefined),
   };
 

@@ -20,7 +20,7 @@ const getBatCmd = () => {
   return null;
 };
 
-const getDiffViewerCmd = (() => {
+export const getDiffViewerCmd = (() => {
   const getCmd = () => getDeltaCmd() || getBatCmd();
   let cache: ReturnType<typeof getCmd> | undefined;
   return () => {
@@ -33,7 +33,7 @@ const getDiffViewerCmd = (() => {
 })();
 
 export const DiffViewer: React.FC<DiffViewerProps> = ({ children, path, commandOverride }) => {
-  const diffCmd = commandOverride?.command ?? getDiffViewerCmd();
+  const diffCmd = commandOverride?.command; // ?? getDiffViewerCmd();
   switch (diffCmd) {
     case "delta":
       return <Delta path={path}>{children}</Delta>;

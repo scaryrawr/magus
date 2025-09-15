@@ -1,5 +1,10 @@
 import { createDefaultLspManager } from "@magus/lsp";
-import { createLmStudioProvider, createOllamaProvider, createOpenRouterProvider } from "@magus/providers";
+import {
+  createAzureProvider,
+  createLmStudioProvider,
+  createOllamaProvider,
+  createOpenRouterProvider,
+} from "@magus/providers";
 import { createServer, MagusChatStore, ModelsResultSchema, type MagusRoutes } from "@magus/server";
 import {
   createGlobTool,
@@ -24,6 +29,9 @@ const createMagusServer = () => {
     ...createLmStudioProvider(),
     ...createOllamaProvider(),
     ...(process.env.OPENROUTER_API_KEY ? createOpenRouterProvider(process.env.OPENROUTER_API_KEY) : undefined),
+    ...(process.env.AZURE_RESOURCE_GROUP && process.env.AZURE_RESOURCE_NAME
+      ? createAzureProvider({ resourceGroup: process.env.AZURE_RESOURCE_GROUP, name: process.env.AZURE_RESOURCE_NAME })
+      : undefined),
   };
 
   const lsp = createDefaultLspManager();

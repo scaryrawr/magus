@@ -9,6 +9,7 @@
     "test": "bun test"
   },
   "dependencies": {
+    "@ai-sdk/azure": "^2.0.30",
     "@ai-sdk/openai-compatible": "^1.0.7",
     "ai": "catalog:"
   },

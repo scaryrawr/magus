@@ -1,3 +1,4 @@
+export { createAzureProvider } from "./azure";
 export { createLmStudioProvider } from "./lmstudio";
 export { createOllamaProvider } from "./ollama";
 export { createOpenRouterProvider } from "./openrouter";

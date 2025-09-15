@@ -42,7 +42,7 @@ describe("viewFile", () => {
         }) as unknown as ReturnType<typeof Bun.file>,
     );
 
-    const result = await viewFile({ path: "/tmp/file.txt", view_range: [2, 3] });
+    const result = await viewFile({ path: "/tmp/file.txt", view_range: { start: 2, end: 3 } });
     expect(result.content).toBe("2\n3");
   });
 });

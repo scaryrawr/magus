@@ -5,10 +5,14 @@ export const ViewSchema = z.object({
   command: z.optional(z.literal("view")).describe("The view command enables you to look into files and directories."),
   path: z.string().describe("The path of the file or directory to view."),
   view_range: z
-    .tuple([z.number().describe("start line"), z.number().describe("end line")])
-    .optional()
+    .optional(
+      z.object({
+        start: z.number().describe("The start line number. 1-indexed"),
+        end: z.number().describe("The end line number. 1-indexed, -1 means read to the end of the file"),
+      }),
+    )
     .describe(
-      "An array of two integers specifying the start and end line numbers to view. Lin numbers are 1-indexed, and -1 for the end line means read to the end of the file. Only applies when viewing files, not directories.",
+      "An object specifying the start and end line numbers to view. Line numbers are 1-indexed, and -1 for the end line means read to the end of the file. Only applies when viewing files, not directories.",
     ),
 });
 

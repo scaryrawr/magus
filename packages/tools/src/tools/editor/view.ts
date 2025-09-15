@@ -27,8 +27,8 @@ export const viewFile = async ({ path, view_range }: ViewInput, plugins?: Editor
 
     if (view_range) {
       const lines = content.split("\n");
-      const start = Math.max(0, view_range[0] - 1);
-      const end = view_range[1] === -1 ? lines.length : Math.min(lines.length, view_range[1]);
+      const start = Math.max(0, view_range.start - 1);
+      const end = view_range.end === -1 ? lines.length : Math.min(lines.length, view_range.end);
       content = lines.slice(start, end).join("\n");
     }
 

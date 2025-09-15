@@ -1,4 +1,5 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
 import { z } from "zod";
 import type { MagusProvider } from "./types";
 
@@ -28,7 +29,15 @@ export const createLmStudioProvider = ({ origin = "http://localhost:1234" }: LmS
 
   return {
     lmstudio: {
-      model: (id: string) => lmstudio(id),
+      model: (id: string) => {
+        // Many thinking models use the <think>...</think> tag to indicate reasoning steps.
+        return wrapLanguageModel({
+          model: lmstudio(id),
+          middleware: extractReasoningMiddleware({
+            tagName: "think",
+          }),
+        });
+      },
       models: async () => {
         const response = await fetch(`${origin}/api/v0/models`);
         const data: LmStudioModelInfo = LmStudioModelInfoSchema.parse(await response.json());

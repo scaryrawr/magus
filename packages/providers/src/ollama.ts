@@ -1,4 +1,5 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
 import { z } from "zod";
 import type { MagusProvider, ModelInfo } from "./types";
 
@@ -84,7 +85,15 @@ export const createOllamaProvider = ({ origin = "http://localhost:11434" }: Olla
 
   return {
     ollama: {
-      model: (id: string) => ollama(id),
+      model: (id: string) => {
+        // Many thinking models use the <think>...</think> tag to indicate reasoning steps.
+        return wrapLanguageModel({
+          model: ollama(id),
+          middleware: extractReasoningMiddleware({
+            tagName: "think",
+          }),
+        });
+      },
       models: async (): Promise<ModelInfo[]> => {
         const response = await fetch(`${origin}/api/tags`);
         const data: OllamaTags = OllamaTagsSchema.parse(await response.json());

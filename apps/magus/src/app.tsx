@@ -21,7 +21,6 @@ import { hc } from "hono/client";
 import { join } from "node:path";
 import React from "react";
 import SYSTEM_PROMPT from "./codex.txt";
-import { Banner } from "./components";
 import { RoutesProvider, ServerProvider } from "./contexts";
 import { MagusRouterProvider } from "./routes";
 
@@ -123,7 +122,6 @@ export const App: React.FC = () => {
   return (
     <ServerProvider createServer={createMagusServer}>
       <RoutesProvider>
-        <Banner />
         <MagusRouterProvider />
       </RoutesProvider>
     </ServerProvider>

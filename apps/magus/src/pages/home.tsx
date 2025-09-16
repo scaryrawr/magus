@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router";
+import { Banner } from "../components";
 import { useServerContext, useStackedRouteInput } from "../contexts";
 
 export const Home = () => {
@@ -28,5 +29,5 @@ export const Home = () => {
 
   useStackedRouteInput({ onSubmit, placeholder: "Send a message..." });
 
-  return <></>;
+  return <Banner />;
 };

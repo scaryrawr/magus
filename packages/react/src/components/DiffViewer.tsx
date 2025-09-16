@@ -22,7 +22,7 @@ const getBatCmd = () => {
 };
 
 export const getDiffViewerCmd = (() => {
-  const getCmd = () => getBatCmd() ?? getDeltaCmd();
+  const getCmd = () => getDeltaCmd() ?? getBatCmd();
   let cache: ReturnType<typeof getCmd> | undefined;
   return () => {
     if (cache === undefined) {
@@ -58,7 +58,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({ children, path, commandO
     switch (line[0]) {
       case "+":
         return (
-          <Text key={index} backgroundColor="#0B2401">
+          <Text key={index} backgroundColor="#0E2E01">
             {line}
           </Text>
         );

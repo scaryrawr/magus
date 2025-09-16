@@ -1,75 +1,160 @@
 import { highlight } from "cli-highlight";
-import { Text } from "ink";
-import { Bat, Delta, SubprocessOutput } from ".";
+import { Box, Text } from "ink";
+import React from "react";
+
+// Lean DiffViewer: internal rendering only (no external diff tools / subprocess)
+// Accepts a unified diff string as children and the file path for syntax highlighting.
 
 type DiffViewerProps = {
   path: string;
-  children: string;
-  commandOverride?: {
-    command: string;
-    args?: string[];
-  };
+  children: string; // unified diff text
 };
 
-const getDeltaCmd = () => {
-  if (Bun.which("delta")) return "delta";
-  return null;
-};
+export const DiffViewer: React.FC<DiffViewerProps> = ({ children, path }) => {
+  const { lines, oldWidth, newWidth } = React.useMemo(() => {
+    const rawLines = children.split(/\r?\n/);
+    const hunkRegex = /@@\s-(\d+)(?:,(\d+))?\s\+(\d+)(?:,(\d+))?\s@@/;
 
-const getBatCmd = () => {
-  if (Bun.which("bat")) return "bat";
-  return null;
-};
-
-export const getDiffViewerCmd = (() => {
-  const getCmd = () => getDeltaCmd() ?? getBatCmd();
-  let cache: ReturnType<typeof getCmd> | undefined;
-  return () => {
-    if (cache === undefined) {
-      cache = getCmd();
+    // Collect maxima for width calc
+    let maxOld = 0;
+    let maxNew = 0;
+    for (const l of rawLines) {
+      if (l.startsWith("@@")) {
+        const m = l.match(hunkRegex);
+        if (m) {
+          const oStart = parseInt(m[1], 10);
+          const oCount = m[2] ? parseInt(m[2], 10) : 1;
+          const nStart = parseInt(m[3], 10);
+          const nCount = m[4] ? parseInt(m[4], 10) : 1;
+          maxOld = Math.max(maxOld, oStart + oCount - 1);
+          maxNew = Math.max(maxNew, nStart + nCount - 1);
+        }
+      }
     }
+    if (maxOld === 0) maxOld = rawLines.length;
+    if (maxNew === 0) maxNew = rawLines.length;
+    const oldWidth = String(maxOld).length + 1;
+    const newWidth = String(maxNew).length + 1;
 
-    return cache;
-  };
-})();
+    // Line counters updated per hunk line
+    let oldLine = 0;
+    let newLine = 0;
 
-export const DiffViewer: React.FC<DiffViewerProps> = ({ children, path, commandOverride }) => {
-  const diffCmd = commandOverride?.command; // ?? getDiffViewerCmd();
-  switch (diffCmd) {
-    case "delta":
-      return <Delta path={path}>{children}</Delta>;
-    case "bat":
-      return <Bat path={path}>{children}</Bat>;
-  }
+    const language = path.split(".").pop();
 
-  if (diffCmd) {
-    return (
-      <SubprocessOutput command={diffCmd} args={commandOverride?.args}>
-        {children}
-      </SubprocessOutput>
-    );
-  }
+    const lines = rawLines.map((raw) => {
+      if (raw.startsWith("@@")) {
+        const m = raw.match(hunkRegex);
+        if (m) {
+          oldLine = parseInt(m[1], 10);
+          newLine = parseInt(m[3], 10);
+        }
+        return { kind: "hunk", raw } as const;
+      }
+      if (raw.startsWith("--- ") || raw.startsWith("+++ ") || raw.startsWith("index ") || raw.startsWith("diff ")) {
+        return { kind: "meta", raw } as const;
+      }
 
-  const language = path.split(".").pop() ?? "diff";
+      const firstChar = raw[0];
+      let oldDisplay = "";
+      let newDisplay = "";
+      let bg: string | undefined;
 
-  const highlighted = highlight(children, { language, ignoreIllegals: true });
-  const lines = highlighted.split("\n");
-  return lines.map((line, index) => {
-    switch (line[0]) {
-      case "+":
+      switch (firstChar) {
+        case "+":
+          newDisplay = String(newLine);
+          newLine++;
+          bg = "#0E2E01";
+          break;
+        case "-":
+          oldDisplay = String(oldLine);
+          oldLine++;
+          bg = "#3E0405";
+          break;
+        case " ":
+          oldDisplay = String(oldLine);
+          newDisplay = String(newLine);
+          oldLine++;
+          newLine++;
+          break;
+        case "\\":
+          break;
+        default:
+          break;
+      }
+
+      let contentPortion = raw;
+      if (["+", "-", " "].includes(firstChar)) {
+        contentPortion = raw.slice(1);
+      }
+      const highlighted = highlight(contentPortion, { language, ignoreIllegals: true });
+      const renderedLine = ["+", "-", " "].includes(firstChar) ? firstChar + highlighted : highlighted;
+      return { kind: "line", oldDisplay, newDisplay, renderedLine, bg } as const;
+    });
+
+    return { lines, oldWidth, newWidth };
+  }, [children, path]);
+
+  return (
+    <Box flexDirection="column">
+      {lines.map((l, idx) => {
+        if (l.kind === "hunk" || l.kind === "meta") {
+          return (
+            <Box flexDirection="row" key={idx}>
+              <Box
+                width={oldWidth}
+                borderDimColor
+                borderStyle="single"
+                borderBottom={false}
+                borderTop={false}
+                borderLeft={false}
+              >
+                <Text dimColor>{""}</Text>
+              </Box>
+              <Box
+                width={newWidth}
+                borderDimColor
+                borderStyle="single"
+                borderBottom={false}
+                borderTop={false}
+                borderLeft={false}
+              >
+                <Text dimColor>{""}</Text>
+              </Box>
+              <Box paddingLeft={1}>
+                <Text dimColor>{l.raw}</Text>
+              </Box>
+            </Box>
+          );
+        }
         return (
-          <Text key={index} backgroundColor="#0E2E01">
-            {line}
-          </Text>
+          <Box flexDirection="row" key={idx}>
+            <Box
+              width={oldWidth}
+              borderDimColor
+              borderStyle="single"
+              borderBottom={false}
+              borderTop={false}
+              borderLeft={false}
+            >
+              <Text dimColor>{l.oldDisplay}</Text>
+            </Box>
+            <Box
+              width={newWidth}
+              borderDimColor
+              borderStyle="single"
+              borderBottom={false}
+              borderTop={false}
+              borderLeft={false}
+            >
+              <Text dimColor>{l.newDisplay}</Text>
+            </Box>
+            <Box paddingLeft={1}>
+              <Text backgroundColor={l.bg}>{l.renderedLine}</Text>
+            </Box>
+          </Box>
         );
-      case "-":
-        return (
-          <Text key={index} backgroundColor="#3E0405">
-            {line}
-          </Text>
-        );
-      default:
-        return <Text key={index}>{line}</Text>;
-    }
-  });
+      })}
+    </Box>
+  );
 };

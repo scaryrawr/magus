@@ -1,25 +1,10 @@
 import { type MagusClient, type ModelSelect } from "@magus/server";
+import Fuse from "fuse.js";
 import { useStderr } from "ink";
 import SelectInput from "ink-select-input";
 import { useCallback, useMemo } from "react";
 import { useLoaderData, useNavigate, type RouteObject } from "react-router";
 import { useInputValue, useServerContext, useSetInputValue, useStackedRouteInput } from "../contexts";
-
-// Create a fuzzy regex pattern by escaping special characters and inserting .* between each character
-const createFuzzyRegex = (input: string): RegExp => {
-  if (!input.trim()) {
-    return /.*/; // Match everything if input is empty
-  }
-
-  // Escape special regex characters
-  const escaped = input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-  // Split into characters and join with .* to allow any characters in between
-  const pattern = escaped.split("").join(".*");
-
-  // Create case-insensitive regex
-  return new RegExp(pattern, "i");
-};
 
 export const Models = () => {
   const models = useLoaderData<ModelSelect[]>();
@@ -28,20 +13,28 @@ export const Models = () => {
   const navigate = useNavigate();
   const { client } = useServerContext();
   const stderr = useStderr();
+  const fuse = useMemo(
+    () =>
+      new Fuse(models, {
+        keys: ["id", "provider"],
+      }),
+    [models],
+  );
 
   const items = useMemo(() => {
-    const fuzzyRegex = createFuzzyRegex(value);
-    return models
-      .map((model) => {
-        const label = `${model.provider}: ${model.id}`;
-        return {
-          label,
-          key: label,
-          value: model,
-        };
-      })
-      .filter(({ label }) => fuzzyRegex.test(label));
-  }, [models, value]);
+    const mapModels = (model: ModelSelect) => {
+      const label = `${model.provider}: ${model.id}`;
+      return {
+        label,
+        key: label,
+        value: model,
+      };
+    };
+    if (!value) {
+      return models.map(mapModels);
+    }
+    return fuse.search(value).map(({ item: model }) => mapModels(model));
+  }, [fuse, models, value]);
 
   const onSelection = useCallback(
     async ({ value: model }: { label: string; value: ModelSelect }) => {

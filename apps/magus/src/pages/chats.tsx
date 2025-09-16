@@ -1,4 +1,5 @@
 import type { MagusClient } from "@magus/server";
+import Fuse from "fuse.js";
 import SelectInput from "ink-select-input";
 import { useCallback, useMemo } from "react";
 import { useLoaderData, useNavigate, type RouteObject } from "react-router";
@@ -6,41 +7,33 @@ import { useInputValue, useSetInputValue, useStackedRouteInput } from "../contex
 
 type ChatSummary = { id: string; title?: string };
 
-// Create a fuzzy regex pattern by escaping special characters and inserting .* between each character
-const createFuzzyRegex = (input: string): RegExp => {
-  if (!input.trim()) {
-    return /.*/; // Match everything if input is empty
-  }
-
-  // Escape special regex characters
-  const escaped = input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-  // Split into characters and join with .* to allow any characters in between
-  const pattern = escaped.split("").join(".*");
-
-  // Create case-insensitive regex
-  return new RegExp(pattern, "i");
-};
-
 export const Chats = () => {
   const chats = useLoaderData<ChatSummary[]>();
   const value = useInputValue();
   const setValue = useSetInputValue();
   const navigate = useNavigate();
+  const fuse = useMemo(
+    () =>
+      new Fuse(chats, {
+        keys: ["id", "title"],
+      }),
+    [chats],
+  );
 
   const items = useMemo(() => {
-    const fuzzyRegex = createFuzzyRegex(value);
-    return chats
-      .map((chat) => {
-        const label = chat.title ? `${chat.title}` : chat.id;
-        return {
-          label,
-          key: chat.id,
-          value: chat,
-        };
-      })
-      .filter(({ label }) => fuzzyRegex.test(label));
-  }, [chats, value]);
+    const mapChats = (chat: ChatSummary) => {
+      const label = chat.title ? `${chat.title}` : chat.id;
+      return {
+        label,
+        key: chat.id,
+        value: chat,
+      };
+    };
+    if (!value) {
+      return chats.map(mapChats);
+    }
+    return fuse.search(value).map(({ item: chat }) => mapChats(chat));
+  }, [chats, fuse, value]);
 
   const onSelection = useCallback(
     ({ value: chat }: { label: string; value: ChatSummary }) => {

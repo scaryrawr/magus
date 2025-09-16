@@ -33,10 +33,9 @@ const createMagusServer = () => {
     ...(process.env.AZURE_RESOURCE_GROUP && process.env.AZURE_RESOURCE_NAME
       ? createAzureProvider({ resourceGroup: process.env.AZURE_RESOURCE_GROUP, name: process.env.AZURE_RESOURCE_NAME })
       : undefined),
-    ...(process.env.GITHUB_TOKEN && process.env.GITHUB_COPILOT_TOKEN
+    ...(process.env.GITHUB_TOKEN
       ? createGitHubProvider({
           oauthToken: process.env.GITHUB_TOKEN,
-          copilotToken: process.env.GITHUB_COPILOT_TOKEN,
         })
       : undefined),
   };

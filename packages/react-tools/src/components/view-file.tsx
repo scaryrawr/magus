@@ -1,4 +1,4 @@
-import { ViewSchema, type ViewToolSet } from "@magus/tools";
+import { ViewOutputSchema, ViewSchema, type ViewToolSet } from "@magus/tools";
 import type { ToolUIPart } from "ai";
 import { Box } from "ink";
 import { ReadView } from "./editor-views";
@@ -15,10 +15,11 @@ export const ViewFileView: React.FC<UIToolProps> = ({ part }) => {
   const { toolCallId } = part;
   switch (part.state) {
     case "output-available": {
-      const { path } = ViewSchema.parse(part.input);
+      const { path, view_range } = ViewSchema.parse(part.input);
+      const { content } = ViewOutputSchema.parse(part.output);
       return (
         <Box key={toolCallId}>
-          <ReadView path={path} />
+          <ReadView path={path} content={content} range={view_range} />
         </Box>
       );
     }

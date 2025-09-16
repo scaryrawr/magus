@@ -1,4 +1,4 @@
-import { EditorInputSchema, EditorOutputSchema, type EditorToolSet } from "@magus/tools";
+import { EditorInputSchema, EditorOutputSchema, ViewOutputSchema, type EditorToolSet } from "@magus/tools";
 import type { ToolUIPart } from "ai";
 import { Box } from "ink";
 import { EditorDiffView, ReadView } from "./editor-views";
@@ -21,9 +21,11 @@ export const FileEditToolView: React.FC<UIToolProps> = ({ part }) => {
       const { path } = input;
       switch (input.command) {
         case "view": {
+          const { view_range } = input;
+          const { content } = ViewOutputSchema.parse(part.output);
           return (
             <Box key={toolCallId}>
-              <ReadView path={path} />
+              <ReadView path={path} content={content} range={view_range} />
             </Box>
           );
         }

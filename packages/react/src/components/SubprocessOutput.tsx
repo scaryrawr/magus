@@ -6,9 +6,10 @@ type SubprocessOutputProps = {
   command: string;
   args?: string[];
   children: string | undefined;
+  streaming?: boolean;
 };
 
-export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, args, children: stdin }) => {
+export const SubprocessOutputStreaming: React.FC<SubprocessOutputProps> = ({ command, args, children: stdin }) => {
   const [output, setOutput] = React.useState<string>("");
 
   const process = React.useMemo(() => {
@@ -75,4 +76,30 @@ export const SubprocessOutput: React.FC<SubprocessOutputProps> = ({ command, arg
   }, [process]);
 
   return <AnsiText>{output}</AnsiText>;
+};
+
+export const SubprocessOutputSync: React.FC<SubprocessOutputProps> = ({ command, args, children: stdin }) => {
+  const [output, setOutput] = React.useState<string>("");
+
+  React.useEffect(() => {
+    const stdinBuffer = stdin ? new TextEncoder().encode(stdin) : undefined;
+
+    const proc = Bun.spawnSync(args ? [command, ...args] : [command], {
+      stdin: stdinBuffer,
+      stderr: "pipe",
+      stdout: "pipe",
+    });
+
+    setOutput(proc.stdout.toString());
+  }, [args, command, stdin]);
+
+  return <AnsiText>{output}</AnsiText>;
+};
+
+export const SubprocessOutput: React.FC<SubprocessOutputProps> = (props) => {
+  if (props.streaming) {
+    return <SubprocessOutputStreaming {...props} />;
+  }
+
+  return <SubprocessOutputSync {...props} />;
 };

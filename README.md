@@ -24,11 +24,13 @@ This monorepo contains multiple packages and applications:
 
 ### Packages
 
+- `packages/common-utils` - Shared lightweight utility helpers
+- `packages/config` - User config/cache/data schema + persistence
 - `packages/providers` - AI provider integrations
-- `packages/react` - React components and hooks
-- `packages/react-tools` - React components rendering AI tool interactions
-- `packages/server` - Magus server for providing APIs to the app
-- `packages/tools` - Core AI tools and utilities
+- `packages/react` - Ink/React components and hooks
+- `packages/react-tools` - Tool interaction Ink components
+- `packages/server` - Hono server exposing model + chat routes
+- `packages/tools` - Core tool implementations (grep, editor, shell, etc.)
 
 ## Optional Dependencies
 

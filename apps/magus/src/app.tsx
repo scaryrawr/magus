@@ -30,8 +30,12 @@ const createMagusServer = () => {
     ...createLmStudioProvider(),
     ...createOllamaProvider(),
     ...(process.env.OPENROUTER_API_KEY ? createOpenRouterProvider(process.env.OPENROUTER_API_KEY) : undefined),
-    ...(process.env.AZURE_RESOURCE_GROUP && process.env.AZURE_RESOURCE_NAME
-      ? createAzureProvider({ resourceGroup: process.env.AZURE_RESOURCE_GROUP, name: process.env.AZURE_RESOURCE_NAME })
+    ...(process.env.AZURE_RESOURCE_GROUP && process.env.AZURE_RESOURCE_NAME && process.env.AZURE_SUBSCRIPTION
+      ? createAzureProvider({
+          resourceGroup: process.env.AZURE_RESOURCE_GROUP,
+          subscription: process.env.AZURE_SUBSCRIPTION,
+          name: process.env.AZURE_RESOURCE_NAME,
+        })
       : undefined),
     ...(process.env.GITHUB_TOKEN
       ? createGitHubProvider({

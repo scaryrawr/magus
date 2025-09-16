@@ -11,6 +11,7 @@ export const AzureModelsResponseSchema = z.array(AzureModelSchema);
 
 type AzureProviderOptions = {
   resourceGroup: string;
+  subscription: string;
   name: string;
 };
 
@@ -19,7 +20,7 @@ const AzureKeysSchema = z.object({
   key2: z.string(),
 });
 
-export const createAzureProvider = ({ resourceGroup, name }: AzureProviderOptions) => {
+export const createAzureProvider = ({ resourceGroup, subscription, name }: AzureProviderOptions) => {
   const { key1 } = AzureKeysSchema.parse(
     JSON.parse(
       Bun.spawnSync([
@@ -28,6 +29,8 @@ export const createAzureProvider = ({ resourceGroup, name }: AzureProviderOption
         "account",
         "keys",
         "list",
+        "--subscription",
+        subscription,
         "--name",
         name,
         "--resource-group",
@@ -64,6 +67,8 @@ export const createAzureProvider = ({ resourceGroup, name }: AzureProviderOption
             "account",
             "deployment",
             "list",
+            "--subscription",
+            subscription,
             "--resource-group",
             resourceGroup,
             "--name",

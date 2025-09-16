@@ -1,3 +1,4 @@
+import { highlight } from "cli-highlight";
 import { Text } from "ink";
 import { Bat, Delta, SubprocessOutput } from ".";
 
@@ -21,7 +22,7 @@ const getBatCmd = () => {
 };
 
 export const getDiffViewerCmd = (() => {
-  const getCmd = () => getDeltaCmd() || getBatCmd();
+  const getCmd = () => getBatCmd() ?? getDeltaCmd();
   let cache: ReturnType<typeof getCmd> | undefined;
   return () => {
     if (cache === undefined) {
@@ -49,28 +50,26 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({ children, path, commandO
     );
   }
 
-  return children.split("\n").map((line, i) => {
+  const language = path.split(".").pop() ?? "diff";
+
+  const highlighted = highlight(children, { language, ignoreIllegals: true });
+  const lines = highlighted.split("\n");
+  return lines.map((line, index) => {
     switch (line[0]) {
-      case "@":
-        return (
-          <Text color="blue" key={i}>
-            {line}
-          </Text>
-        );
       case "+":
         return (
-          <Text color="green" key={i}>
+          <Text key={index} backgroundColor="#0B2401">
             {line}
           </Text>
         );
       case "-":
         return (
-          <Text color="red" key={i}>
+          <Text key={index} backgroundColor="#3E0405">
             {line}
           </Text>
         );
       default:
-        return <Text key={i}>{line}</Text>;
+        return <Text key={index}>{line}</Text>;
     }
   });
 };

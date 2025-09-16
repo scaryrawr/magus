@@ -114,6 +114,7 @@
     "packages/react": {
       "name": "@magus/react",
       "dependencies": {
+        "cli-highlight": "^2.1.11",
         "figlet": "^1.7.0",
         "marked": "^16.2.1",
         "marked-terminal": "^7.3.0",

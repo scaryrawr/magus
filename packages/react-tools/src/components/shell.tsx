@@ -1,4 +1,3 @@
-import { ScrollArea } from "@magus/react";
 import { ShellInputSchema, ShellOutputSchema, type ShellToolSet } from "@magus/tools";
 import type { ToolUIPart } from "ai";
 import { Box, Text } from "ink";
@@ -26,16 +25,16 @@ export const ShellView: React.FC<UIToolProps> = ({ part }) => {
           </Text>
           <Box flexDirection="column" width="90%">
             {stderr ? (
-              <ScrollArea height={3}>
+              <Box>
                 <Text color="red" dimColor>
                   {stderr}
                 </Text>
-              </ScrollArea>
+              </Box>
             ) : null}
             {stdout ? (
-              <ScrollArea height={3}>
+              <Box>
                 <Text dimColor>{`...\n${stdout}`}</Text>
-              </ScrollArea>
+              </Box>
             ) : null}
           </Box>
         </Box>

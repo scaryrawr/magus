@@ -36,7 +36,7 @@ export { GrepInputSchema, GrepOutputSchema, createGrepTool, createSearchTool } f
 export type { GrepInput, GrepOutput, GrepToolSet } from "./grep";
 export { LspDiagnosticsInputSchema, LspDiagnosticsOutputSchema, createLspDiagnosticsTool } from "./lsp";
 export type { LspDiagnosticsInput, LspDiagnosticsOutput, LspDiagnosticsToolSet } from "./lsp";
-export { ShellInputSchema, ShellOutputSchema, createShellTool } from "./shell";
+export { ShellEphemeralInputSchema, ShellInputSchema, ShellOutputSchema, createShellTool } from "./shell";
 export type { ShellInput, ShellOutput, ShellToolSet } from "./shell";
 export {
   TodoAddInputSchema,

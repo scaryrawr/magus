@@ -12,7 +12,7 @@
 
 import { tool, type ToolSet } from "ai";
 import { z } from "zod";
-const { spawn } = Bun;
+const { spawn, spawnSync } = Bun;
 
 /**
  * Determines the appropriate shell to use based on the operating system.
@@ -79,7 +79,10 @@ const getShellInfo = (() => {
   };
 })();
 
+export type ShellMode = "persistent" | "ephemeral";
+
 export type ShellOptions = {
+  mode?: ShellMode; // default persistent if omitted
   shellOverride?: ReturnType<typeof calculateShell>;
 };
 
@@ -272,31 +275,56 @@ export class ShellSession {
  * @returns A ToolSet containing the shell tool with persistent session
  */
 export const createShellTool = (options: ShellOptions = {}) => {
-  // Reuse a single session across calls to maintain a persistent shell
-  const session = new ShellSession(options);
+  const mode: ShellMode = options.mode ?? "persistent";
+  const shellInfo = getShellInfo();
+
+  // Persistent session (existing behavior)
+  const session = mode === "persistent" ? new ShellSession(options) : null;
+
+  const description =
+    mode === "persistent"
+      ? `Use this tool to execute a given command in a persistent ${shellInfo.shell} session on ${process.platform}.
+Use this tool when you need to run commands/binaries, or perform system operations.
+The shell session is persistent, so things like directory changes will persist across calls. Restarting the session will reset any state.`
+      : `Use this tool to execute a given command in an ephemeral ${shellInfo.shell} invocation on ${process.platform}.
+Each call runs in a fresh shell in the present working directory.`;
 
   return {
     shell: tool({
-      description: `Use this tool to execute a given command in a persistent ${getShellInfo().shell} session on ${process.platform}. 
-Use this tool when you need to run commands/binaries, or perform system operations.
-The shell session is persistent, so things like directory changes will persist across calls. Restarting the session will reset any state.`,
-      inputSchema: ShellInputSchema,
+      description,
+      inputSchema: mode === "persistent" ? ShellInputSchema : ShellEphemeralInputSchema,
       outputSchema: ShellOutputSchema,
-      execute: async ({ command, restart }): Promise<ShellOutput> => {
+      execute: async (input: ShellInput | { command: string }): Promise<ShellOutput> => {
+        const { command, restart } = input as { command: string; restart?: boolean };
         if (command === "ls -R" || command === "dir /s") {
-          // Prevent potentially dangerous recursive listings
           throw new Error("Please use the find or search tool for recursive searches.");
         }
 
-        if (restart) await session.restart();
-        return session.exec(command);
+        if (mode === "persistent" && session) {
+          if (restart) await session.restart();
+          return session.exec(command);
+        }
+
+        const shell = options.shellOverride ?? shellInfo.shell;
+        let args: string[] = [];
+        if (shell === "powershell" || shell === "pwsh") {
+          args = ["-NoLogo", "-NoProfile", "-Command", command];
+        } else {
+          args = ["-c", command];
+        }
+
+        const proc = spawnSync([shell, ...args], { stdout: "pipe", stderr: "pipe" });
+        return { stdout: proc.stdout.toString().trimEnd(), stderr: proc.stderr.toString().trimEnd() };
       },
     }),
   } satisfies ToolSet;
 };
 
-export const ShellInputSchema = z.object({
+export const ShellEphemeralInputSchema = z.object({
   command: z.string().describe("The shell command to execute"),
+});
+
+export const ShellInputSchema = ShellEphemeralInputSchema.extend({
   restart: z.boolean().optional().describe("Set to true to restart the shell session"),
 });
 

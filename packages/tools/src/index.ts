@@ -11,6 +11,7 @@ export {
   InsertFileSchema,
   LspDiagnosticsInputSchema,
   LspDiagnosticsOutputSchema,
+  ShellEphemeralInputSchema,
   ShellInputSchema,
   ShellOutputSchema,
   StringReplaceSchema,

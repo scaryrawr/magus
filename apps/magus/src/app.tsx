@@ -69,7 +69,9 @@ const createMagusServer = () => {
     ...createSearchTool(),
     ...createGlobTool(),
     ...createWebFetchTool(),
-    ...createShellTool(),
+    ...createShellTool({
+      mode: "ephemeral",
+    }),
     ...createLspDiagnosticsTool(lsp),
   };
 

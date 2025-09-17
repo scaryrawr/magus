@@ -40,6 +40,10 @@ export const createLmStudioProvider = ({ origin = "http://localhost:1234" }: LmS
       },
       models: async () => {
         const response = await fetch(`${origin}/api/v0/models`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch LM Studio models: ${response.status} ${response.statusText}`);
+        }
+
         const data: LmStudioModelInfo = LmStudioModelInfoSchema.parse(await response.json());
 
         const models = data.data;

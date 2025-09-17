@@ -96,6 +96,10 @@ export const createOllamaProvider = ({ origin = "http://localhost:11434" }: Olla
       },
       models: async (): Promise<ModelInfo[]> => {
         const response = await fetch(`${origin}/api/tags`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch Ollama tags: ${response.status} ${response.statusText}`);
+        }
+
         const data: OllamaTags = OllamaTagsSchema.parse(await response.json());
         return Promise.all(
           data.models.map<Promise<ModelInfo>>(async (m) => {

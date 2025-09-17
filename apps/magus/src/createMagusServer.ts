@@ -49,6 +49,10 @@ export const createMagusServer = ({ tools, systemPrompt }: CreateMagusServerOpti
   const server = listen();
   const client = hc<MagusRoutes>(server.url.href);
   void client.v0.models.$get().then(async (modelResponse) => {
+    if (!modelResponse.ok) {
+      throw new Error(`Failed to fetch models: ${modelResponse.status} ${modelResponse.statusText}`);
+    }
+
     const models = ModelsResultSchema.parse(await modelResponse.json());
 
     // Just select the first model

@@ -4,7 +4,7 @@ import { InputBar, StatusBar } from "./components";
 
 const InputSection: React.FC = () => {
   return (
-    <Box flexDirection="column">
+    <Box flexDirection="column" width="100%">
       <InputBar />
       <StatusBar />
     </Box>

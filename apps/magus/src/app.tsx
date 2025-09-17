@@ -18,6 +18,7 @@ import {
   type EditorOutputPlugin,
 } from "@magus/tools";
 import { hc } from "hono/client";
+import { Box } from "ink";
 import { join } from "node:path";
 import React from "react";
 import SYSTEM_PROMPT from "./codex.txt";
@@ -120,10 +121,12 @@ const createMagusServer = () => {
 
 export const App: React.FC = () => {
   return (
-    <ServerProvider createServer={createMagusServer}>
-      <RoutesProvider>
-        <MagusRouterProvider />
-      </RoutesProvider>
-    </ServerProvider>
+    <Box width="90%" flexDirection="column" alignItems="center">
+      <ServerProvider createServer={createMagusServer}>
+        <RoutesProvider>
+          <MagusRouterProvider />
+        </RoutesProvider>
+      </ServerProvider>
+    </Box>
   );
 };

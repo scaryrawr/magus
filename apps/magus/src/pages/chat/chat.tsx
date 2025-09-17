@@ -1,7 +1,7 @@
 import { useChat } from "@ai-sdk/react";
 import type { MagusChat, MagusClient } from "@magus/server";
-import { DefaultChatTransport } from "ai";
-import { useInput } from "ink";
+import { DefaultChatTransport, type ChatStatus } from "ai";
+import { Box, Static, useInput } from "ink";
 import { useCallback, useEffect } from "react";
 import { useLoaderData, useParams, type RouteObject } from "react-router";
 import { useChatStore, useServerContext, useStackedRouteInput } from "../../contexts";
@@ -12,12 +12,18 @@ type ChatState = {
   text: string | undefined;
 };
 
+const useUpdateChatStatus = (status: ChatStatus | undefined) => {
+  const { setChatStatus } = useChatStore();
+  useEffect(() => {
+    setChatStatus(status);
+  }, [status, setChatStatus]);
+};
+
 export const Chat = () => {
   const { server } = useServerContext();
   const chatId = useParams().chatId;
   const { text: initialMessage } = useSafeLocation<ChatState>().state ?? {};
   const { messages: initialMessages } = useLoaderData<MagusChat>();
-  const { setChatStatus } = useChatStore();
   const { sendMessage, messages, stop, status } = useChat({
     id: chatId,
     messages: initialMessages,
@@ -29,9 +35,7 @@ export const Chat = () => {
     }),
   });
 
-  useEffect(() => {
-    setChatStatus(status);
-  }, [status, setChatStatus]);
+  useUpdateChatStatus(status);
 
   useEffect(() => {
     if (initialMessage && messages.length === 0) {
@@ -56,12 +60,19 @@ export const Chat = () => {
 
   useStackedRouteInput({ onSubmit, placeholder: "Send a message..." });
 
+  const streaming = status === "streaming" || status === "submitted";
+  const staticMessages = streaming && messages.length > 0 ? messages.slice(0, -1) : messages;
+  const dynamicMessage = streaming && messages.length > 0 ? messages[messages.length - 1] : undefined;
+
   return (
-    <>
-      {messages.map((message, i) => {
-        return <ChatBox key={message.id || `${i}:${message.role}`} {...message} />;
-      })}
-    </>
+    <Box width="90%">
+      <Static items={staticMessages} style={{ width: "90%" }}>
+        {(m) => <ChatBox key={m.id || `${m.role}:${m.parts.length}`} {...m} />}
+      </Static>
+      {dynamicMessage ? (
+        <ChatBox key={dynamicMessage.id || `dynamic:${dynamicMessage.role}`} {...dynamicMessage} />
+      ) : null}
+    </Box>
   );
 };
 

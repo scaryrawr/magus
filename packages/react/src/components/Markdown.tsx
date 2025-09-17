@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type { CardinalOptions } from "cardinal";
-import { Box, measureElement, Text, type DOMElement } from "ink";
+import { Box, measureElement, Text, useStdout, type DOMElement } from "ink";
 import { Marked, type MarkedExtension } from "marked";
 import { markedTerminal, type TerminalRendererOptions } from "marked-terminal";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useStdoutDimensions } from "../hooks";
 
 export type MarkdownProps = {
   children: string;
@@ -13,7 +12,8 @@ export type MarkdownProps = {
 };
 
 export const Markdown = ({ children, options, highlightOptions }: MarkdownProps) => {
-  const { columns } = useStdoutDimensions();
+  const { stdout } = useStdout();
+  const { columns } = stdout;
   const displayRef = useRef<DOMElement>(null);
   const [availableWidth, setAvailableWidth] = useState(columns);
 
@@ -21,7 +21,7 @@ export const Markdown = ({ children, options, highlightOptions }: MarkdownProps)
     if (!displayRef.current) return;
     const { width } = measureElement(displayRef.current);
     setAvailableWidth(width);
-  }, [columns]);
+  }, []);
 
   // Very small helper utilities to compute table col widths based on content and terminal width
   const computeMaxTableColumns = useCallback((md: string): number => {

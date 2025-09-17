@@ -3,7 +3,7 @@ import TurndownService from "turndown";
 import z from "zod";
 
 export const WebFetchInputSchema = z.object({
-  url: z.string().describe("The URL of the web page to fetch."),
+  url: z.url().describe("The URL of the web page to fetch."),
 });
 
 export const WebFetchOutputSchema = z.object({

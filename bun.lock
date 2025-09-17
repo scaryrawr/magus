@@ -188,7 +188,7 @@
   },
   "catalog": {
     "ai": "^5.0.12",
-    "hono": "^4.9.6",
+    "hono": "^4.9.7",
     "zod": "^4.1.8",
   },
   "catalogs": {
@@ -578,7 +578,7 @@
 
     "highlight.js": ["highlight.js@10.7.3", "", {}, "sha512-tzcUFauisWKNHaRkN4Wjl/ZA07gENAjFl3J/c480dprkGTg5EQstgaNFqBfUqCq54kZRIEcreTsAgF/m2quD7A=="],
 
-    "hono": ["hono@4.9.6", "", {}, "sha512-doVjXhSFvYZ7y0dNokjwwSahcrAfdz+/BCLvAMa/vHLzjj8+CFyV5xteThGUsKdkaasgN+gF2mUxao+SGLpUeA=="],
+    "hono": ["hono@4.9.7", "", {}, "sha512-t4Te6ERzIaC48W3x4hJmBwgNlLhmiEdEE5ViYb02ffw4ignHNHa5IBtPjmbKstmtKa8X6C35iWwK4HaqvrzG9w=="],
 
     "husky": ["husky@9.1.7", "", { "bin": { "husky": "bin.js" } }, "sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA=="],
 

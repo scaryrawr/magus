@@ -23,7 +23,10 @@ export const createMagusServer = ({ tools, systemPrompt }: CreateMagusServerOpti
     ...createLmStudioProvider(),
     ...createOllamaProvider(),
     ...(process.env.OPENROUTER_API_KEY ? createOpenRouterProvider(process.env.OPENROUTER_API_KEY) : undefined),
-    ...(process.env.AZURE_RESOURCE_GROUP && process.env.AZURE_RESOURCE_NAME && process.env.AZURE_SUBSCRIPTION
+    ...(process.env.AZURE_RESOURCE_GROUP &&
+    process.env.AZURE_RESOURCE_NAME &&
+    process.env.AZURE_SUBSCRIPTION &&
+    Bun.which("az")
       ? createAzureProvider({
           resourceGroup: process.env.AZURE_RESOURCE_GROUP,
           subscription: process.env.AZURE_SUBSCRIPTION,

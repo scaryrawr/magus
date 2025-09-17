@@ -65,7 +65,7 @@ export const Chat = () => {
   const dynamicMessage = streaming && messages.length > 0 ? messages[messages.length - 1] : undefined;
 
   return (
-    <Box width="90%">
+    <Box width="100%">
       <Static items={staticMessages} style={{ width: "90%" }}>
         {(m) => <ChatBox key={m.id || `${m.role}:${m.parts.length}`} {...m} />}
       </Static>

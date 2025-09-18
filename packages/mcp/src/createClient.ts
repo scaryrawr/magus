@@ -60,8 +60,12 @@ export const createMcpClient = (name: string, server: VscMcpServer) => {
   return experimental_createMCPClient({ name, transport });
 };
 
-export const createMcpClients = (mcpConfig: VscMcp) => {
+export const createMcpClients = async (mcpConfig: VscMcp) => {
   const servers = mcpConfig.servers;
   if (!servers) return undefined;
-  return Promise.all(Object.entries(servers).map(([name, server]) => createMcpClient(name, server)));
+  const clients = await Promise.allSettled(
+    Object.entries(servers).map(([name, server]) => createMcpClient(name, server)),
+  );
+
+  return clients.filter((c) => c.status === "fulfilled").map((c) => c.value);
 };

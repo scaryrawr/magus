@@ -1,13 +1,8 @@
 import { createAzure } from "@ai-sdk/azure";
+import { CognitiveServicesManagementClient } from "@azure/arm-cognitiveservices";
+import { AzureCliCredential } from "@azure/identity";
 import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
-import { z } from "zod";
 import type { MagusProvider, ModelInfo } from "./types";
-
-export const AzureModelSchema = z.object({
-  id: z.string(),
-});
-
-export const AzureModelsResponseSchema = z.array(AzureModelSchema);
 
 type AzureProviderOptions = {
   resourceGroup: string;
@@ -15,42 +10,36 @@ type AzureProviderOptions = {
   name: string;
 };
 
-const AzureKeysSchema = z.object({
-  key1: z.string(),
-  key2: z.string(),
-});
-
 export const createAzureProvider = ({ resourceGroup, subscription, name }: AzureProviderOptions) => {
-  const { key1 } = AzureKeysSchema.parse(
-    JSON.parse(
-      Bun.spawnSync([
-        "az",
-        "cognitiveservices",
-        "account",
-        "keys",
-        "list",
-        "--subscription",
-        subscription,
-        "--name",
-        name,
-        "--resource-group",
-        resourceGroup,
-      ])
-        .stdout.toString()
-        .trim(),
-    ),
+  const client = new CognitiveServicesManagementClient(
+    new AzureCliCredential({
+      subscription,
+    }),
+    subscription,
   );
 
-  const azure = createAzure({
-    resourceName: name,
-    apiKey: key1,
-  });
+  let azure: ReturnType<typeof createAzure> | undefined;
+  client.accounts
+    .listKeys(resourceGroup, name)
+    .then((keys) => {
+      if (!keys.key1 && !keys.key2) throw new Error("No API keys found for the Azure Cognitive Services account.");
 
-  let modelsCache: ModelInfo[] | undefined;
+      azure = createAzure({
+        resourceName: name,
+        apiKey: keys.key1 ?? keys.key2,
+      });
+    })
+    .catch((err) => {
+      console.error("Failed to retrieve Azure Cognitive Services account keys:", err);
+    });
+
+  let modelsCache: Promise<ModelInfo[]> | undefined;
 
   return {
     Azure: {
       model: (id: string) => {
+        if (!azure) throw new Error("Azure provider is not initialized yet. Please try again later.");
+
         // Many thinking models use the <think>...</think> tag to indicate reasoning steps.
         return wrapLanguageModel({
           model: azure(id),
@@ -60,32 +49,22 @@ export const createAzureProvider = ({ resourceGroup, subscription, name }: Azure
         });
       },
       models: () => {
-        modelsCache ??= (() => {
-          const output = Bun.spawnSync([
-            "az",
-            "cognitiveservices",
-            "account",
-            "deployment",
-            "list",
-            "--subscription",
-            subscription,
-            "--resource-group",
-            resourceGroup,
-            "--name",
-            name,
-            "--query",
-            "[].{id:name}",
-          ])
-            .stdout.toString()
-            .trim();
+        modelsCache ??= (async () => {
+          const results = client.deployments.list(resourceGroup, name);
+          const models: ModelInfo[] = [];
+          for await (const item of results) {
+            if (!item.name) continue;
+            models.push({ id: item.name });
+          }
 
-          const models = AzureModelsResponseSchema.parse(JSON.parse(output));
-          return models.map((m) => ({
-            id: m.id,
-          }));
+          return models;
         })();
 
-        return Promise.resolve(modelsCache);
+        modelsCache.catch(() => {
+          modelsCache = undefined;
+        });
+
+        return modelsCache;
       },
     },
   } as const satisfies MagusProvider;

@@ -4,7 +4,7 @@ import { Hono } from "hono";
 import type { hc } from "hono/client";
 import { streamSSE } from "hono/streaming";
 import { ObservableServerState } from "./ObservableServerState";
-import { chatRouter, modelsRouter, promptRouter } from "./routes";
+import { chatRouter, modelsRouter, promptRouter, toolsRouter } from "./routes";
 import type { ServerStateConfig } from "./types";
 import { langueModelToModelSelect } from "./utils";
 
@@ -20,6 +20,7 @@ export const createServer = <MProviders extends MagusProvider = MagusProvider>(
     .route("/v0", chatRouter(state))
     .route("/v0", modelsRouter(state))
     .route("/v0", promptRouter(state))
+    .route("/v0", toolsRouter(state))
     .get("/v0/sse", (c) => {
       return streamSSE(c, async (stream) => {
         const modelChangeCallback = (value: LanguageModel | undefined) => {

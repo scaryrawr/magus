@@ -28,11 +28,11 @@ export const ChatBox: React.FC<UIMessage> = ({ role, parts }) => {
         }
         switch (part.type) {
           case "text":
-            return <Markdown key={index}>{part.text}</Markdown>;
+            return <Markdown key={index}>{part.text ?? ""}</Markdown>;
           case "reasoning":
             return (
               <Text dimColor key={index}>
-                {part.text}
+                {part.text ?? ""}
               </Text>
             );
           default:

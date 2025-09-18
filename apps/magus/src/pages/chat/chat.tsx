@@ -1,4 +1,5 @@
 import { useChat } from "@ai-sdk/react";
+import { useStdoutDimensions } from "@magus/react";
 import type { MagusChat, MagusClient } from "@magus/server";
 import { DefaultChatTransport, type ChatStatus } from "ai";
 import { Box, Static, useInput } from "ink";
@@ -63,10 +64,12 @@ export const Chat = () => {
   const streaming = status === "streaming" || status === "submitted";
   const staticMessages = streaming && messages.length > 0 ? messages.slice(0, -1) : messages;
   const dynamicMessage = streaming && messages.length > 0 ? messages[messages.length - 1] : undefined;
+  const { columns } = useStdoutDimensions();
 
   return (
     <Box width="100%">
-      <Static items={staticMessages} style={{ width: "90%" }}>
+      {/* Key Static by width so that on terminal resize it remounts and reflows once without flickering every frame */}
+      <Static key={columns} items={staticMessages} style={{ width: "90%" }}>
         {(m) => <ChatBox key={m.id || `${m.role}:${m.parts.length}`} {...m} />}
       </Static>
       {dynamicMessage ? (

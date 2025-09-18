@@ -54,7 +54,11 @@ export const createAzureProvider = ({ resourceGroup, subscription, name }: Azure
           const models: ModelInfo[] = [];
           for await (const item of results) {
             if (!item.name) continue;
-            models.push({ id: item.name });
+            models.push({
+              id: item.name,
+              // Not the real context length, but eh... it'll stop working once we hit it.
+              context_length: item.properties?.rateLimits?.find((limit) => limit.key === "token")?.count,
+            });
           }
 
           return models;

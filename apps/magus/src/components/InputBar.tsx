@@ -1,4 +1,4 @@
-import { Box, Text } from "ink";
+import { Box, Text, useApp } from "ink";
 import TextInput from "ink-text-input";
 import React, { useCallback } from "react";
 import { useNavigate } from "react-router";
@@ -11,6 +11,7 @@ export const InputBar: React.FC = () => {
   const placeholder = useInputPlaceholder();
   const { routes } = useRoutes();
   const navigate = useNavigate();
+  const { exit } = useApp();
 
   const onSubmit = useCallback(
     async (text: string) => {
@@ -26,9 +27,14 @@ export const InputBar: React.FC = () => {
         return;
       }
 
+      if (text.trim() === "/exit" || text.trim() === "/quit") {
+        exit();
+        return;
+      }
+
       await submit(value);
     },
-    [navigate, routes, setValue, submit, value],
+    [exit, navigate, routes, setValue, submit, value],
   );
 
   return (

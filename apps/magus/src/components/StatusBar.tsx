@@ -26,6 +26,8 @@ const useModelInfo = () => {
     client.v0.model
       .$get()
       .then(async (res) => {
+        if (!res.ok) return;
+
         const data = await res.json();
         if (disposed) return;
         updateModelInfo(data);

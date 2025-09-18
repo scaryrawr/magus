@@ -25,6 +25,11 @@ export const Banner = () => {
             </Box>
           );
         })}
+        <Box flexDirection="row" width="70%" justifyContent="space-evenly">
+          <Text>/exit</Text>
+          <Text> - </Text>
+          <Text dimColor>Exit the application</Text>
+        </Box>
       </Box>
     </Box>
   );

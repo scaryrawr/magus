@@ -18,6 +18,7 @@ import { createElement } from "react";
 import { App } from "./app";
 import SYSTEM_PROMPT from "./codex.txt";
 import { createMagusServer } from "./createMagusServer";
+import { createProviders } from "./createProviders";
 import { loadMcpConfigs } from "./loadMcpConfigs";
 
 mkdirSync(join(process.cwd(), ".magus", "logs"), { recursive: true });
@@ -68,11 +69,14 @@ try {
     ...createLspDiagnosticsTool(lsp),
   };
 
-  await render(
+  const providers = createProviders();
+  const result = render(
     createElement(App, {
-      createMagusServer: () => createMagusServer({ tools, systemPrompt: SYSTEM_PROMPT }),
+      createMagusServer: () => createMagusServer({ tools, systemPrompt: SYSTEM_PROMPT, providers }),
     }),
-  ).waitUntilExit();
+  );
+
+  await result.waitUntilExit();
 } finally {
   await Promise.all([...(mcpClients ? mcpClients.map((client) => client.close()) : []), lsp.shutdownAll()]);
 }

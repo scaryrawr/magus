@@ -1,10 +1,4 @@
-import {
-  createAzureProvider,
-  createGitHubProvider,
-  createLmStudioProvider,
-  createOllamaProvider,
-  createOpenRouterProvider,
-} from "@magus/providers";
+import { type MagusProvider } from "@magus/providers";
 import { createServer, MagusChatStore, ModelsResultSchema, type MagusRoutes } from "@magus/server";
 import type { EditorOutputPlugin } from "@magus/tools";
 import type { ToolSet } from "ai";
@@ -13,33 +7,13 @@ import { join } from "node:path";
 
 // Tools are passed in so that main.ts stays focused on CLI concerns.
 export interface CreateMagusServerOptions {
-  tools: ToolSet; // shape defined by tools factory usage
+  tools: ToolSet;
+  providers: MagusProvider;
   systemPrompt: string;
-  plugins?: EditorOutputPlugin; // reserved for future use if needed externally
+  plugins?: EditorOutputPlugin;
 }
 
-export const createMagusServer = ({ tools, systemPrompt }: CreateMagusServerOptions) => {
-  const providers = {
-    ...createLmStudioProvider(),
-    ...createOllamaProvider(),
-    ...(process.env.OPENROUTER_API_KEY ? createOpenRouterProvider(process.env.OPENROUTER_API_KEY) : undefined),
-    ...(process.env.AZURE_RESOURCE_GROUP &&
-    process.env.AZURE_RESOURCE_NAME &&
-    process.env.AZURE_SUBSCRIPTION &&
-    Bun.which("az")
-      ? createAzureProvider({
-          resourceGroup: process.env.AZURE_RESOURCE_GROUP,
-          subscription: process.env.AZURE_SUBSCRIPTION,
-          name: process.env.AZURE_RESOURCE_NAME,
-        })
-      : undefined),
-    ...(process.env.GITHUB_TOKEN
-      ? createGitHubProvider({
-          oauthToken: process.env.GITHUB_TOKEN,
-        })
-      : undefined),
-  };
-
+export const createMagusServer = ({ tools, systemPrompt, providers }: CreateMagusServerOptions) => {
   const { listen } = createServer({
     providers,
     chatStore: new MagusChatStore(join(process.cwd(), ".magus", "chats")),

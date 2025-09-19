@@ -47,8 +47,11 @@ const getCopilotToken = async (oauthToken: string) => {
 
 export const createGitHubProvider = ({ oauthToken }: GitHubProviderOptions) => {
   let github: ReturnType<typeof createOpenAICompatible> | undefined;
+  let cachedToken: string | undefined;
   let timeout: NodeJS.Timeout | undefined;
+
   const onTokenRefresh = (copilotToken: CopilotToken) => {
+    cachedToken = copilotToken.token;
     github = createOpenAICompatible({
       name: "github",
       apiKey: copilotToken.token,
@@ -98,9 +101,13 @@ export const createGitHubProvider = ({ oauthToken }: GitHubProviderOptions) => {
       },
       models: async () => {
         modelsCache ??= (async () => {
+          // Cache token should be refreshed by the refresh loop above
+          cachedToken ??= (await getCopilotToken(oauthToken)).token;
           const response = await fetch("https://api.githubcopilot.com/models", {
             headers: {
-              Authorization: `Bearer ${oauthToken}`,
+              Authorization: `Bearer ${cachedToken}`,
+              "Editor-Version": "vscode/1.99.3",
+              "Editor-Plugin-Version": "copilot-chat/0.26.7",
             },
           });
 

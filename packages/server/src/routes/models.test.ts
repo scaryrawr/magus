@@ -124,6 +124,7 @@ describe("Models Endpoints", () => {
         id: "gpt-4o-mini",
         reasoning: true,
         context_length: 128000,
+        provider: "lmstudio",
         tool_use: true,
       });
     });

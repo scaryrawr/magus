@@ -16,7 +16,6 @@ export const FileReadView: React.FC<FileReadViewProps> = ({ path, icon, content,
     try {
       return highlight(content, { language, ignoreIllegals: true }).split("\n");
     } catch (e) {
-      console.error("Error highlighting content:", e);
       return content.split("\n");
     }
   }, [content, language]);

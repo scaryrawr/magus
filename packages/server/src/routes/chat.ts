@@ -63,7 +63,7 @@ export const chatRouter = (state: ServerState) => {
       const chatId = await state.chatStore.createChat();
       return c.json({ chatId });
     })
-    .get("/chat/load/:chatId", async (c) => {
+    .get("/chat/:chatId/load", async (c) => {
       const chatId = c.req.param("chatId");
       const chat = await state.chatStore.loadChat(chatId);
       if (!chat) {

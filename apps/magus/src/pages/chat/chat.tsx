@@ -99,7 +99,7 @@ export const createChatRoute = (client: MagusClient) => {
         throw new Error("chatId is required");
       }
 
-      const res = await client.v0.chat.load[":chatId"].$get({
+      const res = await client.v0.chat[":chatId"].load.$get({
         param: { chatId },
       });
 

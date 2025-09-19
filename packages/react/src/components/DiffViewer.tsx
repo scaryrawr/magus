@@ -87,7 +87,14 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({ children, path }) => {
       if (["+", "-", " "].includes(firstChar)) {
         contentPortion = raw.slice(1);
       }
-      const highlighted = highlight(contentPortion, { language, ignoreIllegals: true });
+
+      let highlighted: string;
+      try {
+        highlighted = highlight(contentPortion, { language, ignoreIllegals: true });
+      } catch {
+        highlighted = contentPortion;
+      }
+
       const renderedLine = ["+", "-", " "].includes(firstChar) ? firstChar + highlighted : highlighted;
       return { kind: "line", oldDisplay, newDisplay, renderedLine, bg } as const;
     });

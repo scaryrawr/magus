@@ -39,9 +39,24 @@ type ReadViewProps = {
  */
 export const ReadView: React.FC<ReadViewProps> = ({ path, icon, content, range }) => {
   const fileStat = useMemo(() => {
-    const s = statSync(path);
-    return s.isDirectory() ? "directory" : "file";
+    try {
+      const s = statSync(path);
+      return s.isDirectory() ? "directory" : "file";
+    } catch {
+      return "unknown";
+    }
   }, [path]);
+
+  if (fileStat === "unknown") {
+    return (
+      <Box flexDirection="column">
+        <Text>
+          {icon} {` Read ${path}`}
+        </Text>
+        <Text>{content}</Text>
+      </Box>
+    );
+  }
 
   if (fileStat === "directory") {
     return <DirectoryReadView path={path} icon={icon} content={content} />;

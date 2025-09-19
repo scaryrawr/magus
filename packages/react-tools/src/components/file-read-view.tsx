@@ -15,7 +15,7 @@ export const FileReadView: React.FC<FileReadViewProps> = ({ path, icon, content,
   const fileLines = useMemo(() => {
     try {
       return highlight(content, { language, ignoreIllegals: true }).split("\n");
-    } catch (e) {
+    } catch {
       return content.split("\n");
     }
   }, [content, language]);

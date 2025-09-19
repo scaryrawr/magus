@@ -37,11 +37,7 @@ export const loadMcpConfigs = async (paths: string[]) => {
     }
 
     if (mcpConfig.inputs) {
-      if (acc.inputs) {
-        acc.inputs = [...acc.inputs, ...mcpConfig.inputs];
-      } else {
-        acc.inputs = [...mcpConfig.inputs];
-      }
+      acc.inputs = [...(acc.inputs || []), ...mcpConfig.inputs];
     }
 
     return acc;

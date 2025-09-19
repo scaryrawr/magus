@@ -1,12 +1,9 @@
 import type { MagusProvider } from "@magus/providers";
-import type { LanguageModel } from "ai";
 import { Hono } from "hono";
 import type { hc } from "hono/client";
-import { streamSSE } from "hono/streaming";
 import { ObservableServerState } from "./ObservableServerState";
 import { chatRouter, modelsRouter, promptRouter, toolsRouter } from "./routes";
 import type { ServerStateConfig } from "./types";
-import { langueModelToModelSelect } from "./utils";
 
 export const createServer = <MProviders extends MagusProvider = MagusProvider>(
   config: ServerStateConfig<MProviders>,
@@ -20,31 +17,8 @@ export const createServer = <MProviders extends MagusProvider = MagusProvider>(
     .route("/v0", chatRouter(state))
     .route("/v0", modelsRouter(state))
     .route("/v0", promptRouter(state))
-    .route("/v0", toolsRouter(state))
-    .get("/v0/sse", (c) => {
-      return streamSSE(c, async (stream) => {
-        const modelChangeCallback = (value: LanguageModel | undefined) => {
-          const data = langueModelToModelSelect(value);
-          if (!data) return;
-          void stream.writeSSE({
-            data: JSON.stringify(data),
-            event: "model-change",
-          });
-        };
+    .route("/v0", toolsRouter(state));
 
-        state.on("change:model", modelChangeCallback);
-
-        // Clean up listener when client disconnects
-        stream.onAbort(() => {
-          state.off("change:model", modelChangeCallback);
-        });
-
-        // Keep the connection alive
-        while (true) {
-          await stream.sleep(1000);
-        }
-      });
-    });
   return {
     app: routes,
     listen: () => {

@@ -1,7 +1,7 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
 import { z } from "zod";
-import type { MagusProvider } from "./types";
+import type { MagusProvider, ModelInfo } from "./types";
 
 export const LmStudioModelInfoSchema = z.object({
   object: z.literal("list"),
@@ -33,9 +33,14 @@ export const createLmStudioProvider = ({ origin = "http://localhost:1234" }: LmS
         // Many thinking models use the <think>...</think> tag to indicate reasoning steps.
         return wrapLanguageModel({
           model: lmstudio(id),
-          middleware: extractReasoningMiddleware({
-            tagName: "think",
-          }),
+          middleware: [
+            extractReasoningMiddleware({
+              tagName: "think",
+            }),
+            extractReasoningMiddleware({
+              tagName: "seed:think",
+            }),
+          ],
         });
       },
       models: async () => {
@@ -49,12 +54,16 @@ export const createLmStudioProvider = ({ origin = "http://localhost:1234" }: LmS
         const models = data.data;
         return models
           .filter((m) => m.type !== "embeddings")
-          .map((m) => ({
-            context_length: m.max_context_length,
-            id: m.id,
-            reasoning: true,
-            tool_use: m.capabilities?.includes("tool_use") ?? false,
-          }));
+          .map(
+            (m) =>
+              ({
+                context_length: m.max_context_length,
+                id: m.id,
+                reasoning: true,
+                tool_use: m.capabilities?.includes("tool_use") ?? false,
+                provider: "lmstudio" as const,
+              }) satisfies ModelInfo,
+          );
       },
     },
   } as const satisfies MagusProvider;

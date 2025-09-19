@@ -2,7 +2,8 @@ import { ModelInfoSchema, type MagusProvider, type ModelInfo } from "@magus/prov
 import { type LanguageModel } from "ai";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { Hono } from "hono";
-import { ModelSelectSchema, type ServerState } from "../types";
+import { ObservableServerState } from "../ObservableServerState";
+import { ModelSelectSchema } from "../types";
 import { modelsRouter } from "./models";
 
 // Mock LanguageModel implementation
@@ -48,6 +49,7 @@ beforeEach(() => {
         reasoning: true,
         context_length: 128000,
         tool_use: true,
+        provider: "lmstudio",
       },
     ]),
     ollama: createMockProvider("ollama", [
@@ -56,19 +58,18 @@ beforeEach(() => {
         reasoning: false,
         context_length: 32000,
         tool_use: false,
+        provider: "ollama",
       },
     ]),
   } satisfies MagusProvider;
 
-  const state: ServerState = {
+  const state = new ObservableServerState({
     providers: mockProviders,
     model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
     tools: undefined,
     chatStore: undefined!,
-    instructions: undefined,
-    prompt: undefined,
     systemPrompt: undefined,
-  };
+  });
 
   app.route("/v0", modelsRouter(state));
 });
@@ -94,15 +95,13 @@ describe("Models Endpoints", () => {
         empty: createMockProvider("empty", []),
       };
 
-      const emptyState: ServerState = {
+      const emptyState = new ObservableServerState({
         providers: emptyProviders,
         model: createMockLanguageModel("test", "empty"),
         tools: undefined,
         chatStore: undefined!,
-        instructions: undefined,
-        prompt: undefined,
         systemPrompt: undefined,
-      };
+      });
 
       emptyApp.route("/v0", modelsRouter(emptyState));
 
@@ -179,15 +178,13 @@ describe("Models Endpoints", () => {
     it("should return 500 when model is a string", async () => {
       // Create app with string model
       const freshApp = new Hono();
-      const freshState: ServerState = {
+      const freshState = new ObservableServerState({
         providers: { lmstudio: mockProviders.lmstudio },
         model: "string-model", // This will trigger the error case
         tools: undefined,
         chatStore: undefined!,
-        instructions: undefined,
-        prompt: undefined,
         systemPrompt: undefined,
-      };
+      });
 
       freshApp.route("/v0", modelsRouter(freshState));
 
@@ -200,15 +197,13 @@ describe("Models Endpoints", () => {
     it("should successfully change the current model", async () => {
       // Create a fresh app and state for this test to avoid interference
       const freshApp = new Hono();
-      const freshState: ServerState = {
+      const freshState = new ObservableServerState({
         providers: mockProviders,
         model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
         tools: undefined,
         chatStore: undefined!,
-        instructions: undefined,
-        prompt: undefined,
         systemPrompt: undefined,
-      };
+      });
 
       freshApp.route("/v0", modelsRouter(freshState));
 
@@ -274,15 +269,13 @@ describe("Models Endpoints", () => {
     it("should handle model selection that doesn't exist in provider", async () => {
       // Create a fresh app and state for this test
       const freshApp = new Hono();
-      const freshState: ServerState = {
+      const freshState = new ObservableServerState({
         providers: { lmstudio: mockProviders.lmstudio },
         model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
         tools: undefined,
         chatStore: undefined!,
-        instructions: undefined,
-        prompt: undefined,
         systemPrompt: undefined,
-      };
+      });
       freshApp.route("/v0", modelsRouter(freshState));
 
       const res = await freshApp.request("/v0/model", {

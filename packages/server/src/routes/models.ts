@@ -1,9 +1,13 @@
 import { zValidator } from "@hono/zod-validator";
+import type { LanguageModel } from "ai";
 import { Hono } from "hono";
-import { ModelSelectSchema, type ModelSelect, type ServerState } from "../types";
+import { streamSSE } from "hono/streaming";
+import type { ObservableServerState } from "../ObservableServerState";
+import { ModelSelectSchema, type ModelSelect } from "../types";
+import { langueModelToModelSelect } from "../utils";
 import type { RouterFactory } from "./types";
 
-export const modelsRouter = (state: ServerState) => {
+export const modelsRouter = (state: ObservableServerState) => {
   const router = new Hono();
   return router
     .get("/models", async (c) => {
@@ -71,6 +75,41 @@ export const modelsRouter = (state: ServerState) => {
         return c.text(`Provider: ${selection.provider} not found`, 404);
       }
       return c.text("", 200);
+    })
+    .get("/model/sse", (c) => {
+      return streamSSE(c, async (stream) => {
+        const modelChangeCallback = (value: LanguageModel | undefined) => {
+          const data = langueModelToModelSelect(value);
+          if (!data) return;
+          const provider = state.providers[data?.provider];
+          provider
+            .models()
+            .then((models) => {
+              const model = models.find((m) => m.id === data.id);
+              if (!model) return;
+
+              void stream.writeSSE({
+                data: JSON.stringify(model),
+                event: "model-change",
+              });
+            })
+            .catch(() => {
+              console.error(`Failed to fetch models for provider ${data?.provider}`);
+            });
+        };
+
+        state.on("change:model", modelChangeCallback);
+
+        // Clean up listener when client disconnects
+        stream.onAbort(() => {
+          state.off("change:model", modelChangeCallback);
+        });
+
+        // Keep the connection alive
+        while (true) {
+          await stream.sleep(1000);
+        }
+      });
     });
 };
 

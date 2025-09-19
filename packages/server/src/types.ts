@@ -2,6 +2,14 @@ import type { MagusProvider } from "@magus/providers";
 import type { LanguageModel, ToolSet, UIMessage } from "ai";
 import z from "zod";
 
+export const ChatUsageSchema = z.object({
+  inputTokens: z.number(),
+  outputTokens: z.number(),
+  totalTokens: z.number(),
+  reasoningTokens: z.number().optional(),
+  cachedInputTokens: z.number().optional(),
+});
+
 export const MagusChatSchema = z.object({
   title: z.string().optional(),
   // messages use AI SDK structure, opaque to us

@@ -36,7 +36,7 @@ export const createAzureProvider = ({ resourceGroup, subscription, name }: Azure
   let modelsCache: Promise<ModelInfo[]> | undefined;
 
   return {
-    Azure: {
+    azure: {
       model: (id: string) => {
         if (!azure) throw new Error("Azure provider is not initialized yet. Please try again later.");
 
@@ -58,7 +58,8 @@ export const createAzureProvider = ({ resourceGroup, subscription, name }: Azure
               id: item.name,
               // Not the real context length, but eh... it'll stop working once we hit it.
               context_length: item.properties?.rateLimits?.find((limit) => limit.key === "token")?.count,
-            });
+              provider: "azure" as const,
+            } satisfies ModelInfo);
           }
 
           return models;

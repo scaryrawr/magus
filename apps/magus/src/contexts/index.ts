@@ -1,4 +1,4 @@
-export { useChatStatus, useChatStore, useSetChatStatus } from "./chatStore";
+export { useChatId, useChatStatus, useChatStore, useChatUsage, useSetChatId, useSetChatStatus } from "./chatStore";
 export {
   useInputPlaceholder,
   useInputSubmit,
@@ -8,5 +8,6 @@ export {
   useSetInputValue,
   useStackedRouteInput,
 } from "./inputStore";
+export { useModelInfo } from "./ModelStore";
 export { RoutesProvider, useRoutes, type RouteInfo } from "./RoutesProvider";
 export { ServerProvider, useServerContext } from "./ServerProvider";

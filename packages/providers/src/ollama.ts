@@ -94,7 +94,7 @@ export const createOllamaProvider = ({ origin = "http://localhost:11434" }: Olla
           }),
         });
       },
-      models: async (): Promise<ModelInfo[]> => {
+      models: async () => {
         const response = await fetch(`${origin}/api/tags`);
         if (!response.ok) {
           throw new Error(`Failed to fetch Ollama tags: ${response.status} ${response.statusText}`);
@@ -120,6 +120,7 @@ export const createOllamaProvider = ({ origin = "http://localhost:11434" }: Olla
               id: m.model,
               reasoning: info.capabilities.includes("thinking"),
               tool_use: info.capabilities.includes("tools"),
+              provider: "ollama" as const,
             } satisfies ModelInfo;
           }),
         );

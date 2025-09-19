@@ -3,6 +3,7 @@ import { z } from "zod";
 
 export const ModelInfoSchema = z.object({
   id: z.string(),
+  provider: z.string(),
   reasoning: z.boolean().optional(),
   context_length: z.number().optional(),
   tool_use: z.boolean().optional(),

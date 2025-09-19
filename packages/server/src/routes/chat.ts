@@ -1,10 +1,17 @@
-import { type UIMessage, convertToModelMessages, createIdGenerator, streamText } from "ai";
+import { type LanguageModelUsage, type UIMessage, convertToModelMessages, createIdGenerator, streamText } from "ai";
 import { Hono } from "hono";
+import { streamSSE } from "hono/streaming";
+import { EventEmitter } from "node:events";
 import type { ServerState } from "../types";
 import type { RouterFactory } from "./types";
 
+type ChatEvents = {
+  usage: [id: string, usage: LanguageModelUsage];
+};
+
 export const chatRouter = (state: ServerState) => {
   const router = new Hono();
+  const emitter = new EventEmitter<ChatEvents>();
   return router
     .post("/chat", async (c) => {
       if (!state.model) {
@@ -14,14 +21,7 @@ export const chatRouter = (state: ServerState) => {
       const { message, id }: { message: UIMessage; id: string } = await c.req.json();
       const { messages: previousMessages, title } = (await state.chatStore.loadChat(id)) ?? { messages: [] };
       const tools = state.tools;
-      // const validMessages: UIMessage[] = tools
-      //   ? await validateUIMessages({
-      //       messages: previousMessages,
-      //       tools: tools as Parameters<typeof validateUIMessages>[0]["tools"],
-      //     })
-      //   : previousMessages;
 
-      // const messages = [...validMessages, message];
       const messages = [...previousMessages, message];
       const result = streamText({
         messages: convertToModelMessages(messages),
@@ -29,7 +29,14 @@ export const chatRouter = (state: ServerState) => {
         tools,
         stopWhen: ({ steps }) => steps.length > 9000,
         system: state.prompt,
+        onStepFinish: ({ usage }) => {
+          emitter.emit("usage", id, { ...usage });
+        },
+        onFinish: ({ totalUsage }) => {
+          emitter.emit("usage", id, { ...totalUsage });
+        },
       });
+
       return result.toUIMessageStreamResponse({
         originalMessages: messages,
         generateMessageId: createIdGenerator({
@@ -64,6 +71,29 @@ export const chatRouter = (state: ServerState) => {
       }
 
       return c.json(chat);
+    })
+    .get("/chat/:chatId/sse", (c) => {
+      const chatId = c.req.param("chatId");
+      return streamSSE(c, async (stream) => {
+        const onUsage = (emittedId: string, usage: LanguageModelUsage) => {
+          if (emittedId === chatId) {
+            void stream.writeSSE({
+              event: "usage",
+              data: JSON.stringify(usage),
+            });
+          }
+        };
+
+        emitter.on("usage", onUsage);
+        stream.onAbort(() => {
+          emitter.off("usage", onUsage);
+        });
+
+        // Keep the connection alive
+        while (true) {
+          await stream.sleep(1000);
+        }
+      });
     });
 };
 

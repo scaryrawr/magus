@@ -32,13 +32,17 @@ export const createOpenRouterProvider = (apiKey: string) => {
         modelsCache ??= (async () => {
           const modelResponse = await fetch("https://openrouter.ai/api/v1/models");
           const models = OpenRouterModelsResponseSchema.parse(await modelResponse.json());
-          return models.data.map((m) => ({
-            id: m.id,
-            context_length: m.context_length || 16385,
-            reasoning:
-              m.supported_parameters.includes("reasoning") || m.supported_parameters.includes("include_reasoning"),
-            tool_use: m.supported_parameters.includes("tools") || m.supported_parameters.includes("tool_choice"),
-          }));
+          return models.data.map(
+            (m) =>
+              ({
+                id: m.id,
+                context_length: m.context_length || 16385,
+                reasoning:
+                  m.supported_parameters.includes("reasoning") || m.supported_parameters.includes("include_reasoning"),
+                tool_use: m.supported_parameters.includes("tools") || m.supported_parameters.includes("tool_choice"),
+                provider: "openrouter" as const,
+              }) satisfies ModelInfo,
+          );
         })();
 
         // Allow for retries.

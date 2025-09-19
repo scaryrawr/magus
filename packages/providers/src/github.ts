@@ -88,7 +88,7 @@ export const createGitHubProvider = ({ oauthToken }: GitHubProviderOptions) => {
   let modelsCache: Promise<ModelInfo[]> | undefined;
 
   return {
-    GitHub: {
+    github: {
       model: (id: string) => {
         if (!github) {
           throw new Error("GitHub provider not initialized yet");
@@ -109,12 +109,14 @@ export const createGitHubProvider = ({ oauthToken }: GitHubProviderOptions) => {
           return models.data
             .filter((m) => m.model_picker_enabled)
             .map(
-              (m): ModelInfo => ({
-                id: m.id,
-                context_length: m.limits?.max_context_window_tokens || 128000,
-                reasoning: Boolean(m.supports?.max_thinking_budget),
-                tool_use: Boolean(m.supports?.tool_calls),
-              }),
+              (m): ModelInfo =>
+                ({
+                  id: m.id,
+                  context_length: m.limits?.max_context_window_tokens || 128000,
+                  reasoning: Boolean(m.supports?.max_thinking_budget),
+                  tool_use: Boolean(m.supports?.tool_calls),
+                  provider: "github" as const,
+                }) satisfies ModelInfo,
             );
         })();
 

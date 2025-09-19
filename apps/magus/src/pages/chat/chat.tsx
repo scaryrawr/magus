@@ -1,11 +1,11 @@
 import { useChat } from "@ai-sdk/react";
 import { useStdoutDimensions } from "@magus/react";
-import type { MagusChat, MagusClient } from "@magus/server";
+import { type MagusChat, type MagusClient } from "@magus/server";
 import { DefaultChatTransport, type ChatStatus } from "ai";
 import { Box, Static, useInput } from "ink";
 import { useCallback, useEffect } from "react";
 import { useLoaderData, useParams, type RouteObject } from "react-router";
-import { useChatStore, useServerContext, useStackedRouteInput } from "../../contexts";
+import { useChatStore, useServerContext, useSetChatId, useStackedRouteInput } from "../../contexts";
 import { useSafeLocation } from "../../hooks";
 import { ChatBox } from "./chatbox";
 
@@ -22,9 +22,12 @@ const useUpdateChatStatus = (status: ChatStatus | undefined) => {
 
 export const Chat = () => {
   const { server } = useServerContext();
-  const chatId = useParams().chatId;
+  const { chatId } = useParams();
   const { text: initialMessage } = useSafeLocation<ChatState>().state ?? {};
   const { messages: initialMessages } = useLoaderData<MagusChat>();
+  //const { totalTokens } = useChatUsage(chatId) ?? {};
+  const setChatId = useSetChatId();
+
   const { sendMessage, messages, stop, status } = useChat({
     id: chatId,
     messages: initialMessages,
@@ -35,6 +38,14 @@ export const Chat = () => {
       },
     }),
   });
+
+  useEffect(() => {
+    if (!chatId) return;
+    setChatId(chatId);
+    return () => {
+      setChatId(undefined);
+    };
+  }, [chatId, setChatId]);
 
   useUpdateChatStatus(status);
 
@@ -65,7 +76,6 @@ export const Chat = () => {
   const staticMessages = streaming && messages.length > 0 ? messages.slice(0, -1) : messages;
   const dynamicMessage = streaming && messages.length > 0 ? messages[messages.length - 1] : undefined;
   const { columns } = useStdoutDimensions();
-
   return (
     <Box width="100%">
       {/* Key Static by width so that on terminal resize it remounts and reflows once without flickering every frame */}

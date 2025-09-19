@@ -12,10 +12,13 @@ type FileReadViewProps = {
 export const FileReadView: React.FC<FileReadViewProps> = ({ path, icon, content, range }) => {
   const start = range?.start ?? 1;
   const language = path.split(".").pop() ?? undefined;
-  const fileLines = useMemo(
-    () => highlight(content, { language, ignoreIllegals: true }).split("\n"),
-    [content, language],
-  );
+  const fileLines = useMemo(() => {
+    try {
+      return highlight(content, { language, ignoreIllegals: true }).split("\n");
+    } catch {
+      return content.split("\n");
+    }
+  }, [content, language]);
 
   const numWidth = (range ? String(range.end).length : String(fileLines.length).length) + 1;
   const displayIcon = icon ?? "📖";

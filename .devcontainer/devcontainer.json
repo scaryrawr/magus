@@ -1,0 +1,17 @@
+{
+  "name": "Ubuntu",
+  "image": "mcr.microsoft.com/devcontainers/base:noble",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/sshd:1": {},
+    "ghcr.io/devcontainers/features/node:1": {}
+  },
+  "onCreateCommand": "${containerWorkspaceFolder}/.devcontainer/onCreateCommand.sh",
+  "postCreateCommand": "${containerWorkspaceFolder}/.devcontainer/postCreateCommand.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": ["oven.bun-vscode", "dbaeumer.vscode-eslint", "fill-labs.dependi", "esbenp.prettier-vscode"]
+    }
+  }
+}

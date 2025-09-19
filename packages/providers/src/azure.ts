@@ -1,4 +1,4 @@
-import { createAzure } from "@ai-sdk/azure";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { CognitiveServicesManagementClient } from "@azure/arm-cognitiveservices";
 import { AzureCliCredential } from "@azure/identity";
 import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
@@ -18,25 +18,30 @@ export const createAzureProvider = ({ resourceGroup, subscription, name }: Azure
     subscription,
   );
 
-  let azure: ReturnType<typeof createAzure> | undefined;
-  client.accounts
-    .listKeys(resourceGroup, name)
-    .then((keys) => {
-      if (!keys.key1 && !keys.key2) throw new Error("No API keys found for the Azure Cognitive Services account.");
+  const tokenPromise = client.accounts.listKeys(resourceGroup, name).then((keys) => {
+    const { key1, key2 } = keys;
+    if (!key1 && !key2) throw new Error("No API keys found for the Azure Cognitive Services account.");
+    return key1 ?? key2!;
+  });
 
-      azure = createAzure({
-        resourceName: name,
-        apiKey: keys.key1 ?? keys.key2,
+  const azure = createOpenAICompatible({
+    name,
+    baseURL: `https://${name}.cognitiveservices.azure.com/openai/v1/`,
+    fetch: (async (input, init) => {
+      return fetch(input, {
+        ...init,
+        headers: {
+          ...init?.headers,
+          Authorization: `Bearer ${await tokenPromise}`,
+        },
       });
-    })
-    .catch((err) => {
-      console.error("Failed to retrieve Azure Cognitive Services account keys:", err);
-    });
+    }) as typeof fetch,
+  });
 
   let modelsCache: Promise<ModelInfo[]> | undefined;
 
   return {
-    azure: {
+    [name]: {
       model: (id: string) => {
         if (!azure) throw new Error("Azure provider is not initialized yet. Please try again later.");
 
@@ -58,7 +63,7 @@ export const createAzureProvider = ({ resourceGroup, subscription, name }: Azure
               id: item.name,
               // Not the real context length, but eh... it'll stop working once we hit it.
               context_length: item.properties?.rateLimits?.find((limit) => limit.key === "token")?.count,
-              provider: "azure" as const,
+              provider: name,
             } satisfies ModelInfo);
           }
 

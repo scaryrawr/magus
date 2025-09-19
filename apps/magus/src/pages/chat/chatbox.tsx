@@ -18,7 +18,7 @@ const getName = (role: "system" | "user" | "assistant") => {
 export const ChatBox: React.FC<UIMessage> = ({ role, parts }) => {
   //const stderr = useStderr();
   return (
-    <Box flexDirection="column" padding={1} borderColor={role === "user" ? "green" : "blue"}>
+    <Box flexDirection="column" width="100%" padding={1} borderColor={role === "user" ? "green" : "blue"}>
       <Text color={role === "user" ? "green" : "blue"} bold>
         {getName(role).toUpperCase()}
       </Text>

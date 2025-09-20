@@ -1,4 +1,4 @@
-export { useChatId, useChatStatus, useChatStore, useChatUsage, useSetChatId, useSetChatStatus } from "./chatStore";
+export { ChatProvider, useChatId, useChatStatus, useChatUsage, useSetChatId, useSetChatStatus } from "./ChatContext";
 export {
   useInputPlaceholder,
   useInputSubmit,

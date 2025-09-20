@@ -4,14 +4,14 @@ import { useStderr } from "ink";
 import SelectInput from "ink-select-input";
 import { useCallback, useMemo } from "react";
 import { useLoaderData, useNavigate, type RouteObject } from "react-router";
-import { useInputValue, useServerContext, useSetInputValue, useStackedRouteInput } from "../contexts";
+import { useInputValue, useModel, useSetInputValue, useStackedRouteInput } from "../contexts";
 
 export const Models = () => {
   const models = useLoaderData<ModelSelect[]>();
   const value = useInputValue();
   const setValue = useSetInputValue();
   const navigate = useNavigate();
-  const { client } = useServerContext();
+  const { selectModel } = useModel();
   const stderr = useStderr();
   const fuse = useMemo(
     () =>
@@ -39,7 +39,7 @@ export const Models = () => {
   const onSelection = useCallback(
     async ({ value: model }: { label: string; value: ModelSelect }) => {
       try {
-        await client.v0.model.$put({ json: model });
+        await selectModel(model);
       } catch (e) {
         // Coerce error to string explicitly for eslint @typescript-eslint/restrict-template-expressions
         const message = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
@@ -50,7 +50,7 @@ export const Models = () => {
       void navigate(-1);
       setValue("");
     },
-    [client.v0.model, navigate, setValue, stderr],
+    [selectModel, navigate, setValue, stderr],
   );
 
   useStackedRouteInput({

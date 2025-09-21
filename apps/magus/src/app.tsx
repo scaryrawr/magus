@@ -1,6 +1,6 @@
 import { Box } from "ink";
 import React from "react";
-import { ChatProvider, RoutesProvider, ServerProvider } from "./contexts";
+import { ChatProvider, ModelProvider, RoutesProvider, ServerProvider } from "./contexts";
 import type { ServerState } from "./contexts/ServerProvider";
 import { MagusRouterProvider } from "./routes";
 
@@ -12,11 +12,13 @@ export const App: React.FC<AppProps> = ({ createMagusServer }) => {
   return (
     <Box width="90%" flexDirection="column" alignItems="center">
       <ServerProvider createServer={createMagusServer}>
-        <ChatProvider>
-          <RoutesProvider>
-            <MagusRouterProvider />
-          </RoutesProvider>
-        </ChatProvider>
+        <ModelProvider>
+          <ChatProvider>
+            <RoutesProvider>
+              <MagusRouterProvider />
+            </RoutesProvider>
+          </ChatProvider>
+        </ModelProvider>
       </ServerProvider>
     </Box>
   );

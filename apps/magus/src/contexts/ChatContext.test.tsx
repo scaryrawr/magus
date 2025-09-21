@@ -30,7 +30,7 @@ mock.module("../utils/sseManager", () => ({
 describe("ChatContext", () => {
   it("useChatContext requires a provider (basic check)", () => {
     // This test mainly documents that useChatContext should be used within a provider
-    // The actual error throwing is tested in integration, but React error boundaries 
+    // The actual error throwing is tested in integration, but React error boundaries
     // make it hard to test directly in unit tests
     const TestComponent = () => {
       const context = useChatContext();

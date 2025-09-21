@@ -27,7 +27,7 @@ const useMagusRouter = () => {
             children: [createChatRoute(client)],
           },
           createChatsRoute(client),
-          createModelRoute(client),
+          createModelRoute(),
         ],
       },
     ]);

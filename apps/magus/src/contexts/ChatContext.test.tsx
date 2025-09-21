@@ -60,7 +60,8 @@ describe("ChatContext", () => {
       </ChatProvider>,
     );
 
-    expect(capturedState).toEqual({
+    expect(capturedState).not.toBeNull();
+    expect(capturedState!).toEqual({
       chatStatus: undefined,
       chatId: undefined,
       setChatStatus: expect.any(Function),
@@ -87,10 +88,7 @@ describe("ChatContext", () => {
 
     // Initially undefined
     expect(capturedStatus).toBeUndefined();
-
-    // Update status and re-render by calling the setter
-    capturedSetStatus("streaming");
-
+    
     // The component should have the setter available
     expect(capturedSetStatus).toBeInstanceOf(Function);
   });
@@ -114,9 +112,6 @@ describe("ChatContext", () => {
 
     // Initially undefined
     expect(capturedId).toBeUndefined();
-
-    // Update ID
-    capturedSetId("test-chat-123");
 
     // The component should have the setter available
     expect(capturedSetId).toBeInstanceOf(Function);

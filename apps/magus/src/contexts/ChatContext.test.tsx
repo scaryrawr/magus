@@ -88,7 +88,7 @@ describe("ChatContext", () => {
 
     // Initially undefined
     expect(capturedStatus).toBeUndefined();
-    
+
     // The component should have the setter available
     expect(capturedSetStatus).toBeInstanceOf(Function);
   });

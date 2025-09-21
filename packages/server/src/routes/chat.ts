@@ -2,11 +2,31 @@ import { type LanguageModelUsage, type UIMessage, convertToModelMessages, create
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import { EventEmitter } from "node:events";
-import type { ServerState } from "../types";
+import { maybeTriggerSummarization } from "../services/summarizer";
+import type { ConversationSummary, MagusChat, ServerState, SummarizationConfig, SummaryRecord } from "../types";
 import type { RouterFactory } from "./types";
 
 type ChatEvents = {
   usage: [id: string, usage: LanguageModelUsage];
+};
+
+// Basic token count heuristic (4 chars per token)
+interface TextPart {
+  type: "text";
+  text: string;
+}
+const isTextPart = (p: unknown): p is TextPart =>
+  typeof p === "object" &&
+  !!p &&
+  (p as { type?: string }).type === "text" &&
+  typeof (p as { text?: unknown }).text === "string";
+const estimateTokens = (messages: UIMessage[]): number => {
+  let chars = 0;
+  for (const m of messages) {
+    if (!Array.isArray(m.parts)) continue;
+    for (const p of m.parts) if (isTextPart(p)) chars += p.text.length;
+  }
+  return Math.ceil(chars / 4);
 };
 
 export const chatRouter = (state: ServerState) => {
@@ -19,16 +39,70 @@ export const chatRouter = (state: ServerState) => {
       }
 
       const { message, id }: { message: UIMessage; id: string } = await c.req.json();
-      const { messages: previousMessages, title } = (await state.chatStore.loadChat(id)) ?? { messages: [] };
+      const {
+        messages: previousMessages,
+        title,
+        summaryHistory,
+        lastSummarization,
+      } = (await state.chatStore.loadChat(id)) ?? ({ messages: [] } as MagusChat);
       const tools = state.tools;
+      // Combine previous + new message
+      const combined = [...previousMessages, message];
 
-      const messages = [...previousMessages, message];
+      // Prepare existing summary history (filter to new format SummaryRecord if present)
+      const existingHistoryRaw: ConversationSummary[] = Array.isArray(summaryHistory) ? summaryHistory : [];
+      const existingRecords: SummaryRecord[] = existingHistoryRaw.filter(
+        (r): r is SummaryRecord => typeof r === "object" && !!r && "depth" in (r as Record<string, unknown>),
+      );
+
+      // Summarization config (could later be dynamic or loaded)
+      const summarizationConfig: SummarizationConfig = {
+        enabled: true,
+        triggerTokenRatio: 0.8,
+        resetTokenRatio: 0.7,
+        minMessages: 12,
+        preserveRecent: 6,
+        maxSummaryChainDepth: 3,
+        cooldownMessages: 4,
+        abortOnFailure: false,
+      };
+
+      const contextLength = 9000; // Fallback context window size
+      let messagesToUse = combined;
+      let updatedSummaryHistory: SummaryRecord[] = existingRecords;
+      let newLastSummarization = lastSummarization;
+
+      try {
+        const triggerResult = await maybeTriggerSummarization({
+          allMessages: combined,
+          newUserMessage: message,
+          summarizationConfig,
+          modelContextLength: contextLength,
+          lastSummarization,
+          summaryHistory: existingRecords,
+          model: state.model ?? "", // empty string sentinel if undefined
+        });
+        if (triggerResult.summarized && triggerResult.summaryRecord) {
+          messagesToUse = [...triggerResult.newMessages];
+          updatedSummaryHistory = [...existingRecords, triggerResult.summaryRecord];
+          const tokenEstimate = estimateTokens(combined);
+          const ratio = tokenEstimate / contextLength;
+          newLastSummarization = {
+            depth: triggerResult.summaryRecord.depth,
+            messageCount: combined.length,
+            tokenRatio: ratio,
+          };
+        }
+      } catch {
+        // Fail open: summarization errors ignored per abortOnFailure=false
+      }
+
       const result = streamText({
-        messages: convertToModelMessages(messages),
+        messages: convertToModelMessages(messagesToUse),
         model: state.model,
         tools,
-        stopWhen: ({ steps }) => steps.length > 9000,
         system: state.prompt,
+        stopWhen: ({ steps }) => steps.length > 9000,
         onStepFinish: ({ usage }) => {
           emitter.emit("usage", id, { ...usage });
         },
@@ -38,7 +112,7 @@ export const chatRouter = (state: ServerState) => {
       });
 
       return result.toUIMessageStreamResponse({
-        originalMessages: messages,
+        originalMessages: messagesToUse,
         generateMessageId: createIdGenerator({
           prefix: "msg",
           size: 16,
@@ -51,7 +125,13 @@ export const chatRouter = (state: ServerState) => {
               newTitle = firstUserMessage.parts.find((p) => p.type === "text")?.text.slice(0, 70);
             }
           }
-          await state.chatStore.saveChat(id, { title: newTitle, messages });
+          const chatToSave: MagusChat = {
+            title: newTitle,
+            messages: messages,
+            summaryHistory: updatedSummaryHistory,
+            lastSummarization: newLastSummarization,
+          } as MagusChat;
+          await state.chatStore.saveChat(id, chatToSave);
         },
       });
     })

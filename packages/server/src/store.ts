@@ -1,6 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { readdir, stat } from "node:fs/promises";
-import { MagusChatSchema, type ChatEntry, type ChatStore, type MagusChat } from "./types";
+import type { ChatEntry, ChatStore, ConversationSummary, MagusChat } from "./types";
+import { MagusChatSchema } from "./types";
 
 export class MagusChatStore implements ChatStore {
   constructor(private storagePath: string) {
@@ -51,5 +52,10 @@ export class MagusChatStore implements ChatStore {
   async saveChat(chatId: string, chat: MagusChat): Promise<void> {
     const chatPath = `${this.storagePath}/${chatId}.json`;
     await Bun.write(chatPath, JSON.stringify(chat));
+  }
+
+  async getSummaryHistory(chatId: string): Promise<ConversationSummary[]> {
+    const chat = await this.loadChat(chatId);
+    return chat.summaryHistory || [];
   }
 }

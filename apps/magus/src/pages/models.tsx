@@ -1,13 +1,13 @@
-import { type MagusClient, type ModelSelect } from "@magus/server";
+import { type ModelSelect } from "@magus/server";
 import Fuse from "fuse.js";
 import { useStderr } from "ink";
 import SelectInput from "ink-select-input";
 import { useCallback, useMemo } from "react";
-import { useLoaderData, useNavigate, type RouteObject } from "react-router";
-import { useInputValue, useModel, useSetInputValue, useStackedRouteInput } from "../contexts";
+import { useNavigate, type RouteObject } from "react-router";
+import { useInputValue, useModel, useModels, useSetInputValue, useStackedRouteInput } from "../contexts";
 
 export const Models = () => {
-  const models = useLoaderData<ModelSelect[]>();
+  const { models } = useModels();
   const value = useInputValue();
   const setValue = useSetInputValue();
   const navigate = useNavigate();
@@ -73,18 +73,9 @@ export const Models = () => {
   );
 };
 
-export const createModelRoute = (client: MagusClient) => {
+export const createModelRoute = () => {
   return {
     path: "models",
-    loader: async (): Promise<ModelSelect[]> => {
-      const res = await client.v0.models.$get();
-      if (!res.ok) {
-        throw new Error(`Failed to fetch models: ${res.status} ${res.statusText}`);
-      }
-
-      const models = await res.json();
-      return models;
-    },
     Component: Models,
   } as const satisfies RouteObject;
 };

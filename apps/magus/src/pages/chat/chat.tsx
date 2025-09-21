@@ -5,7 +5,7 @@ import { DefaultChatTransport, type ChatStatus } from "ai";
 import { Box, Static, useInput } from "ink";
 import { useCallback, useEffect } from "react";
 import { useLoaderData, useParams, type RouteObject } from "react-router";
-import { useChatStore, useServerContext, useSetChatId, useStackedRouteInput } from "../../contexts";
+import { useServerContext, useSetChatId, useSetChatStatus, useStackedRouteInput } from "../../contexts";
 import { useSafeLocation } from "../../hooks";
 import { ChatBox } from "./chatbox";
 
@@ -14,7 +14,7 @@ type ChatState = {
 };
 
 const useUpdateChatStatus = (status: ChatStatus | undefined) => {
-  const { setChatStatus } = useChatStore();
+  const setChatStatus = useSetChatStatus();
   useEffect(() => {
     setChatStatus(status);
   }, [status, setChatStatus]);

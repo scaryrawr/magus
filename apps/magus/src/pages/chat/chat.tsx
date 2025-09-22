@@ -25,10 +25,11 @@ export const Chat = () => {
   const { chatId } = useParams();
   const { text: initialMessage } = useSafeLocation<ChatState>().state ?? {};
   const loadedChat = useLoaderData<MagusChat>();
-  // Use summarized messages if available (for summarized chats), otherwise use full messages (for legacy chats)
+  // For summarized chats, show full history (original messages + summarized messages)
+  // For legacy chats, show just the messages
   const initialMessages =
     loadedChat.summarized_messages && loadedChat.summarized_messages.length > 0
-      ? loadedChat.summarized_messages
+      ? [...loadedChat.messages, ...loadedChat.summarized_messages]
       : loadedChat.messages;
   //const { totalTokens } = useChatUsage(chatId) ?? {};
   const setChatId = useSetChatId();

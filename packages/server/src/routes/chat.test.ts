@@ -169,7 +169,7 @@ describe("Chat Endpoints", () => {
     it("should summarize a chat with enough messages", async () => {
       const chatId = await mockChatStore.createChat();
 
-      // Create a chat with enough messages to warrant summarization
+      // Create a chat with multiple messages for summarization testing
       const messages: UIMessage[] = [];
       for (let i = 0; i < 15; i++) {
         messages.push({
@@ -205,7 +205,7 @@ describe("Chat Endpoints", () => {
       expect(updatedChat?.summarized_messages?.length).toBeGreaterThan(0);
     });
 
-    it("should return 400 for chat with too few messages", async () => {
+    it("should summarize even a chat with few messages", async () => {
       const chatId = await mockChatStore.createChat();
       const testChat: MagusChat = {
         title: "Short Chat",
@@ -223,9 +223,14 @@ describe("Chat Endpoints", () => {
         method: "POST",
       });
 
-      expect(res.status).toBe(400);
-      const text = await res.text();
-      expect(text).toBe("Chat has too few messages to summarize");
+      expect(res.status).toBe(200);
+      const result = (await res.json()) as {
+        success: boolean;
+        summary: { summary: string };
+      };
+      expect(result.success).toBe(true);
+      expect(result.summary).toBeDefined();
+      expect(mockGenerateObject).toHaveBeenCalled();
     });
 
     it("should return 404 for non-existent chat", async () => {

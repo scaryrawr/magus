@@ -96,11 +96,6 @@ export const chatRouter = (state: ServerState) => {
         return c.text("Chat not found", 404);
       }
 
-      // Only summarize if there are enough messages to warrant it
-      if (chat.messages.length < 10) {
-        return c.text("Chat has too few messages to summarize", 400);
-      }
-
       try {
         // Create a schema for the summary structure
         const SummarySchema = z.object({

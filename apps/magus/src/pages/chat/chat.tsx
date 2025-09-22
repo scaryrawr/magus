@@ -24,7 +24,12 @@ export const Chat = () => {
   const { server, client } = useServerContext();
   const { chatId } = useParams();
   const { text: initialMessage } = useSafeLocation<ChatState>().state ?? {};
-  const { messages: initialMessages } = useLoaderData<MagusChat>();
+  const loadedChat = useLoaderData<MagusChat>();
+  // Use summarized messages if available (for summarized chats), otherwise use full messages (for legacy chats)
+  const initialMessages =
+    loadedChat.summarized_messages && loadedChat.summarized_messages.length > 0
+      ? loadedChat.summarized_messages
+      : loadedChat.messages;
   //const { totalTokens } = useChatUsage(chatId) ?? {};
   const setChatId = useSetChatId();
 

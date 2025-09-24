@@ -1,13 +1,43 @@
-import type { Options } from "figlet";
-import figlet from "figlet";
+import figlet, { type FontName } from "figlet";
 import { Text } from "ink";
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 
-export type FigletTextProps = Options & { children: string };
+export type FigletTextProps = {
+  fontData?: string;
+  children: string;
+  font?: FontName;
+  width?: number;
+  whitespaceBreak?: boolean;
+  printDirection?: -1 | 0 | 1;
+  showHardBlanks?: boolean;
+};
 
-export const FigletText = (props: FigletTextProps) => {
-  const { children, ...options } = props;
-  const renderedText = useMemo(() => figlet.textSync(children, options), [children, options]);
+export const FigletText = ({
+  children,
+  fontData,
+  font,
+  width,
+  whitespaceBreak,
+  printDirection,
+  showHardBlanks,
+}: FigletTextProps) => {
+  const [text, setText] = useState<string>("");
 
-  return <Text>{renderedText}</Text>;
+  useEffect(() => {
+    if (font && fontData) {
+      figlet.parseFont(font, fontData);
+    }
+
+    setText(
+      figlet.textSync(children, {
+        font,
+        width,
+        whitespaceBreak,
+        printDirection,
+        showHardBlanks,
+      }),
+    );
+  }, [children, font, fontData, width, whitespaceBreak, printDirection, showHardBlanks]);
+
+  return <Text>{text}</Text>;
 };

@@ -1,6 +1,6 @@
 import figlet, { type FontName } from "figlet";
 import { Text } from "ink";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 
 export type FigletTextProps = {
   fontData?: string;
@@ -21,14 +21,14 @@ export const FigletText = ({
   printDirection,
   showHardBlanks,
 }: FigletTextProps) => {
-  const [text, setText] = useState<string>("");
-
-  useEffect(() => {
+  useMemo(() => {
     if (font && fontData) {
       figlet.parseFont(font, fontData);
     }
+  }, [font, fontData]);
 
-    setText(
+  const text = useMemo(
+    () =>
       figlet.textSync(children, {
         font,
         width,
@@ -36,8 +36,8 @@ export const FigletText = ({
         printDirection,
         showHardBlanks,
       }),
-    );
-  }, [children, font, fontData, width, whitespaceBreak, printDirection, showHardBlanks]);
+    [children, font, width, whitespaceBreak, printDirection, showHardBlanks],
+  );
 
   return <Text>{text}</Text>;
 };

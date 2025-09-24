@@ -1,4 +1,5 @@
 import { FigletText } from "@magus/react";
+import stronger from "figlet/fonts/Stronger Than All";
 import { Box, Text } from "ink";
 import Gradient from "ink-gradient";
 import { useRoutes } from "../contexts";
@@ -8,7 +9,9 @@ export const Banner = () => {
   return (
     <Box flexDirection="column" alignItems="center" justifyContent="center">
       <Gradient name="retro">
-        <FigletText font="Stronger Than All">MAGUS</FigletText>
+        <FigletText font="Stronger Than All" fontData={stronger}>
+          MAGUS
+        </FigletText>
       </Gradient>
       <Text></Text>
       <Text>Press Enter to start chat</Text>

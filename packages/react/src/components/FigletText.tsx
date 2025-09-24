@@ -1,13 +1,27 @@
-import type { Options } from "figlet";
-import figlet from "figlet";
+import figlet, { type FigletOptions } from "figlet";
 import { Text } from "ink";
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 
-export type FigletTextProps = Options & { children: string };
+export type FigletTextProps = FigletOptions & { fontData?: string; children: string };
 
-export const FigletText = (props: FigletTextProps) => {
-  const { children, ...options } = props;
-  const renderedText = useMemo(() => figlet.textSync(children, options), [children, options]);
+export const FigletText = ({ children, fontData, ...options }: FigletTextProps) => {
+  const [text, setText] = useState(children);
+  useEffect(() => {
+    let disposed = false;
+    if (options.font && fontData) figlet.parseFont(options.font, fontData);
+    figlet
+      .text(children, options)
+      .then((text) => {
+        if (disposed) return;
+        setText(text);
+      })
+      .catch(() => {
+        // no-op
+      });
+    return () => {
+      disposed = true;
+    };
+  }, [children, fontData, options]);
 
-  return <Text>{renderedText}</Text>;
+  return <Text>{text}</Text>;
 };

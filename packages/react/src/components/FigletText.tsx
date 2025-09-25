@@ -23,8 +23,10 @@ export const FigletText = ({
 }: FigletTextProps) => {
   useMemo(() => {
     if (font && fontData) {
-      figlet.parseFont(font, fontData);
+      return figlet.parseFont(font, fontData);
     }
+
+    return undefined;
   }, [font, fontData]);
 
   const text = useMemo(

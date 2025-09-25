@@ -1,6 +1,6 @@
 import { ChatUsageSchema } from "@magus/server";
 import type { ChatStatus, LanguageModelUsage } from "ai";
-import React, { createContext, useContext, useEffect, useReducer, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useReducer, useState } from "react";
 import { subscribeToSse } from "../utils/sseManager";
 import { useServerContext } from "./ServerProvider";
 
@@ -45,13 +45,13 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     chatId: undefined,
   });
 
-  const setChatStatus = (status: ChatStatus | undefined) => {
+  const setChatStatus = useCallback((status: ChatStatus | undefined) => {
     dispatch({ type: "SET_CHAT_STATUS", payload: status });
-  };
+  }, []);
 
-  const setChatId = (id: string | undefined) => {
+  const setChatId = useCallback((id: string | undefined) => {
     dispatch({ type: "SET_CHAT_ID", payload: id });
-  };
+  }, []);
 
   const value: ChatContextValue = {
     chatStatus: state.chatStatus,

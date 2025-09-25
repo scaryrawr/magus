@@ -21,10 +21,16 @@ const useUpdateChatStatus = (status: ChatStatus | undefined) => {
 };
 
 export const Chat = () => {
-  const { server } = useServerContext();
+  const { server, client } = useServerContext();
   const { chatId } = useParams();
   const { text: initialMessage } = useSafeLocation<ChatState>().state ?? {};
-  const { messages: initialMessages } = useLoaderData<MagusChat>();
+  const loadedChat = useLoaderData<MagusChat>();
+  // For summarized chats, show full history (original messages + summarized messages)
+  // For legacy chats, show just the messages
+  const initialMessages =
+    loadedChat.summarized_messages && loadedChat.summarized_messages.length > 0
+      ? [...loadedChat.messages, ...loadedChat.summarized_messages]
+      : loadedChat.messages;
   //const { totalTokens } = useChatUsage(chatId) ?? {};
   const setChatId = useSetChatId();
 
@@ -62,12 +68,43 @@ export const Chat = () => {
   });
 
   const onSubmit = useCallback(
-    (text: string) => {
-      if (text.trim()) {
-        void sendMessage({ text });
+    async (text: string) => {
+      if (!text.trim()) {
+        return;
       }
+
+      // Handle /summarize command
+      if (text.trim() === "/summarize") {
+        if (!chatId) {
+          console.error("No chat ID available for summarization");
+          return;
+        }
+
+        try {
+          const res = await client.v0.chat[":chatId"].summarize.$post({
+            param: { chatId },
+          });
+
+          if (!res.ok) {
+            const errorText = await res.text();
+            console.error("Failed to summarize chat:", errorText);
+            // You could add a toast notification here if available
+            return;
+          }
+
+          const result = await res.json();
+          console.log("Chat summarized successfully:", result);
+          // You could add a success notification here if available
+        } catch (error) {
+          console.error("Error calling summarization:", error);
+        }
+        return;
+      }
+
+      // Regular message sending
+      void sendMessage({ text });
     },
-    [sendMessage],
+    [sendMessage, client, chatId],
   );
 
   useStackedRouteInput({ onSubmit, placeholder: "Send a message..." });

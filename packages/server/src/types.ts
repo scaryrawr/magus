@@ -14,10 +14,13 @@ export const MagusChatSchema = z.object({
   title: z.string().optional(),
   // messages use AI SDK structure, opaque to us
   messages: z.array(z.any()),
+  // optional summarized messages for continuing long conversations
+  summarized_messages: z.array(z.any()).optional(),
 });
 
-export type MagusChat = Omit<z.infer<typeof MagusChatSchema>, "messages"> & {
+export type MagusChat = Omit<z.infer<typeof MagusChatSchema>, "messages" | "summarized_messages"> & {
   messages: UIMessage[];
+  summarized_messages?: UIMessage[];
 };
 
 // Summary information for listing chats

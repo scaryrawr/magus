@@ -154,6 +154,7 @@
     "packages/react-tools": {
       "name": "@magus/react-tools",
       "dependencies": {
+        "@magus/lsp": "workspace:*",
         "@magus/react": "workspace:*",
         "@magus/tools": "workspace:*",
         "ai": "catalog:",

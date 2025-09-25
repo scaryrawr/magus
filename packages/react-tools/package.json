@@ -12,6 +12,7 @@
     "ink-testing-library": "catalog:test"
   },
   "dependencies": {
+    "@magus/lsp": "workspace:*",
     "@magus/react": "workspace:*",
     "@magus/tools": "workspace:*",
     "ai": "catalog:",

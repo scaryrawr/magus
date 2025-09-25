@@ -1,4 +1,4 @@
-import highlight from "cli-highlight";
+import { highlight } from "cli-highlight";
 import { Box, Text } from "ink";
 import React, { useMemo } from "react";
 

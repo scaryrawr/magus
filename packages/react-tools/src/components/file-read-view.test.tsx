@@ -31,7 +31,8 @@ describe("FileReadView", () => {
 
   it("handles markdown files with range correctly", async () => {
     const markdownPath = "/tmp/range-test.md";
-    const markdownContent = "# Line A\n\n## Line C\n\nContent on line E";
+    // Content should already be filtered for the range - simulating lines 2-4 of a larger file
+    const markdownContent = "\n## Line C\n\nContent on line E";
     const range = { start: 2, end: 4 };
 
     const { lastFrame } = render(<FileReadView path={markdownPath} content={markdownContent} range={range} />);
@@ -39,8 +40,9 @@ describe("FileReadView", () => {
     const frame = lastFrame();
     expect(frame).toContain(`Read ${markdownPath}`);
     expect(frame).toContain("[2,4]"); // Should show range
-    // Should render the ranged content as markdown
-    expect(frame).not.toContain("# Line A"); // First line should not be included
+    // Should render the provided content as markdown (which is already the ranged content)
+    expect(frame).toContain("## Line C");
+    expect(frame).not.toContain("# Line A"); // First line should not be included since it's not in the content
   });
 
   it("handles .markdown extension files correctly", async () => {

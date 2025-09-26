@@ -35,16 +35,6 @@ export const FileReadView: React.FC<FileReadViewProps> = ({ path, icon, content,
   const numWidth = (range ? String(range.end).length : String(fileLines.length).length) + 1;
   const displayIcon = icon ?? "📖";
 
-  // Handle range for markdown content
-  const contentToRender = useMemo(() => {
-    if (range) {
-      const startIdx = range.start - 1;
-      const endIdx = range.end;
-      return fileLines.slice(startIdx, endIdx).join("\n");
-    }
-    return content;
-  }, [content, fileLines, range]);
-
   return (
     <Box flexDirection="column">
       <Box flexDirection="row">
@@ -53,7 +43,7 @@ export const FileReadView: React.FC<FileReadViewProps> = ({ path, icon, content,
         {range ? <Text dimColor>{` [${range.start},${range.end}]`}</Text> : null}
       </Box>
       {isMarkdown ? (
-        <Markdown>{contentToRender}</Markdown>
+        <Markdown>{content}</Markdown>
       ) : (
         fileLines.map((line, index) => (
           <Box flexDirection="row" key={index}>

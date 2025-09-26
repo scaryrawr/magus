@@ -1,3 +1,4 @@
+import { which } from "@magus/common-utils";
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -10,7 +11,7 @@ type Supported = (typeof supported)[number];
 
 const isInstalled = (tool: Supported) => {
   // findstr doesn't support --version; use /? as a probe
-  return !!Bun.which(tool);
+  return !!which(tool);
 };
 
 const installedTools: Supported[] = supported.filter(isInstalled);

@@ -10,6 +10,7 @@
  * commands to maintain context and state in the shell environment.
  */
 
+import { which } from "@magus/common-utils";
 import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 const { spawn, spawnSync } = Bun;
@@ -26,13 +27,13 @@ const { spawn, spawnSync } = Bun;
  */
 const calculateShell = () => {
   if (process.platform === "win32") {
-    if (Bun.which("pwsh")) return "pwsh";
+    if (which("pwsh")) return "pwsh";
     return "powershell";
   }
 
   // POSIX preference: zsh -> bash -> sh
-  if (Bun.which("zsh")) return "zsh";
-  if (Bun.which("bash")) return "bash";
+  if (which("zsh")) return "zsh";
+  if (which("bash")) return "bash";
   return "sh";
 };
 

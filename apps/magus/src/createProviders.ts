@@ -1,3 +1,4 @@
+import { which } from "@magus/common-utils";
 import {
   createAzureProvider,
   createGitHubProvider,
@@ -16,10 +17,7 @@ const isDefined = <T>(value: T | undefined): value is T => value !== undefined;
 export const createProviders = () => {
   const openrouterApiKey = process.env.OPENROUTER_API_KEY;
   const azureOptions =
-    process.env.AZURE_RESOURCE_GROUP &&
-    process.env.AZURE_RESOURCE_NAME &&
-    process.env.AZURE_SUBSCRIPTION &&
-    Bun.which("az")
+    process.env.AZURE_RESOURCE_GROUP && process.env.AZURE_RESOURCE_NAME && process.env.AZURE_SUBSCRIPTION && which("az")
       ? {
           resourceGroup: process.env.AZURE_RESOURCE_GROUP,
           subscription: process.env.AZURE_SUBSCRIPTION,

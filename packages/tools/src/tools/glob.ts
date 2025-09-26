@@ -1,28 +1,28 @@
-import { gitignore, gitignoreFilter } from "@magus/common-utils";
+import { gitignore, gitignoreFilter, which } from "@magus/common-utils";
 import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 const { spawn } = Bun;
 
 const hasFd = () => {
-  return !!Bun.which("fd");
+  return !!which("fd");
 };
 
 const hasRipgrep = () => {
-  return !!Bun.which("rg");
+  return !!which("rg");
 };
 
 const hasFind = () => {
   // Don't fall for the find on windows.
   if (process.platform === "win32") return false;
-  return !!Bun.which("find");
+  return !!which("find");
 };
 
 const hasPwsh = () => {
-  return !!Bun.which("pwsh");
+  return !!which("pwsh");
 };
 
 const hasPowerShell = () => {
-  return !!Bun.which("powershell");
+  return !!which("powershell");
 };
 
 // Determine which glob tool to use

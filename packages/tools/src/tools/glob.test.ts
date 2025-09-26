@@ -1,3 +1,4 @@
+import { which } from "@magus/common-utils";
 import { describe, expect, it } from "bun:test";
 import { existsSync } from "node:fs";
 import { globFile, type GlobFileOptions } from "./glob";
@@ -8,7 +9,7 @@ const supported = ["fd", "rg", "find", "pwsh", "powershell"] as const;
 type Supported = (typeof supported)[number];
 
 const isInstalled = (tool: Supported) => {
-  return !!Bun.which(tool);
+  return !!which(tool);
 };
 
 const installedTools: Supported[] = supported

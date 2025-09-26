@@ -1,4 +1,3 @@
-import { detectLanguage } from "@magus/lsp";
 import { Markdown } from "@magus/react";
 import { highlight } from "cli-highlight";
 import { Box, Text } from "ink";
@@ -13,8 +12,13 @@ type FileReadViewProps = {
 
 export const FileReadView: React.FC<FileReadViewProps> = ({ path, icon, content, range }) => {
   const start = range?.start ?? 1;
-  const language = detectLanguage(path);
-  const isMarkdown = language === "markdown";
+  const language = path.split(".").pop() ?? undefined;
+
+  // Check if the file is a markdown file by extension
+  const isMarkdown = useMemo(() => {
+    const extension = path.split(".").pop()?.toLowerCase();
+    return extension === "md" || extension === "markdown";
+  }, [path]);
 
   const fileLines = useMemo(() => {
     if (isMarkdown) {

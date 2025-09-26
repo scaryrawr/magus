@@ -6,9 +6,115 @@
  */
 
 import { execSync } from "node:child_process";
-import { constants } from "node:fs";
-import { access } from "node:fs/promises";
+import { constants, statSync } from "node:fs";
+import { access, stat } from "node:fs/promises";
 import path from "node:path";
+
+/**
+ * Cross-platform check if a file exists and is executable
+ */
+function isExecutableSync(filePath: string): boolean {
+  try {
+    const stats = statSync(filePath);
+    if (!stats.isFile()) return false;
+
+    if (process.platform === "win32") {
+      // On Windows, check if it's a known executable extension or has no extension
+      const ext = path.extname(filePath).toLowerCase();
+      const executableExts = [
+        ".exe",
+        ".com",
+        ".cmd",
+        ".bat", // Traditional executables
+        ".ps1",
+        ".ps1xml",
+        ".psc1",
+        ".psd1", // PowerShell
+        ".vbs",
+        ".vbe",
+        ".js",
+        ".jse", // Script files
+        ".wsf",
+        ".wsh", // Windows Script Host
+        ".msi", // Microsoft Installer
+        ".scr", // Screen savers
+        ".pif", // Program Information Files
+        ".application", // ClickOnce applications
+        ".gadget", // Windows gadgets
+        ".msc", // Management Console snapins
+        ".cpl", // Control Panel applications
+        ".app", // Legacy application files
+        // Note: .lnk (shortcuts) are intentionally excluded as they are not
+        // directly executable from command line and 'where' doesn't return them
+      ];
+      return executableExts.includes(ext) || ext === "";
+    } else {
+      // On POSIX systems, check if the file is executable
+      try {
+        // Use access with F_OK to check existence, then check mode bits for executability
+        const mode = stats.mode;
+        return !!(mode & (constants.S_IXUSR | constants.S_IXGRP | constants.S_IXOTH));
+      } catch {
+        return false;
+      }
+    }
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Cross-platform async check if a file exists and is executable
+ */
+async function isExecutableAsync(filePath: string): Promise<boolean> {
+  try {
+    const stats = await stat(filePath);
+    if (!stats.isFile()) return false;
+
+    if (process.platform === "win32") {
+      // On Windows, check if it's a known executable extension or has no extension
+      const ext = path.extname(filePath).toLowerCase();
+      const executableExts = [
+        ".exe",
+        ".com",
+        ".cmd",
+        ".bat", // Traditional executables
+        ".ps1",
+        ".ps1xml",
+        ".psc1",
+        ".psd1", // PowerShell
+        ".vbs",
+        ".vbe",
+        ".js",
+        ".jse", // Script files
+        ".wsf",
+        ".wsh", // Windows Script Host
+        ".msi", // Microsoft Installer
+        ".scr", // Screen savers
+        ".pif", // Program Information Files
+        ".application", // ClickOnce applications
+        ".gadget", // Windows gadgets
+        ".msc", // Management Console snapins
+        ".cpl", // Control Panel applications
+        ".app", // Legacy application files
+        // Note: .lnk (shortcuts) are intentionally excluded as they are not
+        // directly executable from command line and 'where' doesn't return them
+      ];
+      return executableExts.includes(ext) || ext === "";
+    } else {
+      // On POSIX systems, check if the file is executable
+      try {
+        await access(filePath, constants.F_OK);
+        const mode = stats.mode;
+        return !!(mode & (constants.S_IXUSR | constants.S_IXGRP | constants.S_IXOTH));
+      } catch {
+        return false;
+      }
+    }
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Synchronously checks if a command exists in the system PATH.
@@ -22,13 +128,7 @@ export function which(command: string): string | null {
   try {
     // If command contains path separators, check it as an absolute/relative path
     if (command.includes(path.sep)) {
-      try {
-        // Use execSync to avoid async complications while maintaining Node.js compatibility
-        execSync(`test -x "${command}"`, { stdio: "ignore" });
-        return command;
-      } catch {
-        return null;
-      }
+      return isExecutableSync(command) ? command : null;
     }
 
     // Use the system's which command for cross-platform compatibility
@@ -63,12 +163,7 @@ export async function whichAsync(command: string): Promise<string | null> {
   try {
     // If command contains path separators, check it as an absolute/relative path
     if (command.includes(path.sep)) {
-      try {
-        await access(command, constants.F_OK | constants.X_OK);
-        return command;
-      } catch {
-        return null;
-      }
+      return (await isExecutableAsync(command)) ? command : null;
     }
 
     // For commands in PATH, fall back to sync version for simplicity

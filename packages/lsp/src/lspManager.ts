@@ -1,4 +1,4 @@
-import { gitignore } from "@magus/common-utils";
+import { gitignore, which } from "@magus/common-utils";
 import chokidar from "chokidar";
 import type { Ignore } from "ignore";
 import path from "node:path";
@@ -195,7 +195,7 @@ export class LspManager {
         return false;
       }
     }
-    return !!Bun.which(cmd);
+    return !!which(cmd);
   };
 
   private gatherClientLanguages(entry: ClientEntry): Set<string> {

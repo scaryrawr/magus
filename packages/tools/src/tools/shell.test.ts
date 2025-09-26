@@ -1,3 +1,4 @@
+import { which } from "@magus/common-utils";
 import { describe, expect, it } from "bun:test";
 import stripAnsi from "strip-ansi";
 import { ShellSession, type ShellOptions } from "./shell";
@@ -13,7 +14,7 @@ const isInstalled = (shell: Supported) => {
     return false;
   }
 
-  return !!Bun.which(shell);
+  return !!which(shell);
 };
 
 const installedShells: Supported[] = supported.filter(isInstalled);

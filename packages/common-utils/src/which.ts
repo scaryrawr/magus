@@ -1,14 +1,16 @@
 /**
- * Cross-platform `which` implementation that doesn't depend on Bun runtime.
+ * Cross-platform `which` implementation.
  *
- * This function locates executables in the system PATH, providing the same
- * functionality as `Bun.which()` but with broader runtime compatibility.
+ * This function locates executables in the system PATH.
  */
 
-import { execSync } from "node:child_process";
+import { exec, execSync } from "node:child_process";
 import { constants, statSync } from "node:fs";
 import { access, stat } from "node:fs/promises";
 import path from "node:path";
+import { promisify } from "node:util";
+
+const execAsync = promisify(exec);
 
 /**
  * Cross-platform check if a file exists and is executable
@@ -16,7 +18,7 @@ import path from "node:path";
 function isExecutableSync(filePath: string): boolean {
   try {
     const stats = statSync(filePath);
-    if (!stats.isDirectory()) return false;
+    if (stats.isDirectory()) return false;
     if (!stats.isFile()) return false;
 
     if (process.platform === "win32") {
@@ -26,18 +28,18 @@ function isExecutableSync(filePath: string): boolean {
         ".exe",
         ".com",
         ".cmd",
-        ".bat", // Traditional executables
+        ".bat",
         ".ps1",
         ".ps1xml",
         ".psc1",
-        ".psd1", // PowerShell
+        ".psd1",
         ".vbs",
         ".vbe",
         ".js",
-        ".jse", // Script files
+        ".jse",
         ".wsf",
-        ".wsh", // Windows Script Host
-        ".msi", // Microsoft Installer
+        ".wsh",
+        ".msi",
         ".scr", // Screen savers
         ".pif", // Program Information Files
         ".application", // ClickOnce applications
@@ -45,8 +47,6 @@ function isExecutableSync(filePath: string): boolean {
         ".msc", // Management Console snapins
         ".cpl", // Control Panel applications
         ".app", // Legacy application files
-        // Note: .lnk (shortcuts) are intentionally excluded as they are not
-        // directly executable from command line and 'where' doesn't return them
       ];
       return executableExts.includes(ext) || ext === "";
     } else {
@@ -70,6 +70,7 @@ function isExecutableSync(filePath: string): boolean {
 async function isExecutableAsync(filePath: string): Promise<boolean> {
   try {
     const stats = await stat(filePath);
+    if (stats.isDirectory()) return false;
     if (!stats.isFile()) return false;
 
     if (process.platform === "win32") {
@@ -79,18 +80,18 @@ async function isExecutableAsync(filePath: string): Promise<boolean> {
         ".exe",
         ".com",
         ".cmd",
-        ".bat", // Traditional executables
+        ".bat",
         ".ps1",
         ".ps1xml",
         ".psc1",
-        ".psd1", // PowerShell
+        ".psd1",
         ".vbs",
         ".vbe",
         ".js",
-        ".jse", // Script files
+        ".jse",
         ".wsf",
         ".wsh", // Windows Script Host
-        ".msi", // Microsoft Installer
+        ".msi",
         ".scr", // Screen savers
         ".pif", // Program Information Files
         ".application", // ClickOnce applications
@@ -98,8 +99,6 @@ async function isExecutableAsync(filePath: string): Promise<boolean> {
         ".msc", // Management Console snapins
         ".cpl", // Control Panel applications
         ".app", // Legacy application files
-        // Note: .lnk (shortcuts) are intentionally excluded as they are not
-        // directly executable from command line and 'where' doesn't return them
       ];
       return executableExts.includes(ext) || ext === "";
     } else {
@@ -167,9 +166,20 @@ export async function whichAsync(command: string): Promise<string | null> {
       return (await isExecutableAsync(command)) ? command : null;
     }
 
-    // For commands in PATH, fall back to sync version for simplicity
-    // Could be improved with async child_process.exec if needed
-    return which(command);
+    // Use the system's which command for cross-platform compatibility (async version)
+    let whichCommand: string;
+    if (process.platform === "win32") {
+      whichCommand = `where "${command}"`;
+    } else {
+      whichCommand = `which "${command}"`;
+    }
+
+    const { stdout } = await execAsync(whichCommand, {
+      encoding: "utf8",
+    });
+
+    // Return the first line of output (in case multiple paths are returned)
+    return stdout.trim().split("\n")[0] || null;
   } catch {
     return null;
   }

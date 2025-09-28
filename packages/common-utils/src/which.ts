@@ -16,6 +16,7 @@ import path from "node:path";
 function isExecutableSync(filePath: string): boolean {
   try {
     const stats = statSync(filePath);
+    if (!stats.isDirectory()) return false;
     if (!stats.isFile()) return false;
 
     if (process.platform === "win32") {

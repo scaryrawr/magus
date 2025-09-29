@@ -21,13 +21,8 @@ describe("stringReplace", () => {
     const mockStat: { isFile: () => boolean } = { isFile: () => true };
 
     spyOn(fsmod, "stat").mockResolvedValue(mockStat);
-    spyOn(Bun, "file").mockImplementation(
-      () =>
-        ({
-          text: async () => mockFileContent,
-        }) as unknown as ReturnType<typeof Bun.file>,
-    );
-    spyOn(Bun, "write").mockResolvedValue(0);
+    spyOn(fsmod, "readFile").mockResolvedValue(mockFileContent);
+    spyOn(fsmod, "writeFile").mockResolvedValue();
 
     const result = await stringReplace({
       path: "/test/file.ts",
@@ -48,12 +43,7 @@ describe("stringReplace", () => {
     const mockStat: { isFile: () => boolean } = { isFile: () => true };
 
     spyOn(fsmod, "stat").mockResolvedValue(mockStat);
-    spyOn(Bun, "file").mockImplementation(
-      () =>
-        ({
-          text: async () => mockFileContent,
-        }) as unknown as ReturnType<typeof Bun.file>,
-    );
+    spyOn(fsmod, "readFile").mockResolvedValue(mockFileContent);
 
     await expect(
       stringReplace({
@@ -87,12 +77,7 @@ describe("stringReplace", () => {
     const mockStat: { isFile: () => boolean } = { isFile: () => true };
 
     spyOn(fsmod, "stat").mockResolvedValue(mockStat);
-    spyOn(Bun, "file").mockImplementation(
-      () =>
-        ({
-          text: async () => mockFileContent,
-        }) as unknown as ReturnType<typeof Bun.file>,
-    );
+    spyOn(fsmod, "readFile").mockResolvedValue(mockFileContent);
 
     await expect(
       stringReplace({
@@ -113,14 +98,9 @@ describe("stringReplace", () => {
     const mockStat: { isFile: () => boolean } = { isFile: () => true };
 
     spyOn(fsmod, "stat").mockResolvedValue(mockStat);
-    spyOn(Bun, "file").mockImplementation(
-      () =>
-        ({
-          text: async () => mockFileContent,
-        }) as unknown as ReturnType<typeof Bun.file>,
-    );
+    spyOn(fsmod, "readFile").mockResolvedValue(mockFileContent);
     // write operation
-    spyOn(Bun, "write").mockResolvedValue(0);
+    spyOn(fsmod, "writeFile").mockResolvedValue();
 
     const result = await stringReplace({
       path: "/test/file.ts",

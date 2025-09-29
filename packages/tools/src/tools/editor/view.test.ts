@@ -22,12 +22,7 @@ describe("viewFile", () => {
 
   it("returns full file contents when no range", async () => {
     spyOn(fsmod, "stat").mockResolvedValue({ isFile: () => true, isDirectory: () => false });
-    spyOn(Bun, "file").mockImplementation(
-      () =>
-        ({
-          text: async () => "x\ny\nz",
-        }) as unknown as ReturnType<typeof Bun.file>,
-    );
+    spyOn(fsmod, "readFile").mockResolvedValue("x\ny\nz");
 
     const result = await viewFile({ path: "/tmp/file.txt" });
     expect(result.content).toBe("x\ny\nz");
@@ -35,12 +30,7 @@ describe("viewFile", () => {
 
   it("returns a subset when range provided", async () => {
     spyOn(fsmod, "stat").mockResolvedValue({ isFile: () => true, isDirectory: () => false });
-    spyOn(Bun, "file").mockImplementation(
-      () =>
-        ({
-          text: async () => "1\n2\n3\n4",
-        }) as unknown as ReturnType<typeof Bun.file>,
-    );
+    spyOn(fsmod, "readFile").mockResolvedValue("1\n2\n3\n4");
 
     const result = await viewFile({ path: "/tmp/file.txt", view_range: { start: 2, end: 3 } });
     expect(result.content).toBe("2\n3");

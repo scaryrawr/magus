@@ -1,8 +1,8 @@
 import { DEFAULT_IGNORE_PATTERNS, gitignore, gitignoreFilter, which } from "@magus/common-utils";
 import { tool, type ToolSet } from "ai";
+import { spawn } from "node:child_process";
 import { statSync } from "node:fs";
 import { z } from "zod";
-const { spawn } = Bun;
 
 // Check if ripgrep is available
 const hasRipgrep = () => {
@@ -156,26 +156,54 @@ export const grepFile = async ({
   }
 
   // Execute the grep command with streaming to reduce memory usage
-  const proc = spawn(command);
+  const [cmd, ...args] = command;
+  const proc = spawn(cmd, args, { stdio: ["ignore", "pipe", "pipe"] });
 
   const matches: string[] = [];
-  let buffer = "";
   const relativeIgnore = path && path !== "." ? await gitignoreFilter(path) : { ignores: () => false };
   const keep = (line: string) => !gitignore.ignores(line) && !relativeIgnore.ignores(line);
 
-  for await (const chunk of proc.stdout) {
-    buffer += new TextDecoder().decode(chunk);
-    if (buffer.includes("\n")) {
-      // Windows has `\r` in its newlines which messes up the ignore filter
-      const lines = buffer.split("\n").map((line) => line.trim());
-      buffer = lines.pop() ?? "";
-      matches.push(...lines.filter(keep).map((line) => line.replace(process.cwd(), ".")));
-    }
-  }
+  // Wait for the process to complete and collect all output
+  const output = await new Promise<string>((resolve, reject) => {
+    let data = "";
+    let errorData = "";
 
-  // Flush trailing buffer
-  if (buffer.trim() !== "") {
-    const lines = buffer.split("\n").map((line) => line.trim());
+    proc.stdout?.on("data", (chunk: Buffer) => {
+      data += chunk.toString();
+    });
+
+    proc.stderr?.on("data", (chunk: Buffer) => {
+      errorData += chunk.toString();
+    });
+
+    proc.on("close", (code) => {
+      clearTimeout(timeout);
+      // grep returns exit code 1 when no matches are found, which is not an error
+      if (code === 0 || code === 1) {
+        resolve(data);
+      } else {
+        reject(new Error(`Process exited with code ${code}${errorData ? `: ${errorData}` : ""}`));
+      }
+    });
+
+    proc.on("error", (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    });
+
+    // Set a timeout to prevent hanging
+    const timeout = setTimeout(() => {
+      proc.kill();
+      reject(new Error("Process timeout"));
+    }, 30000);
+  });
+
+  // Process the complete output
+  if (output) {
+    const lines = output
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line);
     matches.push(...lines.filter(keep).map((line) => line.replace(process.cwd(), ".")));
   }
 

@@ -1,7 +1,7 @@
 import { gitignore, gitignoreFilter, which } from "@magus/common-utils";
 import { tool, type ToolSet } from "ai";
+import { spawn } from "node:child_process";
 import { z } from "zod";
-const { spawn } = Bun;
 
 const hasFd = () => {
   return !!which("fd");
@@ -110,28 +110,55 @@ export const globFile = async ({
   }
 
   // Execute the find command asynchronously
-  const proc = spawn(command);
+  const [cmd, ...args] = command;
+  const proc = spawn(cmd, args, { stdio: ["ignore", "pipe", "pipe"] });
 
   // Collect stdout asynchronously
   const files = [];
   const relativeIgnore = path && path !== "." ? await gitignoreFilter(path) : { ignores: () => false };
   const keep = (line: string) => !gitignore.ignores(line) && !relativeIgnore.ignores(line);
 
-  let stdout = "";
-  for await (const chunk of proc.stdout) {
-    stdout += new TextDecoder().decode(chunk);
-    if (stdout.includes("\n")) {
-      // Windows has `\r` in its newlines which messes up the ignore filter
-      const newFiles = stdout.split("\n").map((line) => line.trim());
-      stdout = newFiles.pop() ?? "";
-      files.push(...newFiles.filter(keep).map((line) => line.replace(process.cwd(), ".")));
-    }
-  }
+  // Wait for the process to complete and collect all output
+  const output = await new Promise<string>((resolve, reject) => {
+    let data = "";
+    let errorData = "";
 
-  // Trailing contents
-  if (stdout) {
-    const newFiles = stdout.split("\n").map((line) => line.trim());
-    files.push(...newFiles.filter(keep).map((line) => line.replace(process.cwd(), ".")));
+    proc.stdout?.on("data", (chunk: Buffer) => {
+      data += chunk.toString();
+    });
+
+    proc.stderr?.on("data", (chunk: Buffer) => {
+      errorData += chunk.toString();
+    });
+
+    proc.on("close", (code) => {
+      clearTimeout(timeout);
+      if (code === 0) {
+        resolve(data);
+      } else {
+        reject(new Error(`Process exited with code ${code}${errorData ? `: ${errorData}` : ""}`));
+      }
+    });
+
+    proc.on("error", (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    });
+
+    // Set a timeout to prevent hanging
+    const timeout = setTimeout(() => {
+      proc.kill();
+      reject(new Error("Process timeout"));
+    }, 30000);
+  });
+
+  // Process the complete output
+  if (output) {
+    const lines = output
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line);
+    files.push(...lines.filter(keep).map((line) => line.replace(process.cwd(), ".")));
   }
 
   return {

@@ -12,8 +12,8 @@
 
 import { which } from "@magus/common-utils";
 import { tool, type ToolSet } from "ai";
+import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import { z } from "zod";
-const { spawn, spawnSync } = Bun;
 
 /**
  * Determines the appropriate shell to use based on the operating system.
@@ -96,7 +96,7 @@ export type ShellOptions = {
  */
 export class ShellSession {
   shellInfo: { shell: string; args: string[] };
-  shell: Bun.Subprocess<"pipe", "pipe", "pipe">;
+  shell: ChildProcess;
 
   /**
    * Creates a new ShellSession instance and initializes the shell process.
@@ -131,17 +131,15 @@ export class ShellSession {
   /**
    * Spawns a new shell process with the configured shell and arguments.
    *
-   * This method creates a new Bun subprocess that runs the configured shell
+   * This method creates a new Node.js subprocess that runs the configured shell
    * with appropriate stdin, stdout, and stderr pipes for command execution.
    * The subprocess is configured to allow reading from all streams.
    *
-   * @returns A Bun.Subprocess instance representing the spawned shell
+   * @returns A ChildProcess instance representing the spawned shell
    */
   spawnShell() {
-    return spawn([this.shellInfo.shell, ...this.shellInfo.args], {
-      stdin: "pipe",
-      stdout: "pipe",
-      stderr: "pipe",
+    return spawn(this.shellInfo.shell, this.shellInfo.args, {
+      stdio: ["pipe", "pipe", "pipe"],
     });
   }
 
@@ -157,7 +155,9 @@ export class ShellSession {
   async restart() {
     try {
       this.shell.kill();
-      await this.shell.exited;
+      await new Promise<void>((resolve) => {
+        this.shell.on("exit", () => resolve());
+      });
     } catch {
       console.error("Error waiting for shell to exit, spinning up a new one anyway.");
     }
@@ -196,41 +196,61 @@ export class ShellSession {
       };
 
       const readStdout = async (abortSignal: AbortSignal) => {
-        const stdoutReader = this.shell.stdout.getReader();
-        try {
-          const aborted = new Promise<{ done: true; value: undefined }>((res) => {
-            abortSignal.addEventListener("abort", () => res({ done: true, value: undefined }), { once: true });
-          });
-          while (true) {
-            const { done, value } = await Promise.race([stdoutReader.read(), aborted]);
-            if (done) break;
-            if (value) {
-              stdout += Buffer.from(value).toString();
-              resetTimer();
-            }
-          }
-        } finally {
-          stdoutReader.releaseLock();
-        }
+        if (!this.shell.stdout) return;
+
+        const handleData = (chunk: Buffer) => {
+          stdout += chunk.toString();
+          resetTimer();
+        };
+
+        const handleEnd = () => {
+          // Stream ended
+        };
+
+        this.shell.stdout.on("data", handleData);
+        this.shell.stdout.on("end", handleEnd);
+
+        // Wait for abort signal
+        await new Promise<void>((res) => {
+          abortSignal.addEventListener(
+            "abort",
+            () => {
+              this.shell.stdout?.off("data", handleData);
+              this.shell.stdout?.off("end", handleEnd);
+              res();
+            },
+            { once: true },
+          );
+        });
       };
 
       const readStderr = async (abortSignal: AbortSignal) => {
-        const stderrReader = this.shell.stderr.getReader();
-        try {
-          const aborted = new Promise<{ done: true; value: undefined }>((res) => {
-            abortSignal.addEventListener("abort", () => res({ done: true, value: undefined }), { once: true });
-          });
-          while (true) {
-            const { done, value } = await Promise.race([stderrReader.read(), aborted]);
-            if (done) break;
-            if (value) {
-              stderr += Buffer.from(value).toString();
-              resetTimer();
-            }
-          }
-        } finally {
-          stderrReader.releaseLock();
-        }
+        if (!this.shell.stderr) return;
+
+        const handleData = (chunk: Buffer) => {
+          stderr += chunk.toString();
+          resetTimer();
+        };
+
+        const handleEnd = () => {
+          // Stream ended
+        };
+
+        this.shell.stderr.on("data", handleData);
+        this.shell.stderr.on("end", handleEnd);
+
+        // Wait for abort signal
+        await new Promise<void>((res) => {
+          abortSignal.addEventListener(
+            "abort",
+            () => {
+              this.shell.stderr?.off("data", handleData);
+              this.shell.stderr?.off("end", handleEnd);
+              res();
+            },
+            { once: true },
+          );
+        });
       };
 
       // Start async reading of stdout and stderr
@@ -259,7 +279,9 @@ export class ShellSession {
       resetTimer();
 
       // Execute the command
-      this.shell.stdin.write(`${command}\n`);
+      if (this.shell.stdin) {
+        this.shell.stdin.write(`${command}\n`);
+      }
     });
   }
 }
@@ -314,8 +336,11 @@ Each call runs in a fresh shell in the present working directory.`;
           args = ["-c", command];
         }
 
-        const proc = spawnSync([shell, ...args], { stdout: "pipe", stderr: "pipe" });
-        return { stdout: proc.stdout.toString().trimEnd(), stderr: proc.stderr.toString().trimEnd() };
+        const proc = spawnSync(shell, args, { encoding: "utf8" });
+        return {
+          stdout: (proc.stdout || "").trimEnd(),
+          stderr: (proc.stderr || "").trimEnd(),
+        };
       },
     }),
   } satisfies ToolSet;

@@ -1,3 +1,4 @@
+import { which } from "@magus/common-utils";
 import path from "node:path";
 import type { LspConfig } from "./lspManager";
 import { LspManager } from "./lspManager";
@@ -25,7 +26,7 @@ export function commandExists(cmd: string): boolean {
     }
   }
 
-  return !!Bun.which(cmd);
+  return !!which(cmd);
 }
 
 /** Default language server definitions (similar to helix docs subset). */

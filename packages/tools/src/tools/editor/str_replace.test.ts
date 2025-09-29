@@ -22,7 +22,7 @@ describe("stringReplace", () => {
 
     spyOn(fsmod, "stat").mockResolvedValue(mockStat);
     spyOn(fsmod, "readFile").mockResolvedValue(mockFileContent);
-    spyOn(fsmod, "writeFile").mockResolvedValue();
+    spyOn(fsmod, "writeFile").mockResolvedValue(undefined);
 
     const result = await stringReplace({
       path: "/test/file.ts",
@@ -100,7 +100,7 @@ describe("stringReplace", () => {
     spyOn(fsmod, "stat").mockResolvedValue(mockStat);
     spyOn(fsmod, "readFile").mockResolvedValue(mockFileContent);
     // write operation
-    spyOn(fsmod, "writeFile").mockResolvedValue();
+    spyOn(fsmod, "writeFile").mockResolvedValue(undefined);
 
     const result = await stringReplace({
       path: "/test/file.ts",

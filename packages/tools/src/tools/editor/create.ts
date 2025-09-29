@@ -48,12 +48,12 @@ export const createFile = async (
     // It's common for the model to try using create when modifying a file.
     // they either didn't know it was there, or are just replacing the whole thing.
     // either way, they'll get a valid diff and figure it out.
-    previousContent = await readFile(path, 'utf8');
+    previousContent = await readFile(path, "utf8");
   } catch {
     // Ignore errors; we'll treat this as a new file
   }
 
-  await writeFile(path, content, 'utf8');
+  await writeFile(path, content, "utf8");
   const pluginResults = (
     await Promise.all(
       Object.entries(plugins || {}).map(async ([name, fn]) => {

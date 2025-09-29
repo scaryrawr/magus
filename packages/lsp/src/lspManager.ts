@@ -1,7 +1,6 @@
 import { gitignore, which } from "@magus/common-utils";
 import chokidar from "chokidar";
 import type { Ignore } from "ignore";
-import { execSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -119,7 +118,7 @@ export class LspManager {
   }
 
   private handleOpen(file: string) {
-    readFile(file, 'utf8')
+    readFile(file, "utf8")
       .then((text) => {
         const uri = URI.file(file).toString();
         this.versionMap.set(uri, 1);
@@ -140,7 +139,7 @@ export class LspManager {
   }
 
   private handleChange(file: string) {
-    readFile(file, 'utf8')
+    readFile(file, "utf8")
       .then((text) => {
         const uri = URI.file(file).toString();
         const version = (this.versionMap.get(uri) || 1) + 1;

@@ -10,7 +10,7 @@ export const loadMcpConfigs = async (paths: string[]) => {
       paths.filter(existsSync).map(async (config) => {
         try {
           // If we fail to load/parse the config file, we just skip it. Should not be a fatal error.
-          return VscMcpSchema.safeParse(parse(await readFile(config, 'utf8')));
+          return VscMcpSchema.safeParse(parse(await readFile(config, "utf8")));
         } catch {
           return {
             success: false,

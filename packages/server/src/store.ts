@@ -16,7 +16,7 @@ export class MagusChatStore implements ChatStore {
     const chatId = crypto.randomUUID();
     const chatPath = `${this.storagePath}/${chatId}.json`;
     const initialChat: MagusChat = { messages: [] };
-    await writeFile(chatPath, JSON.stringify(initialChat), 'utf8');
+    await writeFile(chatPath, JSON.stringify(initialChat), "utf8");
     return chatId;
   }
 
@@ -43,12 +43,12 @@ export class MagusChatStore implements ChatStore {
 
   async loadChat(chatId: string): Promise<MagusChat> {
     const chatPath = `${this.storagePath}/${chatId}.json`;
-    const data = await readFile(chatPath, 'utf8');
+    const data = await readFile(chatPath, "utf8");
     return MagusChatSchema.parse(JSON.parse(data));
   }
 
   async saveChat(chatId: string, chat: MagusChat): Promise<void> {
     const chatPath = `${this.storagePath}/${chatId}.json`;
-    await writeFile(chatPath, JSON.stringify(chat), 'utf8');
+    await writeFile(chatPath, JSON.stringify(chat), "utf8");
   }
 }

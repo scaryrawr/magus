@@ -37,12 +37,12 @@ export const createMagusServer = ({ tools, systemPrompt, providers }: CreateMagu
   });
 
   void client.v0.systemPrompt.$put({ json: { systemPrompt } });
-  readFile(join(process.cwd(), "AGENTS.md"), 'utf8')
+  readFile(join(process.cwd(), "AGENTS.md"), "utf8")
     .then((content) => {
       void client.v0.instructions.$patch({ json: { instruction: content } });
     })
     .catch(() =>
-      readFile(join(process.cwd(), ".github", "copilot-instructions.md"), 'utf8')
+      readFile(join(process.cwd(), ".github", "copilot-instructions.md"), "utf8")
         .then((content) => {
           void client.v0.instructions.$patch({ json: { instruction: content } });
         })

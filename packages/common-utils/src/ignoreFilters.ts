@@ -13,7 +13,7 @@ export async function gitignoreFilter(rootDir: string) {
 
   try {
     const gitignorePath = `${rootDir}/.gitignore`;
-    const gitignoreContent = await readFile(gitignorePath, 'utf8');
+    const gitignoreContent = await readFile(gitignorePath, "utf8");
     ig.add(gitignoreContent);
   } catch {
     // May have failed to load .gitignore, which is fine, just use defaults.

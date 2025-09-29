@@ -22,14 +22,14 @@ export const stringReplace = async (
     throw new Error("Path is not a file.");
   }
 
-  const content = await readFile(path, 'utf8');
+  const content = await readFile(path, "utf8");
   const firstOccurrence = content.indexOf(old_str);
   if (firstOccurrence === -1) {
     throw new Error("No changes made: old_str was not found in the file.");
   }
 
   const updatedContent = replace_all ? content.replaceAll(old_str, new_str) : content.replace(old_str, new_str);
-  await writeFile(path, updatedContent, 'utf8');
+  await writeFile(path, updatedContent, "utf8");
 
   const pluginResults = (
     await Promise.all(

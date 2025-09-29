@@ -10,7 +10,7 @@ export const viewFile = async ({ path, view_range }: ViewInput, plugins?: Editor
       content: files.join("\n"),
     };
   } else if (stats.isFile()) {
-    let content = await readFile(path, 'utf8');
+    let content = await readFile(path, "utf8");
     const pluginResults = (
       await Promise.all(
         Object.entries(plugins || {}).map(async ([name, fn]) => {

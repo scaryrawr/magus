@@ -1,4 +1,4 @@
-import { gitignore } from "@magus/common-utils";
+import { gitignore, which } from "@magus/common-utils";
 import chokidar from "chokidar";
 import type { Ignore } from "ignore";
 import { execSync } from "node:child_process";
@@ -196,14 +196,8 @@ export class LspManager {
         return false;
       }
     }
-    // Use cross-platform which equivalent
-    try {
-      const whichCmd = process.platform === 'win32' ? 'where' : 'which';
-      execSync(`${whichCmd} "${cmd}"`, { stdio: 'ignore' });
-      return true;
-    } catch {
-      return false;
-    }
+
+    return !!which(cmd);
   };
 
   private gatherClientLanguages(entry: ClientEntry): Set<string> {

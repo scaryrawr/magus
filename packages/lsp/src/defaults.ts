@@ -1,5 +1,6 @@
 import { execSync } from "node:child_process";
 import { existsSync } from "node:fs";
+import { which } from "@magus/common-utils";
 import path from "node:path";
 import type { LspConfig } from "./lspManager";
 import { LspManager } from "./lspManager";
@@ -27,14 +28,7 @@ export function commandExists(cmd: string): boolean {
     }
   }
 
-  // Use cross-platform which equivalent
-  try {
-    const whichCmd = process.platform === 'win32' ? 'where' : 'which';
-    execSync(`${whichCmd} "${cmd}"`, { stdio: 'ignore' });
-    return true;
-  } catch {
-    return false;
-  }
+  return !!which(cmd);
 }
 
 /** Default language server definitions (similar to helix docs subset). */

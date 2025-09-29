@@ -1,4 +1,4 @@
-import { DEFAULT_IGNORE_PATTERNS, gitignore, gitignoreFilter } from "@magus/common-utils";
+import { DEFAULT_IGNORE_PATTERNS, gitignore, gitignoreFilter, which } from "@magus/common-utils";
 import { tool, type ToolSet } from "ai";
 import { statSync } from "node:fs";
 import { z } from "zod";
@@ -6,16 +6,16 @@ const { spawn } = Bun;
 
 // Check if ripgrep is available
 const hasRipgrep = () => {
-  return !!Bun.which("rg");
+  return !!which("rg");
 };
 
 // Check if grep is available as fallback
 const hasGrep = () => {
-  return !!Bun.which("grep");
+  return !!which("grep");
 };
 
 const hasFindStr = () => {
-  return !!Bun.which("findstr");
+  return !!which("findstr");
 };
 
 // Determine which grep tool to use

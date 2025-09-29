@@ -1,5 +1,6 @@
 import { parse } from "jsonc-parser";
 import { existsSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { ZodError, type ZodSafeParseResult } from "zod";
 import { VscMcpSchema, type VscMcp } from "./types";
 
@@ -9,7 +10,7 @@ export const loadMcpConfigs = async (paths: string[]) => {
       paths.filter(existsSync).map(async (config) => {
         try {
           // If we fail to load/parse the config file, we just skip it. Should not be a fatal error.
-          return VscMcpSchema.safeParse(parse(await Bun.file(config).text()));
+          return VscMcpSchema.safeParse(parse(await readFile(config, "utf8")));
         } catch {
           return {
             success: false,

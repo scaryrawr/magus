@@ -3,6 +3,7 @@ import { createServer, MagusChatStore, ModelsResultSchema, type MagusRoutes } fr
 import type { EditorOutputPlugin } from "@magus/tools";
 import type { ToolSet } from "ai";
 import { hc } from "hono/client";
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 // Tools are passed in so that main.ts stays focused on CLI concerns.
@@ -36,14 +37,12 @@ export const createMagusServer = ({ tools, systemPrompt, providers }: CreateMagu
   });
 
   void client.v0.systemPrompt.$put({ json: { systemPrompt } });
-  Bun.file(join(process.cwd(), "AGENTS.md"))
-    .text()
+  readFile(join(process.cwd(), "AGENTS.md"), "utf8")
     .then((content) => {
       void client.v0.instructions.$patch({ json: { instruction: content } });
     })
     .catch(() =>
-      Bun.file(join(process.cwd(), ".github", "copilot-instructions.md"))
-        .text()
+      readFile(join(process.cwd(), ".github", "copilot-instructions.md"), "utf8")
         .then((content) => {
           void client.v0.instructions.$patch({ json: { instruction: content } });
         })

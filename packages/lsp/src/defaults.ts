@@ -1,4 +1,5 @@
 import { which } from "@magus/common-utils";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import type { LspConfig } from "./lspManager";
 import { LspManager } from "./lspManager";
@@ -20,7 +21,7 @@ export interface BuildDefaultsOptions {
 export function commandExists(cmd: string): boolean {
   if (cmd.includes(path.sep)) {
     try {
-      return Bun.file(cmd).size >= 0;
+      return existsSync(cmd);
     } catch {
       return false;
     }

@@ -1,6 +1,6 @@
 import { tool, type ToolSet } from "ai";
 import { createTwoFilesPatch } from "diff";
-import { mkdir, stat } from "node:fs/promises";
+import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import {
   DiffOutputSchema,
@@ -21,7 +21,7 @@ export const insert = async (
     if (!stats.isFile()) {
       throw new Error("Path is not a file.");
     }
-    content = await Bun.file(path).text();
+    content = await readFile(path, "utf8");
   } catch (err) {
     if (!err || typeof err !== "object") {
       throw err;
@@ -49,7 +49,7 @@ export const insert = async (
   const lines = content.split("\n");
   lines.splice(line, 0, new_str);
   const updatedContent = lines.join("\n");
-  await Bun.write(path, updatedContent);
+  await writeFile(path, updatedContent, "utf8");
 
   const pluginResults = (
     await Promise.all(

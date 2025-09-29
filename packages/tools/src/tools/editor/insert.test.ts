@@ -15,13 +15,8 @@ describe("insert", () => {
   it("inserts into existing file and returns diff", async () => {
     const original = "line1\nline2";
     spyOn(fsmod, "stat").mockResolvedValue({ isFile: () => true });
-    spyOn(Bun, "file").mockImplementation(
-      () =>
-        ({
-          text: async () => original,
-        }) as unknown as ReturnType<typeof Bun.file>,
-    );
-    spyOn(Bun, "write").mockResolvedValue(0);
+    spyOn(fsmod, "readFile").mockResolvedValue(original);
+    spyOn(fsmod, "writeFile").mockResolvedValue(undefined);
 
     const result = await insert({ path: "/tmp/file.txt", line: 1, new_str: "NEW" });
     expect(result.diff).toContain("line1");
@@ -33,7 +28,7 @@ describe("insert", () => {
     const enoent = Object.assign(new Error("not found"), { code: "ENOENT" });
     spyOn(fsmod, "stat").mockRejectedValue(enoent);
     spyOn(fsmod, "mkdir").mockImplementation(async () => {});
-    spyOn(Bun, "write").mockResolvedValue(0);
+    spyOn(fsmod, "writeFile").mockResolvedValue(undefined);
 
     const result = await insert({ path: "/tmp/new-file.txt", line: 0, new_str: "hello" });
     expect(typeof result).toBe("object");

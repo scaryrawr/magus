@@ -1,5 +1,5 @@
 import envPaths from "env-paths";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "path";
 import z from "zod";
 import { MagusCacheSchema, type MagusCache } from "./cacheSchema";
@@ -18,7 +18,7 @@ async function ensureDir(dir: string) {
 // Generic read/write with validation
 async function readJson<T>(filePath: string, schema: z.ZodSchema<T>): Promise<T | undefined> {
   try {
-    const data = await Bun.file(filePath).text();
+    const data = await readFile(filePath, "utf8");
     const parsed: unknown = JSON.parse(data);
     return schema.parse(parsed);
   } catch {
@@ -30,7 +30,7 @@ async function readJson<T>(filePath: string, schema: z.ZodSchema<T>): Promise<T 
 async function writeJson<T>(filePath: string, data: T) {
   const dir = path.dirname(filePath);
   await ensureDir(dir);
-  await Bun.write(filePath, JSON.stringify(data, null, 2));
+  await writeFile(filePath, JSON.stringify(data, null, 2), "utf8");
 }
 
 // Paths based on env-paths

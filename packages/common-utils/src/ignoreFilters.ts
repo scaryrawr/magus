@@ -1,4 +1,5 @@
 import ignore from "ignore";
+import { readFile } from "node:fs/promises";
 
 export const DEFAULT_IGNORE_PATTERNS = [".git", ".yarn", ".backfill", "node_modules"];
 
@@ -12,7 +13,7 @@ export async function gitignoreFilter(rootDir: string) {
 
   try {
     const gitignorePath = `${rootDir}/.gitignore`;
-    const gitignoreContent = await Bun.file(gitignorePath).text();
+    const gitignoreContent = await readFile(gitignorePath, "utf8");
     ig.add(gitignoreContent);
   } catch {
     // May have failed to load .gitignore, which is fine, just use defaults.

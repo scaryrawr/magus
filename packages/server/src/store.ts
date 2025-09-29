@@ -1,5 +1,5 @@
 import { mkdirSync } from "node:fs";
-import { readdir, stat } from "node:fs/promises";
+import { readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { MagusChatSchema, type ChatEntry, type ChatStore, type MagusChat } from "./types";
 
 export class MagusChatStore implements ChatStore {
@@ -16,7 +16,7 @@ export class MagusChatStore implements ChatStore {
     const chatId = crypto.randomUUID();
     const chatPath = `${this.storagePath}/${chatId}.json`;
     const initialChat: MagusChat = { messages: [] };
-    await Bun.write(chatPath, JSON.stringify(initialChat));
+    await writeFile(chatPath, JSON.stringify(initialChat), "utf8");
     return chatId;
   }
 
@@ -43,13 +43,12 @@ export class MagusChatStore implements ChatStore {
 
   async loadChat(chatId: string): Promise<MagusChat> {
     const chatPath = `${this.storagePath}/${chatId}.json`;
-    const file = Bun.file(chatPath);
-    const data = await file.text();
+    const data = await readFile(chatPath, "utf8");
     return MagusChatSchema.parse(JSON.parse(data));
   }
 
   async saveChat(chatId: string, chat: MagusChat): Promise<void> {
     const chatPath = `${this.storagePath}/${chatId}.json`;
-    await Bun.write(chatPath, JSON.stringify(chat));
+    await writeFile(chatPath, JSON.stringify(chat), "utf8");
   }
 }

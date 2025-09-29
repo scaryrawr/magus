@@ -1,5 +1,5 @@
 import { tool, type ToolSet } from "ai";
-import { readdir, stat } from "node:fs/promises";
+import { readdir, readFile, stat } from "node:fs/promises";
 import { ViewOutputSchema, ViewSchema, type EditorOutputPlugin, type ViewInput, type ViewOutput } from "./types";
 
 export const viewFile = async ({ path, view_range }: ViewInput, plugins?: EditorOutputPlugin): Promise<ViewOutput> => {
@@ -10,8 +10,7 @@ export const viewFile = async ({ path, view_range }: ViewInput, plugins?: Editor
       content: files.join("\n"),
     };
   } else if (stats.isFile()) {
-    let content = await Bun.file(path).text();
-    await Bun.write(path, content);
+    let content = await readFile(path, "utf8");
     const pluginResults = (
       await Promise.all(
         Object.entries(plugins || {}).map(async ([name, fn]) => {

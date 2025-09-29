@@ -1,3 +1,5 @@
+import { execSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import type { LspConfig } from "./lspManager";
 import { LspManager } from "./lspManager";
@@ -19,13 +21,20 @@ export interface BuildDefaultsOptions {
 export function commandExists(cmd: string): boolean {
   if (cmd.includes(path.sep)) {
     try {
-      return Bun.file(cmd).size >= 0;
+      return existsSync(cmd);
     } catch {
       return false;
     }
   }
 
-  return !!Bun.which(cmd);
+  // Use cross-platform which equivalent
+  try {
+    const whichCmd = process.platform === 'win32' ? 'where' : 'which';
+    execSync(`${whichCmd} "${cmd}"`, { stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** Default language server definitions (similar to helix docs subset). */

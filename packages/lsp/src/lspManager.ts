@@ -1,6 +1,9 @@
 import { gitignore } from "@magus/common-utils";
 import chokidar from "chokidar";
 import type { Ignore } from "ignore";
+import { execSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import {
   DidChangeTextDocumentNotification,
@@ -116,8 +119,7 @@ export class LspManager {
   }
 
   private handleOpen(file: string) {
-    Bun.file(file)
-      .text()
+    readFile(file, 'utf8')
       .then((text) => {
         const uri = URI.file(file).toString();
         this.versionMap.set(uri, 1);
@@ -138,8 +140,7 @@ export class LspManager {
   }
 
   private handleChange(file: string) {
-    Bun.file(file)
-      .text()
+    readFile(file, 'utf8')
       .then((text) => {
         const uri = URI.file(file).toString();
         const version = (this.versionMap.get(uri) || 1) + 1;
@@ -190,12 +191,19 @@ export class LspManager {
   private defaultCommandExists = (cmd: string): boolean => {
     if (cmd.includes(path.sep)) {
       try {
-        return Bun.file(cmd).size >= 0;
+        return existsSync(cmd);
       } catch {
         return false;
       }
     }
-    return !!Bun.which(cmd);
+    // Use cross-platform which equivalent
+    try {
+      const whichCmd = process.platform === 'win32' ? 'where' : 'which';
+      execSync(`${whichCmd} "${cmd}"`, { stdio: 'ignore' });
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   private gatherClientLanguages(entry: ClientEntry): Set<string> {

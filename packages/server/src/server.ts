@@ -2,7 +2,6 @@ import { serve } from "@hono/node-server";
 import type { MagusProvider } from "@magus/providers";
 import { Hono } from "hono";
 import type { hc } from "hono/client";
-import type { AddressInfo } from "node:net";
 import { ObservableServerState } from "./ObservableServerState";
 import { chatRouter, modelsRouter, promptRouter, toolsRouter } from "./routes";
 import type { ServerStateConfig } from "./types";
@@ -38,8 +37,19 @@ export const createServer = <MProviders extends MagusProvider = MagusProvider>(
         port: 0, // Use ephemeral port like Bun
       });
 
-      // Get the address info immediately from the Node.js server
-      const addressInfo = nodeServer.address() as AddressInfo;
+      // Get the address info from the Node.js server with proper type checking
+      const serverAddress = nodeServer.address();
+
+      if (!serverAddress) {
+        throw new Error("Server failed to bind to a port");
+      }
+
+      if (typeof serverAddress === "string") {
+        throw new Error("Unix socket servers are not supported");
+      }
+
+      // Now we know serverAddress is AddressInfo
+      const addressInfo = serverAddress;
 
       // Create a Bun-compatible interface
       const compatibleServer: BunCompatibleServer = {

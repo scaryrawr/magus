@@ -1,4 +1,5 @@
 // No direct Text import; using AnsiText component
+import { spawn, spawnSync } from "node:child_process";
 import React from "react";
 import { AnsiText } from "./AnsiText";
 
@@ -13,12 +14,16 @@ export const SubprocessOutputStreaming: React.FC<SubprocessOutputProps> = ({ com
   const [output, setOutput] = React.useState<string>("");
 
   const process = React.useMemo(() => {
-    const stdinBuffer = stdin ? new TextEncoder().encode(stdin) : undefined;
-
-    return Bun.spawn(args ? [command, ...args] : [command], {
-      stdin: stdinBuffer,
-      stderr: "pipe",
+    const child = spawn(command, args || [], {
+      stdio: ["pipe", "pipe", "pipe"],
     });
+
+    if (stdin && child.stdin) {
+      child.stdin.write(stdin);
+      child.stdin.end();
+    }
+
+    return child;
   }, [args, command, stdin]);
 
   React.useEffect(() => {
@@ -32,30 +37,40 @@ export const SubprocessOutputStreaming: React.FC<SubprocessOutputProps> = ({ com
   }, [process]);
 
   React.useEffect(() => {
-    const stdout = process.stdout.getReader();
+    if (!process.stdout) return;
+
     const readOutput = async (signal: AbortSignal) => {
       try {
-        const aborted = new Promise<{ done: true; value: undefined }>((res) => {
-          signal.addEventListener("abort", () => res({ done: true, value: undefined }), { once: true });
+        const aborted = new Promise<void>((res) => {
+          signal.addEventListener("abort", () => res(), { once: true });
         });
-        while (!signal.aborted) {
-          const { done, value } = await Promise.race([
-            stdout.read(),
-            aborted,
-            process.exited.then(() => ({ done: true, value: undefined })),
-          ]);
-          if (signal.aborted || done) break;
-          if (value) {
-            const chunk = Buffer.from(value).toString();
-            setOutput((prev) => prev + chunk);
+
+        const handleData = (chunk: Buffer) => {
+          if (!signal.aborted) {
+            setOutput((prev) => prev + chunk.toString());
           }
-        }
-      } finally {
-        try {
-          stdout.releaseLock();
-        } catch {
-          // ignore
-        }
+        };
+
+        const handleEnd = () => {
+          // Stream ended, nothing more to do
+        };
+
+        process.stdout.on("data", handleData);
+        process.stdout.on("end", handleEnd);
+
+        // Wait for either abort or process exit
+        await Promise.race([
+          aborted,
+          new Promise<void>((resolve) => {
+            process.on("exit", () => resolve());
+          }),
+        ]);
+
+        // Clean up listeners
+        process.stdout.off("data", handleData);
+        process.stdout.off("end", handleEnd);
+      } catch {
+        // ignore errors during cleanup
       }
     };
 
@@ -64,9 +79,6 @@ export const SubprocessOutputStreaming: React.FC<SubprocessOutputProps> = ({ com
 
     return () => {
       abortController.abort();
-      stdout.cancel().catch(() => {
-        // ignore errors on cancel
-      });
     };
   }, [process]);
 
@@ -82,15 +94,12 @@ export const SubprocessOutputSync: React.FC<SubprocessOutputProps> = ({ command,
   const [output, setOutput] = React.useState<string>("");
 
   React.useEffect(() => {
-    const stdinBuffer = stdin ? new TextEncoder().encode(stdin) : undefined;
-
-    const proc = Bun.spawnSync(args ? [command, ...args] : [command], {
-      stdin: stdinBuffer,
-      stderr: "pipe",
-      stdout: "pipe",
+    const proc = spawnSync(command, args || [], {
+      input: stdin,
+      encoding: "utf8",
     });
 
-    setOutput(proc.stdout.toString());
+    setOutput(proc.stdout || "");
   }, [args, command, stdin]);
 
   return <AnsiText>{output}</AnsiText>;

@@ -1,10 +1,15 @@
 import type { MagusClient } from "@magus/server";
-import type { Server } from "bun";
 import React, { createContext, useContext, useEffect, type ReactNode } from "react";
+
+// Generic server interface to avoid dependency on specific runtime
+interface ServerLike {
+  stop(): Promise<void>;
+  url: URL;
+}
 
 export type ServerState = {
   client: MagusClient;
-  server: Server;
+  server: ServerLike;
 };
 
 type ServerProviderProps = {

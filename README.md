@@ -8,6 +8,8 @@ It is under heavy development and not yet stable.
 
 If you're looking for a complete tool, I heavily recommend opencode, this tool is more of a personal project for developing and figuring out LLM based tools.
 
+Also! [copilot-cli](https://github.com/github/copilot-cli) is now in Public Preview (so I recommend checking that out too instead of this personal project).
+
 ![Home Route](./assets/magus/home.png)
 
 ![Markdown Preview](./assets/magus/markdown.png)

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "bun:test";
 import { insertHumanInTheLoop } from "./hitl";
-import { createShellTool } from "./tools";
+import { createShellTool } from "./tools/shell";
 
 describe("should be able to create hitl with existing tool", () => {
   let toolExecutes: ReturnType<typeof insertHumanInTheLoop>["toolExecutes"];

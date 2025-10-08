@@ -1,7 +1,7 @@
 import type { LanguageModel } from "ai";
 import { EventEmitter } from "node:events";
 import type { ServerState, ServerStateConfig } from "./types";
-import { langueModelToModelSelect } from "./utils";
+import { langueModelToModelSelect } from "./utils/modelParsers";
 
 type ServerStateEvents = Required<{
   [TKey in keyof ServerState as `change:${TKey}`]: [newValue: ServerState[TKey]];

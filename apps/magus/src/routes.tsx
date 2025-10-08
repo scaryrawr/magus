@@ -1,9 +1,12 @@
 import { useEffect, useMemo } from "react";
 import { createMemoryRouter, RouterProvider, type RouteObject } from "react-router";
-import { useRoutes, useServerContext, type RouteInfo } from "./contexts";
+import { useRoutes, type RouteInfo } from "./contexts/RoutesProvider";
+import { useServerContext } from "./contexts/ServerProvider";
 import { Layout } from "./layout";
-import { createChatsRoute, createModelRoute, Home } from "./pages";
 import { createChatRoute } from "./pages/chat/chat";
+import { createChatsRoute } from "./pages/chats";
+import { Home } from "./pages/home";
+import { createModelRoute } from "./pages/models";
 
 // Route metadata for descriptions
 const routeDescriptions: Record<string, { description: string; hidden?: boolean }> = {

@@ -3,7 +3,10 @@ import type { MagusProvider } from "@magus/providers";
 import { Hono } from "hono";
 import type { hc } from "hono/client";
 import { ObservableServerState } from "./ObservableServerState";
-import { chatRouter, modelsRouter, promptRouter, toolsRouter } from "./routes";
+import { chatRouter } from "./routes/chat";
+import { modelsRouter } from "./routes/models";
+import { promptRouter } from "./routes/prompt";
+import { toolsRouter } from "./routes/tools";
 import type { ServerStateConfig } from "./types";
 
 // Type to maintain compatibility with Bun.serve interface

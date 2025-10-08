@@ -3,7 +3,7 @@ import Fuse from "fuse.js";
 import SelectInput from "ink-select-input";
 import { useCallback, useMemo } from "react";
 import { useLoaderData, useNavigate, type RouteObject } from "react-router";
-import { useInputValue, useSetInputValue, useStackedRouteInput } from "../contexts";
+import { useInputValue, useSetInputValue, useStackedRouteInput } from "../contexts/inputStore";
 
 type ChatSummary = { id: string; title?: string };
 

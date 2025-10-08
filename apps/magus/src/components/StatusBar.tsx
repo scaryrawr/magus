@@ -1,6 +1,8 @@
 import { Box, Text } from "ink";
 import Spinner from "ink-spinner";
-import { useChatId, useChatStatus, useChatUsage, useModel, useServerContext } from "../contexts";
+import { useChatId, useChatStatus, useChatUsage } from "../contexts/ChatContext";
+import { useModel } from "../contexts/ModelContext";
+import { useServerContext } from "../contexts/ServerProvider";
 
 export const StatusBar: React.FC = () => {
   const chatStatus = useChatStatus();

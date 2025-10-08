@@ -1,3 +1,12 @@
-export { Bat, Delta, DiffViewer, FigletText, Glow, Markdown, ScrollArea, SubprocessOutput } from "./components";
-export type { FigletTextProps, ScrollAreaProps } from "./components";
-export { useKeypress, useStdoutDimensions } from "./hooks";
+export { Bat } from "./components/Bat";
+export { Delta } from "./components/Delta";
+export { DiffViewer } from "./components/DiffViewer";
+export { FigletText } from "./components/FigletText";
+export type { FigletTextProps } from "./components/FigletText";
+export { Glow } from "./components/Glow";
+export { Markdown } from "./components/Markdown";
+export { ScrollArea } from "./components/ScrollArea";
+export type { ScrollAreaProps } from "./components/ScrollArea";
+export { SubprocessOutput } from "./components/SubprocessOutput";
+export { useKeypress } from "./hooks/useKeypress";
+export { useStdoutDimensions } from "./hooks/useStdoutDimensions";

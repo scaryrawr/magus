@@ -1,6 +1,7 @@
 import { Box } from "ink";
 import { Outlet } from "react-router";
-import { InputBar, StatusBar } from "./components";
+import { InputBar } from "./components/InputBar";
+import { StatusBar } from "./components/StatusBar";
 
 const InputSection: React.FC = () => {
   return (

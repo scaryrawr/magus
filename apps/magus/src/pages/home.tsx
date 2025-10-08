@@ -1,7 +1,8 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router";
-import { Banner } from "../components";
-import { useServerContext, useStackedRouteInput } from "../contexts";
+import { Banner } from "../components/Banner";
+import { useServerContext } from "../contexts/ServerProvider";
+import { useStackedRouteInput } from "../contexts/inputStore";
 
 export const Home = () => {
   const navigate = useNavigate();

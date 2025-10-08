@@ -2,7 +2,7 @@ import { FigletText } from "@magus/react";
 import stronger from "figlet/fonts/Stronger Than All";
 import { Box, Text } from "ink";
 import Gradient from "ink-gradient";
-import { useRoutes } from "../contexts";
+import { useRoutes } from "../contexts/RoutesProvider";
 
 export const Banner = () => {
   const { routes } = useRoutes();

@@ -1,7 +1,10 @@
 import { Box } from "ink";
 import React from "react";
-import { ChatProvider, ModelProvider, RoutesProvider, ServerProvider } from "./contexts";
+import { ChatProvider } from "./contexts/ChatContext";
+import { ModelProvider } from "./contexts/ModelContext";
+import { RoutesProvider } from "./contexts/RoutesProvider";
 import type { ServerState } from "./contexts/ServerProvider";
+import { ServerProvider } from "./contexts/ServerProvider";
 import { MagusRouterProvider } from "./routes";
 
 type AppProps = {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { createShellTool } from "./tools";
+import { createShellTool } from "./tools/shell";
 
 describe("ephemeral shell tool", () => {
   const { shell } = createShellTool({ mode: "ephemeral" });

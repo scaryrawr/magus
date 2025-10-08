@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { render } from "ink-testing-library";
 import React, { useEffect, useState } from "react";
-import { useInputSubmit, useInputValue, useSetInputValue, useStackedRouteInput } from "./index";
+import { useInputSubmit, useInputValue, useSetInputValue, useStackedRouteInput } from "./inputStore";
 
 /**
  * This test simulates an async handler that calls api.done() after another handler has been pushed.

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { render } from "ink-testing-library";
 import React, { useEffect, useState } from "react";
-import { useInputSubmit, useInputValue, useSetInputValue, useStackedRouteInput } from "./index";
+import { useInputSubmit, useInputValue, useSetInputValue, useStackedRouteInput } from "./inputStore";
 
 /**
  * Handler stack behavior tests:

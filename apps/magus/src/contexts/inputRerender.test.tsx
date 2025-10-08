@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { render } from "ink-testing-library";
 import React, { useEffect, useState } from "react";
-import { useSetInputValue, useStackedRouteInput } from "./index";
+import { useSetInputValue, useStackedRouteInput } from "./inputStore";
 
 // Ensures route input registration (handler stack push) does not cause re-renders
 // when only the input value changes rapidly.

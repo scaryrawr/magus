@@ -4,7 +4,7 @@ import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import type { ObservableServerState } from "../ObservableServerState";
 import { ModelSelectSchema, type ModelSelect } from "../types";
-import { langueModelToModelSelect } from "../utils";
+import { langueModelToModelSelect } from "../utils/modelParsers";
 import type { RouterFactory } from "./types";
 
 export const modelsRouter = (state: ObservableServerState) => {

@@ -4,7 +4,8 @@ import { useStderr } from "ink";
 import SelectInput from "ink-select-input";
 import { useCallback, useMemo } from "react";
 import { useNavigate, type RouteObject } from "react-router";
-import { useInputValue, useModel, useModels, useSetInputValue, useStackedRouteInput } from "../contexts";
+import { useInputValue, useSetInputValue, useStackedRouteInput } from "../contexts/inputStore";
+import { useModel, useModels } from "../contexts/ModelContext";
 
 export const Models = () => {
   const { models } = useModels();

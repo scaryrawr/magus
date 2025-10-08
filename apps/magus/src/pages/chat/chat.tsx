@@ -5,8 +5,10 @@ import { DefaultChatTransport, type ChatStatus } from "ai";
 import { Box, Static, useInput } from "ink";
 import { useCallback, useEffect } from "react";
 import { useLoaderData, useParams, type RouteObject } from "react-router";
-import { useServerContext, useSetChatId, useSetChatStatus, useStackedRouteInput } from "../../contexts";
-import { useSafeLocation } from "../../hooks";
+import { useSetChatId, useSetChatStatus } from "../../contexts/ChatContext";
+import { useStackedRouteInput } from "../../contexts/inputStore";
+import { useServerContext } from "../../contexts/ServerProvider";
+import { useSafeLocation } from "../../hooks/useSafeLocation";
 import { ChatBox } from "./chatbox";
 
 type ChatState = {

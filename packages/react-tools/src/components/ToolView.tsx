@@ -10,7 +10,7 @@ import type {
 } from "@magus/tools";
 import type { ToolUIPart, UIDataTypes, UIMessagePart, UITools } from "ai";
 import { Box, Text, type BoxProps } from "ink";
-import React, { useRef } from "react";
+import React from "react";
 import { CreateFileView } from "./create-file";
 import { FileEditToolView } from "./file-edit-tool";
 import { FileInsertView } from "./file-insert";
@@ -48,18 +48,16 @@ type ToolViewMapping<TTools> = {
 };
 
 export const ToolView: React.FC<UIToolProps> = ({ part }) => {
-  const toolViews = useRef<
-    ToolViewMapping<
-      CreateFileToolSet &
-        EditorToolSet &
-        GrepToolSet &
-        StringReplaceToolSet &
-        ShellToolSet &
-        InsertToolSet &
-        TodoToolSet &
-        ViewToolSet
-    >
-  >({
+  const toolViews: ToolViewMapping<
+    CreateFileToolSet &
+      EditorToolSet &
+      GrepToolSet &
+      StringReplaceToolSet &
+      ShellToolSet &
+      InsertToolSet &
+      TodoToolSet &
+      ViewToolSet
+  > = {
     "tool-create": CreateFileView,
     "tool-editor": FileEditToolView,
     "tool-insert": FileInsertView,
@@ -73,7 +71,7 @@ export const ToolView: React.FC<UIToolProps> = ({ part }) => {
     "tool-todo_clear": TodoView,
     "tool-todo_list": TodoView,
     "tool-todo_update": TodoView,
-  }).current;
+  };
 
   if (!isToolPart(part)) {
     return null;

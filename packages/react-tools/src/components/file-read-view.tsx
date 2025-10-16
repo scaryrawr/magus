@@ -45,7 +45,7 @@ export const FileReadView: React.FC<FileReadViewProps> = ({ path, icon, content,
       {isMarkdown ? (
         <Markdown>{content}</Markdown>
       ) : (
-        fileLines.map((line, index) => (
+        fileLines.map((line: string, index: number) => (
           <Box flexDirection="row" key={index}>
             <Box
               width={numWidth}

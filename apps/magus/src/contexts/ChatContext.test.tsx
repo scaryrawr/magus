@@ -1,6 +1,7 @@
 import type { ChatStatus } from "ai";
 import { describe, expect, it, mock } from "bun:test";
 import { render } from "ink-testing-library";
+import { useEffect } from "react";
 import {
   ChatProvider,
   useChatContext,
@@ -46,11 +47,13 @@ describe("ChatContext", () => {
   });
 
   it("provides initial state correctly", () => {
-    let capturedState: ChatContextValue | null = null;
+    const capturedStateRef = { current: null as ChatContextValue | null };
 
     const TestComponent = () => {
       const state = useChatContext();
-      capturedState = state;
+      useEffect(() => {
+        capturedStateRef.current = state;
+      }, [state]);
       return null;
     };
 
@@ -60,8 +63,8 @@ describe("ChatContext", () => {
       </ChatProvider>,
     );
 
-    expect(capturedState).not.toBeNull();
-    expect(capturedState!).toEqual({
+    expect(capturedStateRef.current).not.toBeNull();
+    expect(capturedStateRef.current!).toEqual({
       chatStatus: undefined,
       chatId: undefined,
       setChatStatus: expect.any(Function),
@@ -70,13 +73,15 @@ describe("ChatContext", () => {
   });
 
   it("updates chat status correctly", () => {
-    let capturedSetStatus: ((status: ChatStatus | undefined) => void) | null = null;
-    let capturedStatus: ChatStatus | undefined = undefined;
+    const capturedSetStatusRef = { current: null as ((status: ChatStatus | undefined) => void) | null };
+    const capturedStatusRef = { current: undefined as ChatStatus | undefined };
 
     const TestComponent = () => {
       const { chatStatus, setChatStatus } = useChatContext();
-      capturedStatus = chatStatus;
-      capturedSetStatus = setChatStatus;
+      useEffect(() => {
+        capturedStatusRef.current = chatStatus;
+        capturedSetStatusRef.current = setChatStatus;
+      }, [chatStatus, setChatStatus]);
       return null;
     };
 
@@ -87,20 +92,22 @@ describe("ChatContext", () => {
     );
 
     // Initially undefined
-    expect(capturedStatus).toBeUndefined();
+    expect(capturedStatusRef.current).toBeUndefined();
 
     // The component should have the setter available
-    expect(capturedSetStatus).toBeInstanceOf(Function);
+    expect(capturedSetStatusRef.current).toBeInstanceOf(Function);
   });
 
   it("updates chat ID correctly", () => {
-    let capturedSetId: ((id: string | undefined) => void) | null = null;
-    let capturedId: string | undefined = undefined;
+    const capturedSetIdRef = { current: null as ((id: string | undefined) => void) | null };
+    const capturedIdRef = { current: undefined as string | undefined };
 
     const TestComponent = () => {
       const { chatId, setChatId } = useChatContext();
-      capturedId = chatId;
-      capturedSetId = setChatId;
+      useEffect(() => {
+        capturedIdRef.current = chatId;
+        capturedSetIdRef.current = setChatId;
+      }, [chatId, setChatId]);
       return null;
     };
 
@@ -111,24 +118,28 @@ describe("ChatContext", () => {
     );
 
     // Initially undefined
-    expect(capturedId).toBeUndefined();
+    expect(capturedIdRef.current).toBeUndefined();
 
     // The component should have the setter available
-    expect(capturedSetId).toBeInstanceOf(Function);
+    expect(capturedSetIdRef.current).toBeInstanceOf(Function);
   });
 
   it("selector hooks work correctly", () => {
-    let capturedStatus: ChatStatus | undefined = undefined;
-    let capturedId: string | undefined = undefined;
-    let setChatStatusFn: ((status: ChatStatus | undefined) => void) | null = null;
-    let setChatIdFn: ((id: string | undefined) => void) | null = null;
+    const capturedStatusRef = { current: undefined as ChatStatus | undefined };
+    const capturedIdRef = { current: undefined as string | undefined };
+    const setChatStatusFnRef = { current: null as ((status: ChatStatus | undefined) => void) | null };
+    const setChatIdFnRef = { current: null as ((id: string | undefined) => void) | null };
 
     const TestComponent = () => {
-      capturedStatus = useChatStatus();
-      capturedId = useChatId();
+      const status = useChatStatus();
+      const id = useChatId();
       const { setChatStatus, setChatId } = useChatContext();
-      setChatStatusFn = setChatStatus;
-      setChatIdFn = setChatId;
+      useEffect(() => {
+        capturedStatusRef.current = status;
+        capturedIdRef.current = id;
+        setChatStatusFnRef.current = setChatStatus;
+        setChatIdFnRef.current = setChatId;
+      }, [status, id, setChatStatus, setChatId]);
       return null;
     };
 
@@ -138,10 +149,10 @@ describe("ChatContext", () => {
       </ChatProvider>,
     );
 
-    expect(capturedStatus).toBeUndefined();
-    expect(capturedId).toBeUndefined();
-    expect(setChatStatusFn).toBeInstanceOf(Function);
-    expect(setChatIdFn).toBeInstanceOf(Function);
+    expect(capturedStatusRef.current).toBeUndefined();
+    expect(capturedIdRef.current).toBeUndefined();
+    expect(setChatStatusFnRef.current).toBeInstanceOf(Function);
+    expect(setChatIdFnRef.current).toBeInstanceOf(Function);
   });
 
   it("useChatUsage subscribes to SSE correctly", () => {

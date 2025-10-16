@@ -3,7 +3,6 @@ import { Box, type BoxProps, type DOMElement, measureElement, useFocus, useInput
 import React, { useEffect, useLayoutEffect, useReducer, useRef } from "react";
 
 interface ScrollAreaState {
-  innerRef: React.RefObject<DOMElement | null>;
   innerHeight: number;
   height: number;
   scrollTop: number;
@@ -76,7 +75,6 @@ export const ScrollArea = ({ height, children, focused = true, ...boxProps }: Sc
     height: height,
     innerHeight: 0,
     scrollTop: 0,
-    innerRef,
   });
 
   useEffect(() => {

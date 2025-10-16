@@ -15,8 +15,8 @@
     "catalogs": {
       "ui": {
         "figlet": "^1.9.3",
-        "react": "^19.1.1",
-        "react-dom": "^19.1.1",
+        "react": "^19.2.0",
+        "react-dom": "^19.2.0",
         "react-router": "^7.8.1",
         "ink": "^6.2.0",
         "ink-gradient": "^3.0.0",
@@ -25,7 +25,9 @@
       },
       "ts": {
         "typescript": "^5.9.2",
-        "@types/bun": "latest"
+        "@types/bun": "latest",
+        "@types/react": "^19.2.2",
+        "@types/react-dom": "^19.2.2"
       },
       "test": {
         "ink-testing-library": "^4.0.0"
@@ -45,20 +47,21 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@eslint/js": "^9.35.0",
-    "eslint": "^9.35.0",
+    "@eslint/js": "^9.37.0",
+    "eslint": "^9.37.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-hooks": "^7.0.0",
     "eslint-plugin-unused-imports": "^4.2.0",
     "husky": "^9.1.7",
+    "open": "^10.2.0",
     "prettier": "^3.6.2",
-    "prettier-plugin-organize-imports": "^4.2.0",
-    "typescript": "^5.9.2",
-    "typescript-eslint": "^8.44.0"
+    "prettier-plugin-organize-imports": "^4.3.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.1"
   },
   "dependencies": {
-    "@hono/node-server": "^1.19.4"
+    "@hono/node-server": "^1.19.5"
   }
 }

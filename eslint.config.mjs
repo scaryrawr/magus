@@ -18,10 +18,13 @@ export default tseslint.config(
   },
   reactPlugin.configs.flat.recommended,
   reactPlugin.configs.flat["jsx-runtime"],
-  reactHooks.configs["recommended-latest"],
   {
     plugins: {
+      "react-hooks": reactHooks,
       "unused-imports": unusedImports,
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
     },
   },
   eslintPluginPrettierRecommended,
@@ -67,6 +70,8 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/no-unsafe-call": "off",
       "@typescript-eslint/no-unsafe-member-access": "off",
+      "react-hooks/immutability": "off",
+      "react-hooks/set-state-in-effect": "off",
     },
   },
 );

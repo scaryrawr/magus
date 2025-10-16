@@ -8,7 +8,6 @@
     "ghcr.io/devcontainers/features/node:1": {}
   },
   "onCreateCommand": "${containerWorkspaceFolder}/.devcontainer/onCreateCommand.sh",
-  "postCreateCommand": "${containerWorkspaceFolder}/.devcontainer/postCreateCommand.sh",
   "customizations": {
     "vscode": {
       "extensions": ["oven.bun-vscode", "dbaeumer.vscode-eslint", "fill-labs.dependi", "esbenp.prettier-vscode"]

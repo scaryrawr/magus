@@ -17,9 +17,11 @@
     "cli-highlight": "^2.1.11",
     "figlet": "catalog:ui",
     "marked": "^16.2.1",
-    "marked-terminal": "^7.3.0"
+    "marked-terminal": "^7.3.0",
+    "strip-ansi": "^7.1.0"
   },
   "peerDependencies": {
+    "@types/react": "catalog:ts",
     "ink": "catalog:ui",
     "react": "catalog:ui",
     "typescript": "catalog:ts"

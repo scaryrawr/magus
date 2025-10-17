@@ -24,7 +24,7 @@ export const createProviders = () => {
           name: process.env.AZURE_RESOURCE_NAME,
         }
       : undefined;
-  const githubToken = process.env.GITHUB_TOKEN;
+  const githubToken = process.env.GITHUB_TOKEN ?? process.env.GH_COPILOT_TOKEN ?? process.env.GITHUB_COPILOT_TOKEN;
 
   const creators = [
     createLmStudioProvider,

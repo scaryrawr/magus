@@ -19,6 +19,19 @@ type ChatEvents = {
   agentProgress: [id: string, data: { step: number; elapsedMs: number }];
 };
 
+// Helper to check if response messages contain tool calls
+function hasToolCallsInMessages(messages: Array<{ role: string; content: unknown }>): boolean {
+  return messages.some((msg) => {
+    if (msg.role === "assistant") {
+      const content = msg.content;
+      if (Array.isArray(content)) {
+        return content.some((part: { type: string }) => part.type === "tool-call");
+      }
+    }
+    return false;
+  });
+}
+
 export const chatRouter = (state: ServerState) => {
   const router = new Hono();
   const emitter = new EventEmitter<ChatEvents>();
@@ -39,6 +52,10 @@ export const chatRouter = (state: ServerState) => {
       const MAX_STEPS = 50; // Maximum number of agent steps (iterations)
       const MAX_TIME_MS = 5 * 60 * 1000; // 5 minutes max execution time
       const startTime = Date.now();
+      const generateMessageId = createIdGenerator({
+        prefix: "msg",
+        size: 16,
+      });
 
       // Handle client disconnect
       c.req.raw.signal.addEventListener("abort", () => {
@@ -48,10 +65,7 @@ export const chatRouter = (state: ServerState) => {
       // Create the UI message stream with manual agent loop
       const stream = createUIMessageStream({
         originalMessages: uiMessages,
-        generateId: createIdGenerator({
-          prefix: "msg",
-          size: 16,
-        }),
+        generateId: generateMessageId,
         execute: async ({ writer }) => {
           // Track message history across iterations
           let currentMessages: CoreMessage[] = convertToModelMessages(uiMessages);
@@ -89,10 +103,7 @@ export const chatRouter = (state: ServerState) => {
               // Merge the result stream into the UI message stream
               const uiMessageStream = result.toUIMessageStream({
                 originalMessages: uiMessages,
-                generateMessageId: createIdGenerator({
-                  prefix: "msg",
-                  size: 16,
-                }),
+                generateMessageId,
               });
               writer.merge(uiMessageStream);
 
@@ -109,17 +120,7 @@ export const chatRouter = (state: ServerState) => {
               currentMessages = [...currentMessages, ...response.messages];
 
               // Check if we should continue (tool calls present)
-              const hasToolCalls = response.messages.some((msg) => {
-                if (msg.role === "assistant") {
-                  const content = msg.content;
-                  if (Array.isArray(content)) {
-                    return content.some((part) => part.type === "tool-call");
-                  }
-                }
-                return false;
-              });
-
-              if (!hasToolCalls || finishReason !== "tool-calls") {
+              if (!hasToolCallsInMessages(response.messages) || finishReason !== "tool-calls") {
                 console.log(
                   `Agent loop completed: no more tool calls (finish reason: ${finishReason}, steps: ${stepCount})`,
                 );

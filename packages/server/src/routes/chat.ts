@@ -49,8 +49,6 @@ export const chatRouter = (state: ServerState) => {
       const abortController = new AbortController();
 
       // Manual agent loop configuration
-      const MAX_STEPS = 50; // Maximum number of agent steps (iterations)
-      const MAX_TIME_MS = 5 * 60 * 1000; // 5 minutes max execution time
       const startTime = Date.now();
       const generateMessageId = createIdGenerator({
         prefix: "msg",
@@ -72,16 +70,10 @@ export const chatRouter = (state: ServerState) => {
           let stepCount = 0;
 
           try {
-            while (stepCount < MAX_STEPS) {
+            while (true) {
               const elapsedMs = Date.now() - startTime;
 
-              // Check time limit
-              if (elapsedMs > MAX_TIME_MS) {
-                console.log(`Agent loop stopped: time limit exceeded (${elapsedMs}ms)`);
-                break;
-              }
-
-              // Check abort signal
+              // Check abort signal (user interrupt or client disconnect)
               if (abortController.signal.aborted) {
                 console.log("Agent loop stopped: aborted by client");
                 break;
@@ -126,10 +118,6 @@ export const chatRouter = (state: ServerState) => {
                 );
                 break;
               }
-            }
-
-            if (stepCount >= MAX_STEPS) {
-              console.log(`Agent loop stopped: max steps reached (${MAX_STEPS})`);
             }
           } catch (error) {
             console.error("Agent loop error:", error);

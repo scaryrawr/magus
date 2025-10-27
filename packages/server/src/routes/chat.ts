@@ -75,7 +75,6 @@ export const chatRouter = (state: ServerState) => {
 
               // Check abort signal (user interrupt or client disconnect)
               if (abortController.signal.aborted) {
-                console.log("Agent loop stopped: aborted by client");
                 break;
               }
 
@@ -113,9 +112,6 @@ export const chatRouter = (state: ServerState) => {
 
               // Check if we should continue (tool calls present)
               if (!hasToolCallsInMessages(response.messages) || finishReason !== "tool-calls") {
-                console.log(
-                  `Agent loop completed: no more tool calls (finish reason: ${finishReason}, steps: ${stepCount})`,
-                );
                 break;
               }
             }

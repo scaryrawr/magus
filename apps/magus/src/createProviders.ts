@@ -1,7 +1,6 @@
 import { which } from "@magus/common-utils";
 import {
   createAzureProvider,
-  createGitHubProvider,
   createLmStudioProvider,
   createOllamaProvider,
   createOpenRouterProvider,
@@ -24,14 +23,12 @@ export const createProviders = () => {
           name: process.env.AZURE_RESOURCE_NAME,
         }
       : undefined;
-  const githubToken = process.env.GITHUB_TOKEN ?? process.env.GH_COPILOT_TOKEN ?? process.env.GITHUB_COPILOT_TOKEN;
 
   const creators = [
     createLmStudioProvider,
     createOllamaProvider,
     openrouterApiKey ? () => createOpenRouterProvider(openrouterApiKey) : undefined,
     azureOptions ? () => createAzureProvider(azureOptions) : undefined,
-    githubToken ? () => createGitHubProvider({ oauthToken: githubToken }) : undefined,
   ].filter(isDefined);
 
   return creators.reduce<MagusProvider>((acc, create) => {

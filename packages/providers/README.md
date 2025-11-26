@@ -5,7 +5,6 @@ LLM provider integration layer. Each provider returns a lightweight object expos
 ## Implemented Providers
 
 - Azure (Azure AI Studio / OpenAI-compatible) with reasoning tag extraction middleware
-- GitHub Models
 - LM Studio (local inference)
 - Ollama (local models)
 - OpenRouter (multi-provider gateway)

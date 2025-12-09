@@ -1,7 +1,7 @@
 import { ModelInfoSchema, type MagusProvider, type ModelInfo } from "@magus/providers";
 import { type LanguageModel } from "ai";
 import { beforeEach, describe, expect, it } from "bun:test";
-import { Hono } from "hono";
+import { Elysia, type AnyElysia } from "elysia";
 import { ObservableServerState } from "../ObservableServerState";
 import { ModelSelectSchema } from "../types";
 import { modelsRouter } from "./models";
@@ -36,12 +36,10 @@ function createMockProvider(name: string, mockModels: ModelInfo[]) {
 }
 
 // Test setup
-let app: Hono;
+let app: AnyElysia;
 let mockProviders: MagusProvider;
 
 beforeEach(() => {
-  app = new Hono();
-
   mockProviders = {
     lmstudio: createMockProvider("lmstudio", [
       {
@@ -71,13 +69,18 @@ beforeEach(() => {
     systemPrompt: undefined,
   });
 
-  app.route("/v0", modelsRouter(state));
+  app = new Elysia({ prefix: "/v0" }).use(modelsRouter(state));
 });
+
+// Helper to make requests to Elysia app
+async function request(app: AnyElysia, path: string, options?: RequestInit) {
+  return app.handle(new Request(`http://localhost${path}`, options));
+}
 
 describe("Models Endpoints", () => {
   describe("GET /v0/models", () => {
     it("should return all models from all providers", async () => {
-      const res = await app.request("/v0/models");
+      const res = await request(app, "/v0/models");
 
       expect(res.status).toBe(200);
       const models = await res.json();
@@ -90,7 +93,6 @@ describe("Models Endpoints", () => {
 
     it("should return empty array when no providers have models", async () => {
       // Create app with providers that have no models
-      const emptyApp = new Hono();
       const emptyProviders: MagusProvider = {
         empty: createMockProvider("empty", []),
       };
@@ -103,9 +105,9 @@ describe("Models Endpoints", () => {
         systemPrompt: undefined,
       });
 
-      emptyApp.route("/v0", modelsRouter(emptyState));
+      const emptyApp = new Elysia({ prefix: "/v0" }).use(modelsRouter(emptyState));
 
-      const res = await emptyApp.request("/v0/models");
+      const res = await request(emptyApp, "/v0/models");
 
       expect(res.status).toBe(200);
       const models = await res.json();
@@ -115,7 +117,7 @@ describe("Models Endpoints", () => {
 
   describe("GET /v0/model/:provider/:id", () => {
     it("should return specific model details", async () => {
-      const res = await app.request("/v0/model/lmstudio/gpt-4o-mini");
+      const res = await request(app, "/v0/model/lmstudio/gpt-4o-mini");
 
       expect(res.status).toBe(200);
       const model = await res.json();
@@ -130,7 +132,7 @@ describe("Models Endpoints", () => {
     });
 
     it("should return 404 for unknown provider", async () => {
-      const res = await app.request("/v0/model/unknown/some-model");
+      const res = await request(app, "/v0/model/unknown/some-model");
 
       expect(res.status).toBe(404);
       const text = await res.text();
@@ -138,7 +140,7 @@ describe("Models Endpoints", () => {
     });
 
     it("should return 404 for unknown model", async () => {
-      const res = await app.request("/v0/model/lmstudio/unknown-model");
+      const res = await request(app, "/v0/model/lmstudio/unknown-model");
 
       expect(res.status).toBe(404);
       const text = await res.text();
@@ -146,8 +148,8 @@ describe("Models Endpoints", () => {
     });
 
     it("should handle models from different providers", async () => {
-      const res1 = await app.request("/v0/model/lmstudio/gpt-4o-mini");
-      const res2 = await app.request("/v0/model/ollama/mistral-7b");
+      const res1 = await request(app, "/v0/model/lmstudio/gpt-4o-mini");
+      const res2 = await request(app, "/v0/model/ollama/mistral-7b");
 
       expect(res1.status).toBe(200);
       expect(res2.status).toBe(200);
@@ -165,7 +167,7 @@ describe("Models Endpoints", () => {
 
   describe("GET /v0/model", () => {
     it("should return current selected model", async () => {
-      const res = await app.request("/v0/model");
+      const res = await request(app, "/v0/model");
 
       expect(res.status).toBe(200);
       const model = ModelSelectSchema.parse(await res.json());
@@ -178,7 +180,6 @@ describe("Models Endpoints", () => {
 
     it("should return 500 when model is a string", async () => {
       // Create app with string model
-      const freshApp = new Hono();
       const freshState = new ObservableServerState({
         providers: { lmstudio: mockProviders.lmstudio },
         model: "string-model", // This will trigger the error case
@@ -187,9 +188,9 @@ describe("Models Endpoints", () => {
         systemPrompt: undefined,
       });
 
-      freshApp.route("/v0", modelsRouter(freshState));
+      const freshApp = new Elysia({ prefix: "/v0" }).use(modelsRouter(freshState));
 
-      const res = await freshApp.request("/v0/model");
+      const res = await request(freshApp, "/v0/model");
       expect(res.status).toBe(500);
     });
   });
@@ -197,7 +198,6 @@ describe("Models Endpoints", () => {
   describe("PUT /v0/model", () => {
     it("should successfully change the current model", async () => {
       // Create a fresh app and state for this test to avoid interference
-      const freshApp = new Hono();
       const freshState = new ObservableServerState({
         providers: mockProviders,
         model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
@@ -206,14 +206,14 @@ describe("Models Endpoints", () => {
         systemPrompt: undefined,
       });
 
-      freshApp.route("/v0", modelsRouter(freshState));
+      const freshApp = new Elysia({ prefix: "/v0" }).use(modelsRouter(freshState));
 
       const newSelection = {
         provider: "ollama",
         id: "mistral-7b",
       };
 
-      const res = await freshApp.request("/v0/model", {
+      const res = await request(freshApp, "/v0/model", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -224,7 +224,7 @@ describe("Models Endpoints", () => {
       expect(res.status).toBe(200);
 
       // Verify the model was changed by checking the GET endpoint
-      const getRes = await freshApp.request("/v0/model");
+      const getRes = await request(freshApp, "/v0/model");
       expect(getRes.status).toBe(200);
 
       const currentModel = await getRes.json();
@@ -235,7 +235,7 @@ describe("Models Endpoints", () => {
     });
 
     it("should return 404 for unknown provider", async () => {
-      const res = await app.request("/v0/model", {
+      const res = await request(app, "/v0/model", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -252,7 +252,7 @@ describe("Models Endpoints", () => {
     });
 
     it("should validate request body against schema", async () => {
-      const res = await app.request("/v0/model", {
+      const res = await request(app, "/v0/model", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -263,13 +263,12 @@ describe("Models Endpoints", () => {
         }),
       });
 
-      // This should trigger a Zod validation error, which becomes a 500
-      expect([400, 500]).toContain(res.status);
+      // This should trigger a validation error
+      expect([400, 422, 500]).toContain(res.status);
     });
 
     it("should handle model selection that doesn't exist in provider", async () => {
       // Create a fresh app and state for this test
-      const freshApp = new Hono();
       const freshState = new ObservableServerState({
         providers: { lmstudio: mockProviders.lmstudio },
         model: createMockLanguageModel("gpt-4o-mini", "lmstudio"),
@@ -277,9 +276,9 @@ describe("Models Endpoints", () => {
         chatStore: undefined!,
         systemPrompt: undefined,
       });
-      freshApp.route("/v0", modelsRouter(freshState));
+      const freshApp = new Elysia({ prefix: "/v0" }).use(modelsRouter(freshState));
 
-      const res = await freshApp.request("/v0/model", {
+      const res = await request(freshApp, "/v0/model", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -293,7 +292,7 @@ describe("Models Endpoints", () => {
       expect(res.status).toBe(200);
 
       // Verify the model was changed by checking the GET endpoint
-      const getRes = await freshApp.request("/v0/model");
+      const getRes = await request(freshApp, "/v0/model");
       expect(getRes.status).toBe(200);
 
       const currentModel = await getRes.json();

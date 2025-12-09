@@ -92,12 +92,11 @@ export const ModelProvider: React.FC<ModelProviderProps> = ({ children }) => {
   const refreshModels = useCallback(async () => {
     dispatch({ type: "LOAD_MODELS_START" });
     try {
-      const res = await client.v0.models.$get();
-      if (!res.ok) {
-        throw new Error(`Failed to fetch models: ${res.status} ${res.statusText}`);
+      const res = await client.v0.models.get();
+      if (res.error) {
+        throw new Error(`Failed to fetch models: ${res.status}`);
       }
-      const models = await res.json();
-      dispatch({ type: "LOAD_MODELS_SUCCESS", payload: models });
+      dispatch({ type: "LOAD_MODELS_SUCCESS", payload: res.data });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       dispatch({ type: "LOAD_MODELS_ERROR", payload: message });
@@ -109,18 +108,16 @@ export const ModelProvider: React.FC<ModelProviderProps> = ({ children }) => {
     async (model: ModelSelect) => {
       dispatch({ type: "SELECT_MODEL_START" });
       try {
-        const res = await client.v0.model.$put({ json: model });
-        if (!res.ok) {
-          throw new Error(`Failed to select model: ${res.status} ${res.statusText}`);
+        const res = await client.v0.model.put(model);
+        if (res.error) {
+          throw new Error(`Failed to select model: ${res.status}`);
         }
 
         // Fetch the full model info after successful selection
-        const modelRes = await client.v0.model[":provider"][":id"].$get({
-          param: { provider: model.provider, id: model.id },
-        });
+        const modelRes = await client.v0.model({ provider: model.provider })({ id: model.id }).get();
 
-        if (modelRes.ok) {
-          const modelInfo = await modelRes.json();
+        if (!modelRes.error) {
+          const modelInfo = ModelInfoSchema.parse(modelRes.data);
           dispatch({ type: "SELECT_MODEL_SUCCESS", payload: modelInfo });
         } else {
           // Fallback to basic info if detailed fetch fails

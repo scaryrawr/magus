@@ -1,9 +1,9 @@
-import type { MagusClient } from "@magus/server";
 import Fuse from "fuse.js";
 import SelectInput from "ink-select-input";
 import { useCallback, useMemo } from "react";
 import { useLoaderData, useNavigate, type RouteObject } from "react-router";
 import { useInputValue, useSetInputValue, useStackedRouteInput } from "../contexts";
+import type { MagusClient } from "../createMagusServer";
 
 type ChatSummary = { id: string; title?: string };
 
@@ -61,13 +61,12 @@ export const createChatsRoute = (client: MagusClient) => {
   return {
     path: "chats",
     loader: async (): Promise<ChatSummary[]> => {
-      const res = await client.v0.chats.$get();
-      if (!res.ok) {
-        throw new Error(`Failed to fetch chats: ${res.status} ${res.statusText}`);
+      const res = await client.v0.chats.get();
+      if (res.error) {
+        throw new Error(`Failed to fetch chats: ${res.status}`);
       }
 
-      const data = await res.json();
-      return data;
+      return res.data;
     },
     Component: Chats,
   } as const satisfies RouteObject;

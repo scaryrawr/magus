@@ -1,16 +1,11 @@
-import { Hono } from "hono";
+import { Elysia } from "elysia";
 import { type ServerState } from "../types";
-import type { RouterFactory } from "./types";
 
 export const toolsRouter = (state: ServerState) => {
-  const router = new Hono();
-  return router.get("/tools", (c) => {
+  return new Elysia().get("/tools", () => {
     if (!state.tools) {
-      return c.json([]);
+      return [];
     }
-
-    return c.json(state.tools);
+    return state.tools;
   });
 };
-
-toolsRouter satisfies RouterFactory<ReturnType<typeof toolsRouter>>;

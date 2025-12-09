@@ -199,7 +199,7 @@ describe("LspManager", () => {
     await waitFor(() =>
       Boolean(
         captures.ts?.notifications.some((n) => n.method === "textDocument/didChange") &&
-          captures.ts?.notifications.some((n) => n.method === "textDocument/didSave"),
+        captures.ts?.notifications.some((n) => n.method === "textDocument/didSave"),
       ),
     );
     const methods = captures.ts?.notifications.map((n) => n.method) || [];

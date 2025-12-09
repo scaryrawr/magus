@@ -1,5 +1,5 @@
-import type { MagusClient } from "@magus/server";
 import React, { createContext, useContext, useEffect, type ReactNode } from "react";
+import type { MagusClient } from "../createMagusServer";
 
 // Generic server interface to avoid dependency on specific runtime
 interface ServerLike {

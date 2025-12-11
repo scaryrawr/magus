@@ -32,7 +32,10 @@ export const createServer = <MProviders extends MagusProvider = MagusProvider>(
 
       return {
         get url() {
-          return server.server?.url ?? new URL("http://localhost:0");
+          if (!server.server?.url) {
+            throw new Error("Server is not listening: no URL available.");
+          }
+          return server.server.url;
         },
         get port() {
           return server.server?.port;

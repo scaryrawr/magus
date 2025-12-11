@@ -86,14 +86,25 @@ export const modelsRouter = (state: ObservableServerState) => {
       },
     )
     .get("/model/sse", () => {
-      let cleanup: (() => void) | undefined;
+      // Cleanup must be defined at outer scope before stream starts
+      let modelChangeCallback: ((value: LanguageModel | undefined) => void) | undefined;
+      let keepAlive: ReturnType<typeof setInterval> | undefined;
+
+      const cleanup = () => {
+        if (modelChangeCallback) {
+          state.off("change:model", modelChangeCallback);
+        }
+        if (keepAlive) {
+          clearInterval(keepAlive);
+        }
+      };
 
       return new Response(
         new ReadableStream({
           start(controller) {
             const encoder = new TextEncoder();
 
-            const modelChangeCallback = (value: LanguageModel | undefined) => {
+            modelChangeCallback = (value: LanguageModel | undefined) => {
               const data = langueModelToModelSelect(value);
               if (!data) return;
               const provider = state.providers[data?.provider];
@@ -113,17 +124,12 @@ export const modelsRouter = (state: ObservableServerState) => {
             state.on("change:model", modelChangeCallback);
 
             // Keep-alive interval
-            const keepAlive = setInterval(() => {
+            keepAlive = setInterval(() => {
               controller.enqueue(encoder.encode(": keepalive\n\n"));
             }, 1000);
-
-            cleanup = () => {
-              state.off("change:model", modelChangeCallback);
-              clearInterval(keepAlive);
-            };
           },
           cancel() {
-            cleanup?.();
+            cleanup();
           },
         }),
         {

@@ -81,14 +81,25 @@ export const chatRouter = (state: ServerState) => {
     })
     .get("/chat/:chatId/sse", ({ params }) => {
       const chatId = params.chatId;
-      let cleanup: (() => void) | undefined;
+      // Cleanup must be defined at outer scope before stream starts
+      let onUsage: ((emittedId: string, usage: LanguageModelUsage) => void) | undefined;
+      let keepAlive: ReturnType<typeof setInterval> | undefined;
+
+      const cleanup = () => {
+        if (onUsage) {
+          emitter.off("usage", onUsage);
+        }
+        if (keepAlive) {
+          clearInterval(keepAlive);
+        }
+      };
 
       return new Response(
         new ReadableStream({
           start(controller) {
             const encoder = new TextEncoder();
 
-            const onUsage = (emittedId: string, usage: LanguageModelUsage) => {
+            onUsage = (emittedId: string, usage: LanguageModelUsage) => {
               if (emittedId === chatId) {
                 controller.enqueue(encoder.encode(`event: usage\ndata: ${JSON.stringify(usage)}\n\n`));
               }
@@ -97,17 +108,12 @@ export const chatRouter = (state: ServerState) => {
             emitter.on("usage", onUsage);
 
             // Keep-alive interval
-            const keepAlive = setInterval(() => {
+            keepAlive = setInterval(() => {
               controller.enqueue(encoder.encode(": keepalive\n\n"));
             }, 1000);
-
-            cleanup = () => {
-              emitter.off("usage", onUsage);
-              clearInterval(keepAlive);
-            };
           },
           cancel() {
-            cleanup?.();
+            cleanup();
           },
         }),
         {

@@ -1,55 +1,69 @@
-import { zValidator } from "@hono/zod-validator";
-import { Hono } from "hono";
-import z from "zod";
+import { Elysia, t } from "elysia";
 import type { ServerState } from "../types";
-import type { RouterFactory } from "./types";
 
 export const promptRouter = (state: ServerState) => {
-  const router = new Hono();
-  return router
-    .get("/prompt", (c) => {
+  return new Elysia()
+    .get("/prompt", ({ set }) => {
       if (!state.prompt) {
-        return c.text("No prompt set available", 404);
+        set.status = 404;
+        return "No prompt set available";
       }
-
-      return c.text(state.prompt, 200);
+      return state.prompt;
     })
-    .get("/systemPrompt", (c) => {
+    .get("/systemPrompt", ({ set }) => {
       if (!state.systemPrompt) {
-        return c.text("No system prompt set", 404);
+        set.status = 404;
+        return "No system prompt set";
       }
-
-      return c.text(state.systemPrompt, 200);
+      return state.systemPrompt;
     })
-    .put("/systemPrompt", zValidator("json", z.object({ systemPrompt: z.string() })), (c) => {
-      const { systemPrompt } = c.req.valid("json");
-      state.systemPrompt = systemPrompt;
-
-      return c.text("System prompt updated", 200);
-    })
-    .get("/instructions", (c) => {
+    .put(
+      "/systemPrompt",
+      ({ body }) => {
+        state.systemPrompt = body.systemPrompt;
+        return "System prompt updated";
+      },
+      {
+        body: t.Object({
+          systemPrompt: t.String(),
+        }),
+      },
+    )
+    .get("/instructions", ({ set }) => {
       if (!state.instructions) {
-        return c.text("No instructions set", 404);
+        set.status = 404;
+        return "No instructions set";
       }
-
-      return c.json(state.instructions, 200);
+      return state.instructions;
     })
-    .patch("/instructions", zValidator("json", z.object({ instruction: z.string() })), (c) => {
-      const { instruction } = c.req.valid("json");
-      const instructions = state.instructions ?? [];
-      if (instructions.includes(instruction)) {
-        return c.text("Instruction already exists", 400);
-      }
-
-      state.instructions = [...(state.instructions ?? []), instruction];
-      return c.text("Instructions updated", 200);
-    })
-    .delete("/instructions", zValidator("json", z.object({ instruction: z.string() })), (c) => {
-      const { instruction } = c.req.valid("json");
-      const instructions = state.instructions ?? [];
-      state.instructions = instructions.filter((i) => i !== instruction);
-      return c.text("Instruction deleted", 200);
-    });
+    .patch(
+      "/instructions",
+      ({ body, set }) => {
+        const instructions = state.instructions ?? [];
+        if (instructions.includes(body.instruction)) {
+          set.status = 400;
+          return "Instruction already exists";
+        }
+        state.instructions = [...(state.instructions ?? []), body.instruction];
+        return "Instructions updated";
+      },
+      {
+        body: t.Object({
+          instruction: t.String(),
+        }),
+      },
+    )
+    .delete(
+      "/instructions",
+      ({ body }) => {
+        const instructions = state.instructions ?? [];
+        state.instructions = instructions.filter((i) => i !== body.instruction);
+        return "Instruction deleted";
+      },
+      {
+        body: t.Object({
+          instruction: t.String(),
+        }),
+      },
+    );
 };
-
-promptRouter satisfies RouterFactory<ReturnType<typeof promptRouter>>;

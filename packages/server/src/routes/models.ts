@@ -1,16 +1,12 @@
-import { zValidator } from "@hono/zod-validator";
 import type { LanguageModel } from "ai";
-import { Hono } from "hono";
-import { streamSSE } from "hono/streaming";
+import { Elysia, t } from "elysia";
 import type { ObservableServerState } from "../ObservableServerState";
-import { ModelSelectSchema, type ModelSelect } from "../types";
+import type { ModelSelect } from "../types";
 import { langueModelToModelSelect } from "../utils";
-import type { RouterFactory } from "./types";
 
 export const modelsRouter = (state: ObservableServerState) => {
-  const router = new Hono();
-  return router
-    .get("/models", async (c) => {
+  return new Elysia()
+    .get("/models", async () => {
       const models = (
         await Promise.all(
           Object.entries(state.providers).map(async ([name, provider]) => {
@@ -28,89 +24,121 @@ export const modelsRouter = (state: ObservableServerState) => {
         )
       ).flat();
 
-      return c.json(models);
+      return models;
     })
-    .get("/model", (c) => {
+    .get("/model", ({ set }) => {
       if (!state.model) {
-        return c.text("No model selected", 404);
+        set.status = 404;
+        return "No model selected";
       }
 
       const model = state.model;
       if (typeof model === "string") {
-        return c.text("Invalid model selected", 500);
+        set.status = 500;
+        return "Invalid model selected";
       }
 
-      return c.json<ModelSelect>({
+      return {
         id: model.modelId,
         provider: model.provider,
-      });
+      } satisfies ModelSelect;
     })
-    .get("/model/:provider/:id", async (c) => {
-      const providerId = c.req.param("provider");
-      const modelId = c.req.param("id");
-      const provider = state.providers[providerId];
+    .get("/model/:provider/:id", async ({ params, set }) => {
+      const provider = state.providers[params.provider];
       if (!provider) {
-        return c.text(`Provider: ${providerId} not found`, 404);
+        set.status = 404;
+        return `Provider: ${params.provider} not found`;
       }
       try {
         const models = await provider.models();
-        const model = models.find((m) => m.id === modelId);
+        const model = models.find((m) => m.id === params.id);
         if (!model) {
-          return c.text(`Model: ${modelId} not found`, 404);
+          set.status = 404;
+          return `Model: ${params.id} not found`;
         }
-        return c.json(model);
+        return model;
       } catch {
-        return c.text(`Provider: ${providerId} not found`, 404);
+        set.status = 404;
+        return `Provider: ${params.provider} not found`;
       }
     })
-    .put("/model", zValidator("json", ModelSelectSchema), (c) => {
-      const selection: ModelSelect = c.req.valid("json");
-      const provider = state.providers[selection.provider];
-      if (!provider) {
-        return c.text(`Provider: ${selection.provider} not found`, 404);
-      }
-      try {
-        state.model = provider.model(selection.id);
-      } catch {
-        return c.text(`Provider: ${selection.provider} not found`, 404);
-      }
-      return c.text("", 200);
-    })
-    .get("/model/sse", (c) => {
-      return streamSSE(c, async (stream) => {
-        const modelChangeCallback = (value: LanguageModel | undefined) => {
-          const data = langueModelToModelSelect(value);
-          if (!data) return;
-          const provider = state.providers[data?.provider];
-          provider
-            .models()
-            .then((models) => {
-              const model = models.find((m) => m.id === data.id);
-              if (!model) return;
+    .put(
+      "/model",
+      ({ body, set }) => {
+        const provider = state.providers[body.provider];
+        if (!provider) {
+          set.status = 404;
+          return `Provider: ${body.provider} not found`;
+        }
+        try {
+          state.model = provider.model(body.id);
+        } catch {
+          set.status = 404;
+          return `Provider: ${body.provider} not found`;
+        }
+        return "";
+      },
+      {
+        body: t.Object({
+          provider: t.String(),
+          id: t.String(),
+        }),
+      },
+    )
+    .get("/model/sse", () => {
+      // Cleanup must be defined at outer scope before stream starts
+      let modelChangeCallback: ((value: LanguageModel | undefined) => void) | undefined;
+      let keepAlive: ReturnType<typeof setInterval> | undefined;
 
-              void stream.writeSSE({
-                data: JSON.stringify(model),
-                event: "model-change",
-              });
-            })
-            .catch(() => {
-              console.error(`Failed to fetch models for provider ${data?.provider}`);
-            });
-        };
-
-        state.on("change:model", modelChangeCallback);
-
-        // Clean up listener when client disconnects
-        stream.onAbort(() => {
+      const cleanup = () => {
+        if (modelChangeCallback) {
           state.off("change:model", modelChangeCallback);
-        });
-
-        // Keep the connection alive
-        while (true) {
-          await stream.sleep(1000);
         }
-      });
+        if (keepAlive) {
+          clearInterval(keepAlive);
+        }
+      };
+
+      return new Response(
+        new ReadableStream({
+          start(controller) {
+            const encoder = new TextEncoder();
+
+            modelChangeCallback = (value: LanguageModel | undefined) => {
+              const data = langueModelToModelSelect(value);
+              if (!data) return;
+              const provider = state.providers[data?.provider];
+              provider
+                .models()
+                .then((models) => {
+                  const model = models.find((m) => m.id === data.id);
+                  if (!model) return;
+
+                  controller.enqueue(encoder.encode(`event: model-change\ndata: ${JSON.stringify(model)}\n\n`));
+                })
+                .catch(() => {
+                  console.error(`Failed to fetch models for provider ${data?.provider}`);
+                });
+            };
+
+            state.on("change:model", modelChangeCallback);
+
+            // Keep-alive interval
+            keepAlive = setInterval(() => {
+              controller.enqueue(encoder.encode(": keepalive\n\n"));
+            }, 1000);
+          },
+          cancel() {
+            cleanup();
+          },
+        }),
+        {
+          headers: {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            Connection: "keep-alive",
+          },
+        },
+      );
     });
 };
-
-modelsRouter satisfies RouterFactory<ReturnType<typeof modelsRouter>>;

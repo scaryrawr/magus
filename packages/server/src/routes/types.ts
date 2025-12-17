@@ -1,4 +1,4 @@
-import type { Hono } from "hono";
+import type { Elysia } from "elysia";
 import type { ObservableServerState } from "../ObservableServerState";
 
-export type RouterFactory<THono extends Hono = Hono> = (state: ObservableServerState) => THono;
+export type RouterFactory<TElysia extends Elysia = Elysia> = (state: ObservableServerState) => TElysia;

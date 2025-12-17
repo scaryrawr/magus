@@ -1,11 +1,12 @@
 import { useChat } from "@ai-sdk/react";
 import { useStdoutDimensions } from "@magus/react";
-import { type MagusChat, type MagusClient } from "@magus/server";
+import { MagusChatSchema, type MagusChat } from "@magus/server";
 import { DefaultChatTransport, type ChatStatus } from "ai";
 import { Box, Static, useInput } from "ink";
 import { useCallback, useEffect } from "react";
 import { useLoaderData, useParams, type RouteObject } from "react-router";
 import { useServerContext, useSetChatId, useSetChatStatus, useStackedRouteInput } from "../../contexts";
+import type { MagusClient } from "../../createMagusServer";
 import { useSafeLocation } from "../../hooks";
 import { ChatBox } from "./chatbox";
 
@@ -99,15 +100,13 @@ export const createChatRoute = (client: MagusClient) => {
         throw new Error("chatId is required");
       }
 
-      const res = await client.v0.chat[":chatId"].load.$get({
-        param: { chatId },
-      });
+      const res = await client.v0.chat({ chatId }).load.get();
 
-      if (!res.ok) {
-        throw new Error(`Failed to load chat: ${res.status} ${res.statusText}`);
+      if (res.error) {
+        throw new Error(`Failed to load chat: ${res.status}`);
       }
 
-      return (await res.json()) as MagusChat;
+      return MagusChatSchema.parse(res.data) as MagusChat;
     },
   } as const satisfies RouteObject;
 };

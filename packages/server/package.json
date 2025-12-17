@@ -9,11 +9,10 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@hono/node-server": "^1.19.4",
-    "@hono/zod-validator": "^0.7.2",
+    "@elysiajs/eden": "^1.4.5",
     "@magus/providers": "workspace:*",
     "ai": "catalog:",
-    "hono": "catalog:"
+    "elysia": "^1.4.18"
   },
   "devDependencies": {
     "@types/bun": "catalog:ts"

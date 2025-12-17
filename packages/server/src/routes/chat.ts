@@ -1,100 +1,128 @@
 import { type LanguageModelUsage, type UIMessage, convertToModelMessages, createIdGenerator, streamText } from "ai";
-import { Hono } from "hono";
-import { streamSSE } from "hono/streaming";
+import { Elysia, t } from "elysia";
 import { EventEmitter } from "node:events";
 import type { ServerState } from "../types";
-import type { RouterFactory } from "./types";
 
 type ChatEvents = {
   usage: [id: string, usage: LanguageModelUsage];
 };
 
 export const chatRouter = (state: ServerState) => {
-  const router = new Hono();
   const emitter = new EventEmitter<ChatEvents>();
-  return router
-    .post("/chat", async (c) => {
-      if (!state.model) {
-        return c.text("Please select a model first", 500);
-      }
 
-      const { message, id }: { message: UIMessage; id: string } = await c.req.json();
-      const { messages: previousMessages, title } = (await state.chatStore.loadChat(id)) ?? { messages: [] };
-      const tools = state.tools;
+  return new Elysia()
+    .post(
+      "/chat",
+      async ({ body }) => {
+        if (!state.model) {
+          return new Response("Please select a model first", { status: 500 });
+        }
 
-      const messages = [...previousMessages, message];
-      const result = streamText({
-        messages: convertToModelMessages(messages),
-        model: state.model,
-        tools,
-        stopWhen: ({ steps }) => steps.length > 9000,
-        system: state.prompt,
-        onStepFinish: ({ usage }) => {
-          emitter.emit("usage", id, { ...usage });
-        },
-        onFinish: ({ totalUsage }) => {
-          emitter.emit("usage", id, { ...totalUsage });
-        },
-      });
+        const id = body.id;
+        const message = body.message as UIMessage;
+        const { messages: previousMessages, title } = (await state.chatStore.loadChat(id)) ?? { messages: [] };
+        const tools = state.tools;
 
-      return result.toUIMessageStreamResponse({
-        originalMessages: messages,
-        generateMessageId: createIdGenerator({
-          prefix: "msg",
-          size: 16,
-        }),
-        onFinish: async ({ messages }) => {
-          let newTitle = title;
-          if (!newTitle) {
-            const firstUserMessage = messages.find((m) => m.role === "user");
-            if (firstUserMessage) {
-              newTitle = firstUserMessage.parts.find((p) => p.type === "text")?.text.slice(0, 70);
-            }
-          }
-          await state.chatStore.saveChat(id, { title: newTitle, messages });
-        },
-      });
-    })
-    .get("chats", async (c) => {
-      const chats = await state.chatStore.getChats();
-      return c.json(chats);
-    })
-    .post("/chat/new", async (c) => {
-      const chatId = await state.chatStore.createChat();
-      return c.json({ chatId });
-    })
-    .get("/chat/:chatId/load", async (c) => {
-      const chatId = c.req.param("chatId");
-      const chat = await state.chatStore.loadChat(chatId);
-      if (!chat) {
-        return c.text("Chat not found", 404);
-      }
-
-      return c.json(chat);
-    })
-    .get("/chat/:chatId/sse", (c) => {
-      const chatId = c.req.param("chatId");
-      return streamSSE(c, async (stream) => {
-        const onUsage = (emittedId: string, usage: LanguageModelUsage) => {
-          if (emittedId === chatId) {
-            void stream.writeSSE({
-              event: "usage",
-              data: JSON.stringify(usage),
-            });
-          }
-        };
-
-        emitter.on("usage", onUsage);
-        stream.onAbort(() => {
-          emitter.off("usage", onUsage);
+        const messages = [...previousMessages, message];
+        const result = streamText({
+          messages: convertToModelMessages(messages),
+          model: state.model,
+          tools,
+          stopWhen: ({ steps }) => steps.length > 9000,
+          system: state.prompt,
+          onStepFinish: ({ usage }) => {
+            emitter.emit("usage", id, { ...usage });
+          },
+          onFinish: ({ totalUsage }) => {
+            emitter.emit("usage", id, { ...totalUsage });
+          },
         });
 
-        // Keep the connection alive
-        while (true) {
-          await stream.sleep(1000);
+        return result.toUIMessageStreamResponse({
+          originalMessages: messages,
+          generateMessageId: createIdGenerator({
+            prefix: "msg",
+            size: 16,
+          }),
+          onFinish: async ({ messages }) => {
+            let newTitle = title;
+            if (!newTitle) {
+              const firstUserMessage = messages.find((m) => m.role === "user");
+              if (firstUserMessage) {
+                newTitle = firstUserMessage.parts.find((p) => p.type === "text")?.text.slice(0, 70);
+              }
+            }
+            await state.chatStore.saveChat(id, { title: newTitle, messages });
+          },
+        });
+      },
+      {
+        body: t.Object({
+          message: t.Unknown(),
+          id: t.String(),
+        }),
+      },
+    )
+    .get("/chats", async () => {
+      const chats = await state.chatStore.getChats();
+      return chats;
+    })
+    .post("/chat/new", async () => {
+      const chatId = await state.chatStore.createChat();
+      return { chatId };
+    })
+    .get("/chat/:chatId/load", async ({ params, set }) => {
+      const chat = await state.chatStore.loadChat(params.chatId);
+      if (!chat) {
+        set.status = 404;
+        return "Chat not found";
+      }
+      return chat;
+    })
+    .get("/chat/:chatId/sse", ({ params }) => {
+      const chatId = params.chatId;
+      // Cleanup must be defined at outer scope before stream starts
+      let onUsage: ((emittedId: string, usage: LanguageModelUsage) => void) | undefined;
+      let keepAlive: ReturnType<typeof setInterval> | undefined;
+
+      const cleanup = () => {
+        if (onUsage) {
+          emitter.off("usage", onUsage);
         }
-      });
+        if (keepAlive) {
+          clearInterval(keepAlive);
+        }
+      };
+
+      return new Response(
+        new ReadableStream({
+          start(controller) {
+            const encoder = new TextEncoder();
+
+            onUsage = (emittedId: string, usage: LanguageModelUsage) => {
+              if (emittedId === chatId) {
+                controller.enqueue(encoder.encode(`event: usage\ndata: ${JSON.stringify(usage)}\n\n`));
+              }
+            };
+
+            emitter.on("usage", onUsage);
+
+            // Keep-alive interval
+            keepAlive = setInterval(() => {
+              controller.enqueue(encoder.encode(": keepalive\n\n"));
+            }, 1000);
+          },
+          cancel() {
+            cleanup();
+          },
+        }),
+        {
+          headers: {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            Connection: "keep-alive",
+          },
+        },
+      );
     });
 };
-
-chatRouter satisfies RouterFactory<ReturnType<typeof chatRouter>>;

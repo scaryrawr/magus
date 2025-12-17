@@ -1,7 +1,5 @@
-import { serve } from "@hono/node-server";
 import type { MagusProvider } from "@magus/providers";
-import { Hono } from "hono";
-import type { hc } from "hono/client";
+import { Elysia } from "elysia";
 import { ObservableServerState } from "./ObservableServerState";
 import { chatRouter, modelsRouter, promptRouter, toolsRouter } from "./routes";
 import type { ServerStateConfig } from "./types";
@@ -21,64 +19,36 @@ export const createServer = <MProviders extends MagusProvider = MagusProvider>(
     ...config,
   });
 
-  const app = new Hono();
-  const routes = app
-    .route("/v0", chatRouter(state))
-    .route("/v0", modelsRouter(state))
-    .route("/v0", promptRouter(state))
-    .route("/v0", toolsRouter(state));
+  const app = new Elysia({ prefix: "/v0" })
+    .use(chatRouter(state))
+    .use(modelsRouter(state))
+    .use(promptRouter(state))
+    .use(toolsRouter(state));
 
   return {
-    app: routes,
+    app,
     listen: (): BunCompatibleServer => {
-      // Use the @hono/node-server serve function
-      const nodeServer = serve({
-        fetch: app.fetch,
-        port: 0, // Use ephemeral port like Bun
-      });
+      const server = app.listen(0);
 
-      // Get the address info from the Node.js server with proper type checking
-      const serverAddress = nodeServer.address();
-
-      if (!serverAddress) {
-        throw new Error("Server failed to bind to a port");
-      }
-
-      if (typeof serverAddress === "string") {
-        throw new Error("Unix socket servers are not supported");
-      }
-
-      // Now we know serverAddress is AddressInfo
-      const addressInfo = serverAddress;
-
-      // Create a Bun-compatible interface
-      const compatibleServer: BunCompatibleServer = {
+      return {
         get url() {
-          return new URL(`http://${addressInfo.address === "::" ? "[::1]" : addressInfo.address}:${addressInfo.port}`);
+          if (!server.server?.url) {
+            throw new Error("Server is not listening: no URL available.");
+          }
+          return server.server.url;
         },
         get port() {
-          return addressInfo?.port;
+          return server.server?.port;
         },
         get hostname() {
-          return addressInfo?.address;
+          return server.server?.hostname;
         },
         async stop() {
-          return new Promise<void>((resolve, reject) => {
-            nodeServer.close((err) => {
-              if (err) {
-                reject(err);
-              } else {
-                resolve();
-              }
-            });
-          });
+          await server.stop();
         },
       };
-
-      return compatibleServer;
     },
   };
 };
 
 export type MagusRoutes = ReturnType<typeof createServer>["app"];
-export type MagusClient = ReturnType<typeof hc<MagusRoutes>>;

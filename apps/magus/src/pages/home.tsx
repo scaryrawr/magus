@@ -13,13 +13,13 @@ export const Home = () => {
         return;
       }
 
-      const res = await client.v0.chat.new.$post();
-      if (!res.ok) {
-        console.error("Failed to create new chat:", await res.text());
+      const res = await client.v0.chat.new.post();
+      if (res.error) {
+        console.error("Failed to create new chat:", res.error);
         return;
       }
 
-      const { chatId } = await res.json();
+      const { chatId } = res.data;
       void navigate(`/chat/${chatId}`, {
         state: { text },
       });

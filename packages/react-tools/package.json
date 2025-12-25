@@ -16,7 +16,7 @@
     "@magus/tools": "workspace:*",
     "ai": "catalog:",
     "cli-highlight": "^2.1.11",
-    "strip-ansi": "^7.1.0"
+    "strip-ansi": "^7.1.2"
   },
   "peerDependencies": {
     "@types/react": "catalog:ts",

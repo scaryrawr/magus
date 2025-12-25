@@ -7,7 +7,7 @@ export const langueModelToModelSelect = (model: LanguageModel | undefined): Mode
   }
 
   return {
-    provider: model.provider.replace(".chat", ""),
+    provider: model.provider.replace(/\.[^.]*$/, ""),
     id: model.modelId,
   };
 };

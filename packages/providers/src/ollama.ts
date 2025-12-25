@@ -1,4 +1,4 @@
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { createOpenAI } from "@ai-sdk/openai";
 import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
 import { z } from "zod";
 import type { MagusProvider, ModelInfo } from "./types";
@@ -78,7 +78,7 @@ export interface OllamaOptions {
 const DEFAULT_CONTEXT_LENGTH = 4096;
 
 export const createOllamaProvider = ({ origin = "http://localhost:11434" }: OllamaOptions = {}) => {
-  const ollama = createOpenAICompatible({
+  const ollama = createOpenAI({
     baseURL: `${origin}/v1`,
     name: "ollama",
   });

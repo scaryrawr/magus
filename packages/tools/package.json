@@ -10,7 +10,7 @@
   },
   "devDependencies": {
     "@types/bun": "catalog:ts",
-    "@types/turndown": "^5.0.5"
+    "@types/turndown": "^5.0.6"
   },
   "peerDependencies": {
     "typescript": "catalog:ts"
@@ -21,8 +21,8 @@
     "ai": "catalog:",
     "diff": "^8.0.2",
     "ignore": "^7.0.5",
-    "strip-ansi": "^7.1.0",
-    "turndown": "^7.2.1",
+    "strip-ansi": "^7.1.2",
+    "turndown": "^7.2.2",
     "vscode-languageserver-protocol": "^3.17.5",
     "vscode-uri": "^3.1.0",
     "zod": "catalog:"

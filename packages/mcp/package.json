@@ -10,9 +10,10 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.18.0",
+    "@ai-sdk/mcp": "^1.0.1",
+    "@modelcontextprotocol/sdk": "^1.25.1",
     "ai": "catalog:",
-    "dotenv": "^17.2.2",
+    "dotenv": "^17.2.3",
     "jsonc-parser": "^3.3.1",
     "zod": "catalog:"
   }

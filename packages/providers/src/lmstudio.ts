@@ -1,4 +1,4 @@
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { createOpenAI } from "@ai-sdk/openai";
 import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
 import { z } from "zod";
 import type { MagusProvider, ModelInfo } from "./types";
@@ -22,9 +22,10 @@ export interface LmStudioOptions {
 }
 
 export const createLmStudioProvider = ({ origin = "http://localhost:1234" }: LmStudioOptions = {}) => {
-  const lmstudio = createOpenAICompatible({
+  const lmstudio = createOpenAI({
     name: "lmstudio",
     baseURL: `${origin}/v1`,
+    apiKey: "lmstudio",
   });
 
   return {

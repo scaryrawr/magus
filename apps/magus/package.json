@@ -13,7 +13,7 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@ai-sdk/react": "^2.0.0",
+    "@ai-sdk/react": "^3.0.3",
     "@elysiajs/eden": "^1.4.5",
     "@magus/common-utils": "workspace:*",
     "@magus/lsp": "workspace:*",

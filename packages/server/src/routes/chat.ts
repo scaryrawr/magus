@@ -25,7 +25,7 @@ export const chatRouter = (state: ServerState) => {
 
         const messages = [...previousMessages, message];
         const result = streamText({
-          messages: convertToModelMessages(messages),
+          messages: await convertToModelMessages(messages),
           model: state.model,
           tools,
           stopWhen: ({ steps }) => steps.length > 9000,

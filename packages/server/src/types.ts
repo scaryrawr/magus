@@ -10,6 +10,8 @@ export const ChatUsageSchema = z.object({
   cachedInputTokens: z.number().optional(),
 });
 
+export type ChatUsage = z.infer<typeof ChatUsageSchema>;
+
 export const MagusChatSchema = z.object({
   title: z.string().optional(),
   // messages use AI SDK structure, opaque to us

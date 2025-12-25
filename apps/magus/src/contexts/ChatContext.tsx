@@ -1,5 +1,6 @@
+import type { ChatUsage } from "@magus/server";
 import { ChatUsageSchema } from "@magus/server";
-import type { ChatStatus, LanguageModelUsage } from "ai";
+import type { ChatStatus } from "ai";
 import React, { createContext, useCallback, useContext, useEffect, useReducer, useState } from "react";
 import { subscribeToSse } from "../utils/sseManager";
 import { useServerContext } from "./ServerProvider";
@@ -81,7 +82,7 @@ export const useSetChatId = () => useChatContext().setChatId;
 // Keep the SSE-based usage hook as it's stateless and independent
 export const useChatUsage = (chatId: string | undefined) => {
   const { server } = useServerContext();
-  const [usage, setUsage] = useState<LanguageModelUsage | null>(null);
+  const [usage, setUsage] = useState<ChatUsage | null>(null);
   useEffect(() => {
     if (!chatId) return;
 

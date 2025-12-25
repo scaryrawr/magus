@@ -16,9 +16,9 @@
   "dependencies": {
     "cli-highlight": "^2.1.11",
     "figlet": "catalog:ui",
-    "marked": "^16.2.1",
+    "marked": "^17.0.1",
     "marked-terminal": "^7.3.0",
-    "strip-ansi": "^7.1.0"
+    "strip-ansi": "^7.1.2"
   },
   "peerDependencies": {
     "@types/react": "catalog:ts",

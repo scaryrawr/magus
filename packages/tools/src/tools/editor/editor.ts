@@ -2,16 +2,10 @@ import { tool, type ToolSet } from "ai";
 import { createFile } from "./create";
 import { insert } from "./insert";
 import { stringReplace } from "./str_replace";
-import {
-  EditorInputSchema,
-  EditorOutputSchema,
-  type EditorInput,
-  type EditorOutput,
-  type EditorOutputPlugin,
-} from "./types";
+import { EditorInputSchema, EditorOutputSchema, type EditorInput, type EditorOutput } from "./types";
 import { viewFile } from "./view";
 
-export const createEditorTool = (plugins?: EditorOutputPlugin) => {
+export const createEditorTool = () => {
   const viewExample = JSON.stringify({ command: "view", path: "./path/to/file_or_directory" } satisfies EditorInput);
 
   const createExample = JSON.stringify({
@@ -51,16 +45,16 @@ export const createEditorTool = (plugins?: EditorOutputPlugin) => {
       execute: async (input): Promise<EditorOutput> => {
         switch (input.command) {
           case "view": {
-            return viewFile(input, plugins);
+            return viewFile(input);
           }
           case "create": {
-            return createFile(input, plugins);
+            return createFile(input);
           }
           case "insert": {
-            return insert(input, plugins);
+            return insert(input);
           }
           case "replace": {
-            return stringReplace(input, plugins);
+            return stringReplace(input);
           }
         }
       },

@@ -1,8 +1,8 @@
 import { tool, type ToolSet } from "ai";
 import { readdir, readFile, stat } from "node:fs/promises";
-import { ViewOutputSchema, ViewSchema, type EditorOutputPlugin, type ViewInput, type ViewOutput } from "./types";
+import { ViewOutputSchema, ViewSchema, type ViewInput, type ViewOutput } from "./types";
 
-export const viewFile = async ({ path, view_range }: ViewInput, plugins?: EditorOutputPlugin): Promise<ViewOutput> => {
+export const viewFile = async ({ path, view_range }: ViewInput): Promise<ViewOutput> => {
   const stats = await stat(path);
   if (stats.isDirectory()) {
     const files = await readdir(path);
@@ -11,18 +11,6 @@ export const viewFile = async ({ path, view_range }: ViewInput, plugins?: Editor
     };
   } else if (stats.isFile()) {
     let content = await readFile(path, "utf8");
-    const pluginResults = (
-      await Promise.all(
-        Object.entries(plugins || {}).map(async ([name, fn]) => {
-          const result = await fn(path);
-          return result
-            ? {
-                [name]: result,
-              }
-            : {};
-        }),
-      )
-    ).reduce((acc, val) => ({ ...acc, ...val }), {});
 
     if (view_range) {
       const lines = content.split("\n");
@@ -33,14 +21,13 @@ export const viewFile = async ({ path, view_range }: ViewInput, plugins?: Editor
 
     return {
       content,
-      ...pluginResults,
     };
   } else {
     throw new Error("Path is neither a file nor a directory.");
   }
 };
 
-export const createViewTool = (plugins?: EditorOutputPlugin) =>
+export const createViewTool = () =>
   ({
     view: tool({
       description: `Examine the contents of a file or directory.
@@ -51,7 +38,7 @@ export const createViewTool = (plugins?: EditorOutputPlugin) =>
       inputSchema: ViewSchema,
       outputSchema: ViewOutputSchema,
       execute: async (input): Promise<ViewOutput> => {
-        return await viewFile(input, plugins);
+        return await viewFile(input);
       },
     }),
   }) satisfies ToolSet;

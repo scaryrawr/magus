@@ -1,18 +1,14 @@
 import { tool, type ToolSet } from "ai";
 import { createTwoFilesPatch } from "diff";
 import { readFile, stat, writeFile } from "node:fs/promises";
-import {
-  DiffOutputSchema,
-  StringReplaceSchema,
-  type DiffOutput,
-  type EditorOutputPlugin,
-  type StringReplaceInput,
-} from "./types";
+import { DiffOutputSchema, StringReplaceSchema, type DiffOutput, type StringReplaceInput } from "./types";
 
-export const stringReplace = async (
-  { path, old_str, new_str, replace_all }: StringReplaceInput,
-  plugins?: EditorOutputPlugin,
-): Promise<DiffOutput> => {
+export const stringReplace = async ({
+  path,
+  old_str,
+  new_str,
+  replace_all,
+}: StringReplaceInput): Promise<DiffOutput> => {
   if (old_str === new_str) {
     throw new Error("No changes made: old_str and new_str are identical.");
   }
@@ -31,27 +27,13 @@ export const stringReplace = async (
   const updatedContent = replace_all ? content.replaceAll(old_str, new_str) : content.replace(old_str, new_str);
   await writeFile(path, updatedContent, "utf8");
 
-  const pluginResults = (
-    await Promise.all(
-      Object.entries(plugins || {}).map(async ([name, fn]) => {
-        const result = await fn(path);
-        return result
-          ? {
-              [name]: result,
-            }
-          : {};
-      }),
-    )
-  ).reduce((acc, val) => ({ ...acc, ...val }), {});
-
   const diff = createTwoFilesPatch(path, path, content, updatedContent);
   return {
-    ...pluginResults,
     diff,
   };
 };
 
-export const createStringReplaceTool = (plugins?: EditorOutputPlugin) =>
+export const createStringReplaceTool = () =>
   ({
     replace: tool({
       description: `Replace a specific string in a file with a new string.
@@ -60,7 +42,7 @@ export const createStringReplaceTool = (plugins?: EditorOutputPlugin) =>
       inputSchema: StringReplaceSchema,
       outputSchema: DiffOutputSchema,
       execute: async (input): Promise<DiffOutput> => {
-        return await stringReplace(input, plugins);
+        return await stringReplace(input);
       },
     }),
   }) satisfies ToolSet;

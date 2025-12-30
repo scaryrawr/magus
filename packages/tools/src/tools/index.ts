@@ -34,8 +34,6 @@ export { GlobInputSchema, GlobOutputSchema, createGlobTool } from "./glob";
 export type { GlobInput, GlobOutput, GlobToolSet } from "./glob";
 export { GrepInputSchema, GrepOutputSchema, createGrepTool, createSearchTool } from "./grep";
 export type { GrepInput, GrepOutput, GrepToolSet } from "./grep";
-export { LspDiagnosticsInputSchema, LspDiagnosticsOutputSchema, createLspDiagnosticsTool } from "./lsp";
-export type { LspDiagnosticsInput, LspDiagnosticsOutput, LspDiagnosticsToolSet } from "./lsp";
 export { ShellEphemeralInputSchema, ShellInputSchema, ShellOutputSchema, createShellTool } from "./shell";
 export type { ShellInput, ShellOutput, ShellToolSet } from "./shell";
 export {

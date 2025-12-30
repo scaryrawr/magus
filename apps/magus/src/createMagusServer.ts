@@ -1,7 +1,6 @@
 import { treaty } from "@elysiajs/eden";
 import { type MagusProvider } from "@magus/providers";
 import { createServer, MagusChatStore, ModelsResultSchema, type MagusRoutes } from "@magus/server";
-import type { EditorOutputPlugin } from "@magus/tools";
 import type { ToolSet } from "ai";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -11,7 +10,6 @@ export interface CreateMagusServerOptions {
   tools: ToolSet;
   providers: MagusProvider;
   systemPrompt: string;
-  plugins?: EditorOutputPlugin;
 }
 
 export type MagusClient = ReturnType<typeof treaty<MagusRoutes>>;

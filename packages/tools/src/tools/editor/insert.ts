@@ -2,18 +2,9 @@ import { tool, type ToolSet } from "ai";
 import { createTwoFilesPatch } from "diff";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
-import {
-  DiffOutputSchema,
-  InsertFileSchema,
-  type DiffOutput,
-  type EditorOutputPlugin,
-  type InsertFileInput,
-} from "./types";
+import { DiffOutputSchema, InsertFileSchema, type DiffOutput, type InsertFileInput } from "./types";
 
-export const insert = async (
-  { path, line, new_str }: InsertFileInput,
-  plugins?: EditorOutputPlugin,
-): Promise<DiffOutput> => {
+export const insert = async ({ path, line, new_str }: InsertFileInput): Promise<DiffOutput> => {
   let content = "";
 
   try {
@@ -51,34 +42,20 @@ export const insert = async (
   const updatedContent = lines.join("\n");
   await writeFile(path, updatedContent, "utf8");
 
-  const pluginResults = (
-    await Promise.all(
-      Object.entries(plugins || {}).map(async ([name, fn]) => {
-        const result = await fn(path);
-        return result
-          ? {
-              [name]: result,
-            }
-          : {};
-      }),
-    )
-  ).reduce((acc, val) => ({ ...acc, ...val }), {});
-
   const diff = createTwoFilesPatch(path, path, content, updatedContent);
   return {
-    ...pluginResults,
     diff,
   };
 };
 
-export const createInsertTool = (plugins?: EditorOutputPlugin) =>
+export const createInsertTool = () =>
   ({
     insert: tool({
       description: `Use this tool to insert text at a specific location in a file.`,
       inputSchema: InsertFileSchema,
       outputSchema: DiffOutputSchema,
       execute: async (input): Promise<DiffOutput> => {
-        return await insert(input, plugins);
+        return await insert(input);
       },
     }),
   }) satisfies ToolSet;

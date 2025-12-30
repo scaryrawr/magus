@@ -70,3 +70,8 @@ export type InsertFileInput = Omit<z.infer<typeof InsertFileSchema>, "command">;
 export type StringReplaceInput = Omit<z.infer<typeof StringReplaceSchema>, "command">;
 
 export type EditorOutputPlugin = Record<string, (path: string) => string | Promise<string>>;
+
+/**
+ * @deprecated EditorOutputPlugin is no longer supported. Output is always plain.
+ */
+export type _EditorOutputPlugin = EditorOutputPlugin;

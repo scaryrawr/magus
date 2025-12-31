@@ -4,7 +4,7 @@
   "module": "src/index.ts",
   "type": "module",
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsgo --noEmit",
     "test": "bun test"
   },
   "devDependencies": {
@@ -24,6 +24,6 @@
     "@types/react": "catalog:ts",
     "ink": "catalog:ui",
     "react": "catalog:ui",
-    "typescript": "catalog:ts"
+    "@typescript/native-preview": "catalog:ts"
   }
 }

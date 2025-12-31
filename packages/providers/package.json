@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "module": "src/index.ts",
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsgo --noEmit",
     "test": "bun test"
   },
   "dependencies": {
@@ -20,7 +20,7 @@
     "@types/bun": "catalog:ts"
   },
   "peerDependencies": {
-    "typescript": "catalog:ts",
+    "@typescript/native-preview": "catalog:ts",
     "zod": "catalog:"
   }
 }

@@ -84,6 +84,6 @@ bun run build
 - `bun run build` - Build all packages
 - `bun run test` - Run tests across all packages
 - `bun run test:coverage` - Run tests with coverage
-- `bun run typecheck` - Type check all packages
+- `bun run typecheck` - Type check all packages (via `tsgo` / TypeScript native preview)
 - `bun run lint` - Lint all files
 - `bun run format` - Format code with Prettier

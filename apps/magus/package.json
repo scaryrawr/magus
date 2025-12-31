@@ -9,7 +9,7 @@
   "scripts": {
     "build": "bun build --compile --minify --sourcemap ./src/main.ts --outfile dist/magus",
     "bundle": "bun run bundle.ts",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsgo --noEmit",
     "test": "bun test"
   },
   "dependencies": {
@@ -44,6 +44,6 @@
     "@types/bun": "catalog:ts"
   },
   "peerDependencies": {
-    "typescript": "catalog:ts"
+    "@typescript/native-preview": "catalog:ts"
   }
 }

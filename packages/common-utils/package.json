@@ -7,7 +7,7 @@
     "@types/bun": "catalog:ts"
   },
   "peerDependencies": {
-    "typescript": "catalog:ts"
+    "@typescript/native-preview": "catalog:ts"
   },
   "dependencies": {
     "ignore": "^7.0.5"

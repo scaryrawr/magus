@@ -7,7 +7,7 @@
     "@types/bun": "latest"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "@typescript/native-preview": "^7.0.0-dev"
   },
   "dependencies": {
     "@ai-sdk/mcp": "^1.0.1",

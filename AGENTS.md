@@ -6,7 +6,7 @@
 - `bun test --filter @magus/package-name` - run specific package tests
 - `bun test path/to/specific.test.ts` - run single test file
 - `bun test:coverage` - generate coverage report
-- `bun typecheck` - TypeScript checking across all packages
+- `bun typecheck` - TypeScript (tsgo) checking across all packages
 - `bun lint && bun format` - lint and format code
 - `bun run build` - build all packages
 
